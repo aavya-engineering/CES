@@ -1,0 +1,118 @@
+# ====================================================================
+# CES Platform — Comprehensive .gitignore
+# Prevents accidental commits of secrets, build outputs, node_modules,
+# logs, OS/editor files, and local runtime databases.
+# ====================================================================
+
+# --------------------------------------------------------------------
+# 1. Secrets, Credentials & Environment Files (CRITICAL)
+# --------------------------------------------------------------------
+.env
+.env.*
+*.env
+deploy/.env
+!.env.example
+!deploy/.env.example
+!ces-muster/muster-api/.env.example
+
+# Runtime credentials and output directories
+output/
+**/output/
+deploy/output/
+initial-admin.txt
+**/initial-admin.txt
+
+# SSL/TLS Certificates and Private Keys
+certs/
+**/certs/
+*.key
+*.pem
+*.crt
+*.cert
+*.pfx
+*.cer
+id_rsa
+id_ed25519
+
+# Onboarding and tenant key handoff documents
+CES-FOUNDER-TENANT-HANDOFF.md
+
+# --------------------------------------------------------------------
+# 2. Dependencies & Package Managers
+# --------------------------------------------------------------------
+node_modules/
+**/node_modules/
+
+# --------------------------------------------------------------------
+# 3. Build & Compiler Artifacts
+# --------------------------------------------------------------------
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+.next/
+.turbo/
+.vite/
+*.tsbuildinfo
+ces-planner/vite.config.js
+ces-planner/vite.config.d.ts
+
+# --------------------------------------------------------------------
+# 4. Logs & Diagnostic Traces
+# --------------------------------------------------------------------
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --------------------------------------------------------------------
+# 5. Testing & Code Coverage
+# --------------------------------------------------------------------
+coverage/
+**/coverage/
+.nyc_output/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+
+# --------------------------------------------------------------------
+# 6. Local Database & Engagement Storage
+# --------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+plan-data/
+**/plan-data/
+
+# --------------------------------------------------------------------
+# 7. IDE, Editor & OS System Files
+# --------------------------------------------------------------------
+# Operating System
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors & IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# Microsoft Office lock & temp files
+~$*
+~WRL*.tmp
+
+# --------------------------------------------------------------------
+# 8. Nested Standalone Repositories / Archived Branches
+# --------------------------------------------------------------------
+tenant-stacksim/
+ces-tester/
+ces-strategy/
+cse-eo.archived/

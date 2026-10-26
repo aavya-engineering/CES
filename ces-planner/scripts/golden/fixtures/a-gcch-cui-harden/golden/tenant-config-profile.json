@@ -1,0 +1,96 @@
+{
+  "ces": {
+    "artifact": "tenant_config_profile",
+    "generated_on": "2026-01-15",
+    "tcp_bank_version": "1.0",
+    "version": "1.0"
+  },
+  "tenant_config": {
+    "conditional_access": {
+      "ca_naming_convention": "CAP-{Number}-{Purpose}",
+      "existing_policy_count": 4,
+      "named_locations": []
+    },
+    "data_protection": {
+      "cui_sharepoint_sites": [
+        "https://fixture-a.sharepoint.us/sites/CUI-Programs"
+      ],
+      "cui_teams_channels": [
+        "CUI Programs"
+      ],
+      "dlp_policy_convention": "DLPX-{Scope}-{Action}",
+      "sensitivity_label_convention": "FXA-{Classification}-{Handling}"
+    },
+    "device_management": {
+      "compliance_policy_convention": "CMP-{Platform}-{Level}",
+      "device_naming_convention": "FXA-{Type}-{Number}",
+      "enrollment_type": "hybrid_join",
+      "platforms_in_scope": [
+        "Windows",
+        "macOS"
+      ]
+    },
+    "group_architecture": {
+      "distribution_group_convention": "DIST-{Department}",
+      "group_strategy": "mixed",
+      "key_groups": {},
+      "security_group_convention": "GRP-{Function}-{Department}"
+    },
+    "identity": {
+      "cloud_environment": "gcc_high",
+      "custom_domains": [
+        "fixture-a.example",
+        "eng.fixture-a.example"
+      ],
+      "display_name": "Fixture A GCC High Tenant",
+      "primary_domain": "fixture-a.example",
+      "tenant_id": "11111111-2222-4333-8444-555555555555"
+    },
+    "identity_architecture": {
+      "admin_naming_convention": "a-{firstname}.{lastname}@{domain}",
+      "break_glass_accounts": [
+        "bg-alpha@fixture-a.example",
+        "bg-bravo@fixture-a.example"
+      ],
+      "directory_sync_enabled": true,
+      "identity_provider": "hybrid_cloud_sync",
+      "service_account_naming_convention": "sa-{appname}@{domain}"
+    },
+    "licensing": {
+      "addon_skus": [],
+      "license_count": 85,
+      "primary_sku": "Microsoft 365 G5",
+      "service_activations": {
+        "defender_for_endpoint": true,
+        "exchange_online": true,
+        "intune": true,
+        "sharepoint_online": true,
+        "teams": true
+      }
+    },
+    "monitoring": {
+      "alert_rule_convention": "ALR-{Severity}-{Source}-{Description}",
+      "data_connectors": [
+        "Azure Active Directory",
+        "Microsoft 365",
+        "Microsoft Defender for Endpoint"
+      ],
+      "log_analytics_workspace_id": "66666666-7777-4888-9999-000000000000",
+      "sentinel_resource_group": "fxa-rg-security",
+      "sentinel_workspace_name": "fxa-law-prod"
+    },
+    "privileged_access": {
+      "break_glass_exclusion_group": "GRP-BreakGlass-Excluded",
+      "compliance_admins": [
+        "comp1@fixture-a.example"
+      ],
+      "global_admins": [
+        "ga1@fixture-a.example"
+      ],
+      "pim_enabled": false,
+      "security_admins": [
+        "sec1@fixture-a.example"
+      ]
+    }
+  }
+}

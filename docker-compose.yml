@@ -1,0 +1,77 @@
+# CES Platform — Docker Compose configuration
+# Suitable for both root-level execution and server deployment.
+# Run with: docker compose up -d --build
+# Ensure .env is created first (see .env.example)
+
+name: ces
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ces-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-muster_db}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - ces-internal
+
+  api:
+    build:
+      context: .
+      target: api
+    image: ces-api:${CES_VERSION:-latest}
+    container_name: ces-api
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-muster_db}
+      DB_HOST: db
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
+      INITIAL_TENANT_NAME: ${INITIAL_TENANT_NAME:-Blue Heron Defense}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      MUSTER_TRUST_PROXY: "1"
+    volumes:
+      - ./output:/output
+      - pipeline:/data/pipeline
+      - tenants:/data/tenants
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ces-internal
+
+  web:
+    build:
+      context: .
+      target: web
+    image: ces-web:${CES_VERSION:-latest}
+    container_name: ces-web
+    restart: unless-stopped
+    ports:
+      # Bind to 127.0.0.1:8080 when running behind host reverse proxy (Nginx with ZeroSSL),
+      # or 0.0.0.0:8080 for direct access.
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-8080}:80"
+    depends_on:
+      - api
+    networks:
+      - ces-internal
+
+networks:
+  ces-internal:
+    driver: bridge
+
+volumes:
+  dbdata:
+  pipeline:
+  tenants:

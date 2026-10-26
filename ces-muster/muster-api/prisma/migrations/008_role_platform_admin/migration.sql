@@ -1,0 +1,11 @@
+-- Migration: 008_role_platform_admin (RBAC-01, Aavya 2026-10-24; BHD role review PB-01)
+--
+-- Adds the platform_admin role: manages users and reads the audit log; holds no
+-- operator or approver power and no access to customer data (enforced in the
+-- API: every customer-data route lists its roles explicitly, and
+-- src/middleware/platformAdminFence.ts refuses platform_admin on /api/* outside
+-- user administration).
+--
+-- Kept in its own migration: a new enum value cannot be used in the same
+-- transaction that adds it.
+ALTER TYPE "Role" ADD VALUE IF NOT EXISTS 'platform_admin';

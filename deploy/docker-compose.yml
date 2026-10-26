@@ -1,0 +1,58 @@
+# CES platform — server deployment (also works on a laptop for a test run).
+#   cd deploy && docker compose --env-file .env up -d --build
+# Only the web container publishes a port. The database and API stay on the
+# internal Docker network. Aavya, 2026-10-26 (DEP-01).
+name: ces
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: muster_db
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 30
+
+  api:
+    build:
+      context: ..
+      target: api
+    image: ces-api:${CES_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
+      INITIAL_TENANT_NAME: ${INITIAL_TENANT_NAME:-Blue Heron Defense}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      MUSTER_TRUST_PROXY: "1"
+    volumes:
+      - ./output:/output
+      - pipeline:/data/pipeline
+      - tenants:/data/tenants
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      target: web
+    image: ces-web:${CES_VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  dbdata:
+  pipeline:
+  tenants:

@@ -1,0 +1,127 @@
+{
+  "ces": {
+    "artifact": "infrastructure_manifest",
+    "generated_on": "2026-01-15T12:00:00.000Z",
+    "intent": "CMMC L2 Sentinel-only infrastructure specification for fxa-rg-security",
+    "version": "1.0.0"
+  },
+  "infrastructure_manifest": {
+    "automation": [],
+    "diagnostics": [],
+    "identity": [],
+    "logging": [
+      {
+        "control_ids": [
+          "AU.L2-3.3.1"
+        ],
+        "depends_on": [],
+        "name": "fxa-rg-security",
+        "properties": {
+          "location": "usgovvirginia"
+        },
+        "registry_entry_ids": [
+          "AZ-FOUND-001"
+        ],
+        "resource_id": "log-rg",
+        "resource_type": "resource_group"
+      },
+      {
+        "control_ids": [
+          "AU.L2-3.3.1",
+          "AU.L2-3.3.2",
+          "SI.L2-3.14.6"
+        ],
+        "depends_on": [
+          "log-rg"
+        ],
+        "name": "fxa-law-prod",
+        "properties": {
+          "location": "usgovvirginia",
+          "resource_group": "fxa-rg-security",
+          "retention_days": 365,
+          "sku": "PerGB2018"
+        },
+        "registry_entry_ids": [
+          "AZ-LOG-001"
+        ],
+        "resource_id": "log-law",
+        "resource_type": "log_analytics_workspace"
+      },
+      {
+        "control_ids": [
+          "AU.L2-3.3.1",
+          "SI.L2-3.14.1",
+          "SI.L2-3.14.6"
+        ],
+        "depends_on": [
+          "log-law"
+        ],
+        "name": "sentinel",
+        "properties": {
+          "content_hub_solutions": [
+            "CMMC 2.0"
+          ],
+          "workspace": "fxa-law-prod"
+        },
+        "registry_entry_ids": [
+          "AZ-SEN-001"
+        ],
+        "resource_id": "log-sentinel",
+        "resource_type": "sentinel_onboarding"
+      }
+    ],
+    "network": [],
+    "provenance": [
+      {
+        "field": "logging.law_name",
+        "rule": "From TCP monitoring.sentinel_workspace_name or convention {prefix}-law-prod",
+        "source": "tcp",
+        "value": "fxa-law-prod"
+      },
+      {
+        "field": "logging.retention_days",
+        "rule": "WORM retention from SI evidence retention or default 2557",
+        "source": "tcp",
+        "value": 365
+      },
+      {
+        "field": "infrastructure_model",
+        "rule": "Minimal Sentinel-only manifest per SI Baseline infrastructure_model",
+        "source": "si_baseline",
+        "value": "m365_sentinel"
+      }
+    ],
+    "registry_coverage": {
+      "coverage_pct": 6,
+      "covered_entry_ids": [
+        "AZ-FOUND-001",
+        "AZ-LOG-001",
+        "AZ-SEN-001"
+      ],
+      "total_infra_entries": 53,
+      "uncovered_entry_ids": []
+    },
+    "security": [],
+    "stamper_variable_map": {
+      "automationAccountName": "",
+      "cmkKeyName": "",
+      "eoAppDisplayName": "EvidenceOps-Automation",
+      "fwSubnetCidr": "",
+      "identitySubnetCidr": "",
+      "keyVaultName": "",
+      "lawWorkspaceName": "fxa-law-prod",
+      "location": "usgovvirginia",
+      "mgmtSubnetCidr": "",
+      "nsgPeName": "",
+      "peSubnetCidr": "",
+      "resourceGroup": "fxa-rg-security",
+      "storageAccountName": "",
+      "subnetPeCidr": "",
+      "subnetPeName": "",
+      "subscriptionId": "sub_mkfedmo0_9t22o5w",
+      "vnetCidr": "",
+      "vnetName": ""
+    },
+    "storage": []
+  }
+}

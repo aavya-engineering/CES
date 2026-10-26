@@ -1,0 +1,589 @@
+/*
+ * SPDX-FileCopyrightText: Blue Heron Defense LLC and its licensors. All rights reserved.
+ * SPDX-License-Identifier: LicenseRef-BHD-Proprietary
+ * See LICENSE and TERMS.md.
+ *
+ * UI-03 sign-in page, matched to the Aavya wireframe "1. CES Compliance Security
+ * Login" (1536 × 1024): left = the wireframe artwork, right = light panel with a
+ * rounded card. Colours sampled from the wireframe; dark mode keeps the same
+ * layout on the CES dark tokens.
+ */
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The CUI designation banner is hidden on the sign-in page only (no CUI shown here). */
+body.ces-signin::before {
+  display: none;
+}
+
+.signin-page {
+  --si-navy: #0f1d3d;
+  --si-text: #1e2a3d;
+  --si-muted: #4f5d73;
+  --si-label: #1b2433;
+  --si-border: #d3dae5;
+  --si-field-icon: #6b7a90;
+  --si-blue: #0b5fcf; /* wireframe button #0060cd; 5.6:1 with white */
+  --si-blue-hover: #0a52b3;
+  --si-tab-bg: #f1f4f8;
+  --si-tab-active-bg: #e7f0fd;
+  --si-tab-active-border: #9cc2f5;
+  --si-card: #ffffff;
+  --si-side: #f5f7fa;
+  --si-notice: #f2f5f9;
+  display: grid;
+  grid-template-columns: min(58vw, calc(100vh * 892 / 1024)) minmax(0, 1fr);
+  min-height: 100vh;
+  font-family: var(--co-font-sans);
+  color: var(--si-text);
+  background: var(--si-side);
+}
+[data-theme='dark'] .signin-page {
+  --si-navy: #f2f6fc;
+  --si-text: #e6ecf5;
+  --si-muted: #a7b4c8;
+  --si-label: #e6ecf5;
+  --si-border: #33465f;
+  --si-field-icon: #9aa9be;
+  --si-blue: #2f6fe0;
+  --si-blue-hover: #4682ea;
+  --si-tab-bg: #18253b;
+  --si-tab-active-bg: #1d3358;
+  --si-tab-active-border: #3b6fc4;
+  --si-card: #121c2e;
+  --si-side: #0b1220;
+  --si-notice: #18253b;
+}
+
+/* ── Left: the wireframe artwork ─────────────────────────────────────────── */
+.signin-hero {
+  position: relative;
+  min-height: 100vh;
+  background: #071a33;
+  overflow: hidden;
+}
+.signin-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+/* ── Right: light panel with soft line waves, card centred ───────────────── */
+.signin-side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 40px 32px;
+  background-color: var(--si-side);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='1000' viewBox='0 0 640 1000'><g fill='none' stroke='%23c9d3e1' stroke-opacity='0.45' stroke-width='1'><path d='M640 40 C520 120 470 260 600 360'/><path d='M640 70 C510 150 455 290 590 395'/><path d='M640 100 C500 180 440 320 580 430'/><path d='M640 130 C490 210 425 350 570 465'/><path d='M0 760 C120 700 220 760 260 860 S330 1000 330 1000'/><path d='M0 790 C110 735 205 790 240 885 S300 1000 300 1000'/><path d='M0 820 C100 770 190 820 220 910 S270 1000 270 1000'/><path d='M640 820 C560 860 520 930 540 1000'/><path d='M640 850 C575 885 545 945 560 1000'/></g></svg>");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+[data-theme='dark'] .signin-side {
+  background-image: none;
+}
+.signin-theme {
+  position: absolute;
+  top: 22px;
+  right: 40px;
+}
+.signin-theme-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  color: var(--si-navy);
+  background: var(--si-card);
+  border: 1px solid var(--si-border);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(15, 29, 61, 0.06);
+  cursor: pointer;
+}
+.signin-theme-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 22px 0 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: inherit;
+  background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7a90' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right center;
+  border: 0;
+  cursor: pointer;
+}
+.signin-theme-select:focus-within {
+  outline: 2px solid var(--si-blue);
+  outline-offset: 2px;
+}
+
+.signin-card {
+  width: 100%;
+  max-width: 540px;
+  padding: 34px 40px 28px;
+  background: var(--si-card);
+  border: 1px solid var(--si-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(15, 29, 61, 0.08);
+}
+.signin-card-brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.signin-card-name {
+  font-family: var(--co-font-sans);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--si-navy);
+}
+.signin-card-sub {
+  margin-top: 4px;
+  font-size: 18px;
+  color: var(--si-navy);
+}
+.signin-title {
+  margin: 26px 0 6px;
+  font-family: var(--co-font-sans);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--si-navy);
+}
+.signin-intro {
+  margin: 0 0 24px;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--si-muted);
+}
+
+/* Method switch: two equal pills on a light track */
+.signin-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 22px;
+  background: var(--si-tab-bg);
+  border-radius: 10px;
+}
+.signin-methods button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--si-label);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.signin-methods button.is-active {
+  color: var(--si-blue);
+  background: var(--si-tab-active-bg);
+  border-color: var(--si-tab-active-border);
+}
+[data-theme='dark'] .signin-methods button.is-active {
+  color: #a9c6ff;
+}
+
+/* Fields */
+.signin-form {
+  display: flex;
+  flex-direction: column;
+}
+.signin-form label {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--si-label);
+}
+.signin-field {
+  position: relative;
+  margin-bottom: 20px;
+}
+.signin-field-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--si-field-icon);
+  pointer-events: none;
+}
+.signin-form input[type='email'],
+.signin-form input[type='password'],
+.signin-form input[type='text'] {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  margin: 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--si-text);
+  background: var(--si-card);
+  border: 1px solid var(--si-border);
+  border-radius: 8px;
+}
+.signin-form > input[type='email'],
+.signin-form > input[type='password'],
+.signin-form > input[type='text'] {
+  margin-bottom: 18px; /* change-password form uses bare inputs */
+}
+.signin-field input {
+  padding-left: 48px !important;
+}
+.signin-field input[autocomplete='current-password'] {
+  padding-right: 52px !important;
+}
+.signin-form input::placeholder {
+  color: #7a879a;
+}
+.signin-form input[aria-invalid='true'] {
+  border-color: var(--co-violation);
+}
+.signin-form input:focus-visible,
+.signin-methods button:focus-visible,
+.signin-link:focus-visible,
+.signin-reveal:focus-visible,
+.signin-submit:focus-visible,
+.signin-microsoft:focus-visible,
+.signin-back:focus-visible,
+.signin-offline:focus-visible {
+  outline: 2px solid var(--si-blue);
+  outline-offset: 2px;
+}
+.signin-reveal {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--si-label);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.signin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -2px 0 22px;
+}
+.signin-form .signin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.signin-check input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--si-blue);
+}
+.signin-link {
+  padding: 4px 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--si-blue);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+[data-theme='dark'] .signin-link {
+  color: #8fb4ff;
+}
+.signin-link:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.signin-submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 52px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--si-blue);
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.signin-submit:hover:not(:disabled) {
+  background: var(--si-blue-hover);
+}
+.signin-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.signin-submit svg {
+  position: absolute;
+  right: 18px;
+}
+.signin-divider {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 18px 34px;
+  font-size: 13px;
+  color: var(--si-muted);
+}
+.signin-divider::before,
+.signin-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--si-border);
+}
+.signin-microsoft {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--si-navy);
+  background: var(--si-card);
+  border: 1px solid var(--si-border);
+  border-radius: 7px;
+  cursor: pointer;
+}
+.signin-microsoft[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* Notices and messages */
+.signin-notice {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 30px -14px 0;
+  padding: 18px 20px;
+  font-size: 13.5px;
+  background: var(--si-notice);
+  border-radius: 10px;
+}
+.signin-notice svg {
+  flex: none;
+  margin-top: 1px;
+}
+.signin-notice strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+  color: var(--si-navy);
+}
+.signin-notice p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--si-muted);
+}
+.signin-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--si-text);
+  background: var(--co-review-bg);
+  border-left: 3px solid var(--co-review);
+  border-radius: 8px;
+}
+.signin-error {
+  margin: -6px 0 16px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--co-violation);
+  background: var(--co-violation-bg);
+  border-left: 3px solid var(--co-violation);
+  border-radius: 8px;
+}
+.signin-caption {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--si-muted);
+}
+.signin-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--si-blue);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.signin-offline {
+  max-width: 540px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--si-muted);
+  text-align: center;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.signin-offline:hover {
+  color: var(--si-blue);
+}
+
+/* ── Narrow screens: card first, artwork below at its own proportions ────── */
+@media (max-width: 900px) {
+  .signin-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .signin-side {
+    order: -1;
+    padding: 76px 16px 24px;
+  }
+  .signin-theme {
+    right: 16px;
+    top: 16px;
+  }
+  .signin-card {
+    padding: 26px 20px 22px;
+  }
+  .signin-card-name {
+    font-size: 38px;
+  }
+  .signin-title {
+    font-size: 28px;
+  }
+  .signin-methods button {
+    font-size: 14px;
+    gap: 6px;
+  }
+  .signin-notice {
+    margin: 26px 0 0;
+  }
+  .signin-hero {
+    min-height: 0;
+    aspect-ratio: 892 / 1024;
+  }
+}
+
+/* ── Fit a 900 px-tall laptop screen like the wireframe (card ≈ 86 % of height) ── */
+@media (min-width: 901px) {
+  .signin-hero {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    min-height: 0;
+  }
+  .signin-side {
+    padding: 72px 32px 20px;
+    gap: 10px;
+  }
+  .signin-card {
+    max-width: 500px;
+    padding: 26px 34px 22px;
+  }
+  .signin-card-brand svg {
+    width: 54px;
+    height: 60px;
+  }
+  .signin-card-name {
+    font-size: 40px;
+  }
+  .signin-card-sub {
+    font-size: 16.5px;
+  }
+  .signin-title {
+    margin: 18px 0 4px;
+    font-size: 28px;
+  }
+  .signin-intro {
+    margin-bottom: 18px;
+    font-size: 15.5px;
+  }
+  .signin-methods {
+    margin-bottom: 16px;
+  }
+  .signin-methods button {
+    min-height: 42px;
+    font-size: 14px;
+  }
+  .signin-form label {
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+  .signin-field {
+    margin-bottom: 14px;
+  }
+  .signin-form input[type='email'],
+  .signin-form input[type='password'],
+  .signin-form input[type='text'] {
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .signin-row {
+    margin-bottom: 16px;
+  }
+  .signin-form .signin-check,
+  .signin-link {
+    font-size: 15px;
+  }
+  .signin-submit,
+  .signin-microsoft {
+    min-height: 50px;
+    font-size: 16px;
+  }
+  .signin-divider {
+    margin: 12px 34px;
+  }
+  .signin-notice {
+    margin-top: 20px;
+    padding: 14px 18px;
+    font-size: 13px;
+  }
+}

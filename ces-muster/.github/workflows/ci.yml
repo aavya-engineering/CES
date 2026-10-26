@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run test:coverage
+      - run: npm run check:drift
+      - run: npx playwright install chromium --with-deps
+      - run: npm run test:e2e
+
+  # MG-20 / MG-06: muster-api suite against a real PostgreSQL, run as the
+  # least-privilege app role so the live RLS tests execute (not skip).
+  # muster-api resolves sibling repos at runtime and in tests (ces-shared,
+  # ces-tenant, ces-stamper sources, tenant-stacksim dist), so the job
+  # rebuilds the documented nested layout (onboarding guide ch. 03):
+  #   ces/ (ces-mono) · ces/ces-muster · ces/ces-tenant · ces/tenant-stacksim
+  # TBD (BHD): a read-only token for the private org, stored as the
+  # CES_ORG_READ_TOKEN secret.
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: muster_db
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      ADMIN_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/muster_db
+      APP_DB_PASSWORD: ci-only-app-password
+      DATABASE_URL: postgresql://muster_app:ci-only-app-password@localhost:5432/muster_db
+      JWT_SECRET: ci-only-jwt-secret
+      REQUIRE_LIVE_DB: '1'
+      CES_PIPELINE_ROOT: ${{ github.workspace }}/ces-pipeline
+      CES_TENANT_ROOT: ${{ github.workspace }}/ces-tenants
+    steps:
+      - name: Checkout ces-mono (workspace root)
+        uses: actions/checkout@v4
+        with:
+          repository: blue-heron-defense-CES/ces-mono
+          token: ${{ secrets.CES_ORG_READ_TOKEN }}
+          path: ces
+      - name: Checkout ces-muster (this repository)
+        uses: actions/checkout@v4
+        with:
+          path: ces/ces-muster
+      - name: Checkout ces-tenant
+        uses: actions/checkout@v4
+        with:
+          repository: blue-heron-defense-CES/ces-tenant
+          token: ${{ secrets.CES_ORG_READ_TOKEN }}
+          path: ces/ces-tenant
+      - name: Checkout tenant-stacksim
+        uses: actions/checkout@v4
+        with:
+          repository: blue-heron-defense-CES/ces-stacksim
+          token: ${{ secrets.CES_ORG_READ_TOKEN }}
+          path: ces/tenant-stacksim
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build ces-tenant
+        working-directory: ces/ces-tenant
+        run: npm ci && npm run build
+      - name: Install ces-mono workspaces and build ces-shared
+        working-directory: ces
+        run: npm ci && npm run build -w ces-shared
+      - name: Build tenant-stacksim
+        working-directory: ces/tenant-stacksim
+        run: npm ci && npm run build
+      - name: Install muster-api
+        working-directory: ces/ces-muster/muster-api
+        run: npm ci && npx prisma generate
+      - name: Migrate as the admin role
+        working-directory: ces/ces-muster/muster-api
+        run: DATABASE_URL="$ADMIN_DATABASE_URL" npx prisma migrate deploy
+      - name: Bootstrap the least-privilege app role (MG-06)
+        working-directory: ces/ces-muster/muster-api
+        run: >-
+          psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1
+          -v app_password="'$APP_DB_PASSWORD'"
+          -f scripts/bootstrap-app-role.sql
+      - name: Seed RLS fixtures as the app role
+        working-directory: ces/ces-muster/muster-api
+        run: npm run seed:rls
+      - name: Test muster-api (live RLS tests must run)
+        working-directory: ces/ces-muster/muster-api
+        run: npm test
+      - name: Startup guard refuses a BYPASSRLS role (MG-06)
+        working-directory: ces/ces-muster/muster-api
+        run: |
+          npm run build
+          set +e
+          DATABASE_URL="$ADMIN_DATABASE_URL" PORT=4111 timeout 30 node dist/server.js
+          code=$?
+          set -e
+          if [ "$code" -ne 1 ]; then echo "expected exit 1 when connected as postgres, got $code"; exit 1; fi
+      - name: Startup guard accepts the app role (MG-06)
+        working-directory: ces/ces-muster/muster-api
+        run: |
+          PORT=4112 node dist/server.js > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if grep -q 'listening on port 4112' server.log; then kill %1; exit 0; fi
+            sleep 1
+          done
+          cat server.log; exit 1

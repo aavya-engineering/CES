@@ -1,0 +1,20 @@
+{
+  "_comment": "MG-04 parity allow-list. Paths a Muster-vs-Planner comparison may ignore, each with a reason and the decision that permits it. The Planner golden check (golden:check) does NOT use this file: Planner goldens must match byte for byte. The Muster-side comparator (MG-04, Muster PR) reads it. Every entry needs a BHD decision reference; do not add entries without one.",
+  "version": 1,
+  "entries": [
+    {
+      "artifact": "mission-plan.json",
+      "path": "outputs.cost_proposal_sow",
+      "reason": "Pricing is out of scope for Muster (BHD decision D1). Muster omits the block; Planner still generates it.",
+      "decision": "D1 / MS-01",
+      "status": "proposed — confirm with BHD"
+    },
+    {
+      "artifact": "*",
+      "path": "ces.generated_on",
+      "reason": "Generation timestamp; goldens use the fixture clock, Muster uses run time.",
+      "decision": "harness convention",
+      "status": "proposed — confirm with BHD"
+    }
+  ]
+}

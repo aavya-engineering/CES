@@ -1,0 +1,11 @@
+# Shared reference data is byte-compared across repos (parity tests): keep LF on every checkout
+ces-shared/src/data/*.json text eol=lf
+# MG-04 Planner goldens are byte-compared by golden:check: keep LF on every checkout
+ces-planner/scripts/golden/fixtures/**/golden/*.json text eol=lf
+# Deployment (DEP-01): scripts run inside Linux containers need LF even on a
+# Windows checkout; Windows launchers keep CRLF.
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker/** text eol=lf
+deploy/*.bat text eol=crlf
+deploy/*.ps1 text eol=crlf

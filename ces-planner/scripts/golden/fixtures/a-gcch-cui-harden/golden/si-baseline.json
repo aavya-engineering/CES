@@ -1,0 +1,88 @@
+{
+  "ces": {
+    "artifact": "si_baseline_output",
+    "cesId": "ces-fixture0000a",
+    "generated_on": "2026-01-15",
+    "intent": "Strategic Intent Baseline for CMMC compliance assessment",
+    "version": "1.0.0"
+  },
+  "si_baseline": {
+    "assessment": {
+      "affirmation_obligations": [
+        "Annual affirmation of continued compliance"
+      ],
+      "assessment_body": {
+        "assessment_body": "c3pao",
+        "assessment_route": "certification"
+      },
+      "assessment_route": {
+        "assessment_body": "c3pao",
+        "assessment_route": "certification"
+      },
+      "certification_timing_goal": {
+        "driver": "Synthetic fixture: option-year deadline",
+        "goal_type": "within_days",
+        "within_days": 270
+      }
+    },
+    "dependencies": {
+      "budget_constraints": "",
+      "customer_equipment_count": 3,
+      "fedramp_package_ids": [],
+      "infrastructure_model": "m365_sentinel",
+      "license_tier": "g5",
+      "physical_facility_count": 2,
+      "schedule_constraints": "",
+      "tenant_model_preference": "gcc_high",
+      "user_count": 85
+    },
+    "evidence": {
+      "evidence_collection_mode": "manual",
+      "evidence_posture_target": "c3pao_ready",
+      "retention_target_days": 365
+    },
+    "governance": {
+      "affirming_official": "Not specified",
+      "audit_interface_owner": "Not specified",
+      "change_control_owner": "Not specified",
+      "evidence_owner_roles": [
+        "Compliance Officer"
+      ]
+    },
+    "operations": {
+      "byod_posture": "allowed_mdm",
+      "collaboration_mode": "mixed",
+      "cui_endpoint_posture": "managed_endpoints",
+      "devops_touches_cui": false,
+      "maintenance_posture": "managed_nonlocal",
+      "mobile_device_presence": "company_managed_only",
+      "remote_access_posture": "vpn_only",
+      "removable_media_posture": "allowed_encrypted",
+      "wireless_posture": "managed_wireless"
+    },
+    "risk_acceptance": {
+      "known_risk_tolerances": [],
+      "poam_policy_intent": "poam_if_allowed",
+      "risk_acceptance_authority": "Not specified"
+    },
+    "scope": {
+      "boundary_strategy": "hybrid_boundary",
+      "deployment_posture": "hybrid",
+      "external_service_providers": [],
+      "in_scope_endpoints_estimate": 0,
+      "in_scope_users_estimate": 0,
+      "specialized_assets_present": false
+    },
+    "target": {
+      "cui_presence": "cui_present",
+      "cui_types": [
+        "cui_basic",
+        "export_controlled"
+      ],
+      "regulated_data_notes": [
+        "itar"
+      ],
+      "target_cmmc_level": "L2"
+    }
+  }
+}

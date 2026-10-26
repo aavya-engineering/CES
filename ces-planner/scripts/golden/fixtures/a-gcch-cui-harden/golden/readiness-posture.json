@@ -1,0 +1,751 @@
+{
+  "ces": {
+    "artifact": "CES_READINESS_POSTURE",
+    "as_of_date": "2026-01-15",
+    "cesId": "ces-fixture0000a",
+    "constraints": [],
+    "control_status_summary": {
+      "level": "L2",
+      "met": 0,
+      "not_met": 25,
+      "partial": 64,
+      "unknown": 39
+    },
+    "evidence_index": [],
+    "generated_on": "2026-01-15T12:00:00.000Z",
+    "key_findings": [
+      {
+        "impacts_requirements": [
+          "MP.L1-3.8.3",
+          "PE.L1-3.10.1",
+          "PE.L1-3.10.3",
+          "PE.L1-3.10.4",
+          "PE.L1-3.10.5",
+          "IR.L2-3.6.1",
+          "IR.L2-3.6.2",
+          "IR.L2-3.6.3",
+          "MP.L2-3.8.1",
+          "MP.L2-3.8.2",
+          "MP.L2-3.8.3",
+          "MP.L2-3.8.4",
+          "MP.L2-3.8.5",
+          "MP.L2-3.8.6",
+          "MP.L2-3.8.7",
+          "MP.L2-3.8.8",
+          "MP.L2-3.8.9",
+          "PS.L2-3.9.1",
+          "PS.L2-3.9.2",
+          "PE.L2-3.10.1",
+          "PE.L2-3.10.2",
+          "PE.L2-3.10.3",
+          "PE.L2-3.10.4",
+          "PE.L2-3.10.5",
+          "PE.L2-3.10.6"
+        ],
+        "severity": "critical",
+        "statement": "25 requirement(s) are currently NOT MET and require remediation."
+      },
+      {
+        "impacts_requirements": [
+          "AC.L2-3.1.12",
+          "AC.L2-3.1.13",
+          "AC.L2-3.1.14",
+          "AC.L2-3.1.15",
+          "AC.L1-3.1.1",
+          "AC.L1-3.1.2",
+          "AC.L1-3.1.20",
+          "AC.L1-3.1.22",
+          "IA.L1-3.5.1",
+          "IA.L1-3.5.2",
+          "AC.L2-3.1.1",
+          "AC.L2-3.1.2",
+          "AC.L2-3.1.3",
+          "AC.L2-3.1.4",
+          "AC.L2-3.1.5",
+          "AC.L2-3.1.6",
+          "AC.L2-3.1.7",
+          "AC.L2-3.1.8",
+          "AC.L2-3.1.9",
+          "AC.L2-3.1.10",
+          "AC.L2-3.1.11",
+          "AC.L2-3.1.16",
+          "AC.L2-3.1.17",
+          "AC.L2-3.1.18",
+          "AC.L2-3.1.19",
+          "AC.L2-3.1.20",
+          "AC.L2-3.1.21",
+          "AC.L2-3.1.22",
+          "IA.L2-3.5.1",
+          "IA.L2-3.5.2",
+          "IA.L2-3.5.3",
+          "IA.L2-3.5.4",
+          "IA.L2-3.5.5",
+          "IA.L2-3.5.6",
+          "IA.L2-3.5.7",
+          "IA.L2-3.5.8",
+          "IA.L2-3.5.9",
+          "IA.L2-3.5.10",
+          "IA.L2-3.5.11"
+        ],
+        "severity": "medium",
+        "statement": "39 requirement(s) have UNKNOWN status and need further investigation."
+      }
+    ],
+    "requirement_results": [
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.12",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.13",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.14",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.15",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "FOUNDATION",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.6",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.7",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.8",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AU.L2-3.3.9",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.10",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.11",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L1-3.1.1",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L1-3.1.2",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L1-3.1.20",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L1-3.1.22",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L1-3.5.1",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L1-3.5.2",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L1-3.8.3",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L1-3.10.1",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L1-3.10.3",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L1-3.10.4",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L1-3.10.5",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L1-3.13.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L1-3.13.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L1-3.14.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L1-3.14.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L1-3.14.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L1-3.14.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.1",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.2",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.3",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.4",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.5",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.6",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.7",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.8",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.9",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.10",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.11",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.16",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.17",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.18",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.19",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.20",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.21",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AC.L2-3.1.22",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AT.L2-3.2.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AT.L2-3.2.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "AT.L2-3.2.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.6",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.7",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.8",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CM.L2-3.4.9",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.1",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.2",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.3",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.4",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.5",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.6",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.7",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.8",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.9",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.10",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IA.L2-3.5.11",
+        "status": "unknown"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IR.L2-3.6.1",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IR.L2-3.6.2",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "IR.L2-3.6.3",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MA.L2-3.7.6",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.1",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.2",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.3",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.4",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.5",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.6",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.7",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.8",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "MP.L2-3.8.9",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PS.L2-3.9.1",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PS.L2-3.9.2",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.1",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.2",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.3",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.4",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.5",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "PE.L2-3.10.6",
+        "status": "not_met"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "RA.L2-3.11.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "RA.L2-3.11.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "RA.L2-3.11.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CA.L2-3.12.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CA.L2-3.12.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CA.L2-3.12.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "CA.L2-3.12.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.6",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.7",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.8",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.9",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.12",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.13",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.14",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.15",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SC.L2-3.13.16",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.1",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.2",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.3",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.4",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.5",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.6",
+        "status": "partial"
+      },
+      {
+        "evidence_refs": [],
+        "requirement_id": "SI.L2-3.14.7",
+        "status": "partial"
+      }
+    ],
+    "rr_question_set_ref": {
+      "artifact_id": "rr_qs_1768478400000",
+      "hash_sha256": "0000000000000000000000000000000000000000000000000000000014b7e479",
+      "schema_id": "ces-rr-question-set-output",
+      "version": "1.0.0"
+    },
+    "si_baseline_ref": {
+      "artifact_id": "si_baseline_1768478400000",
+      "hash_sha256": "000000000000000000000000000000000000000000000000000000000f993fa9",
+      "schema_id": "ces-si-baseline-output",
+      "version": "1.0.0"
+    },
+    "snapshot_id": "snapshot_mkfedmo0_a12rs2z",
+    "version": "1.0.0"
+  }
+}
