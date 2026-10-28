@@ -436,3 +436,15 @@
 .coach-input:disabled {
   opacity: 0.6;
 }
+
+/* S1.9 (demo feedback 2026-10-27): the mockups use Inter. It is bundled
+   (@fontsource-variable/inter, imported in main.tsx), so the app no longer
+   depends on Google Fonts; the IBM Plex @import in ces-ui.css is only a fallback. */
+:root {
+  --co-font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --co-font-display: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+body {
+  font-family: var(--co-font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+}

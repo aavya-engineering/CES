@@ -14,7 +14,7 @@
 // weight (doc 26 D2). requirement_meta holds only Aavya/BHD-added metadata.
 import { z } from 'zod';
 
-export const KINDS = ['requirement_meta', 'archetype', 'mapping', 'rule'] as const;
+export const KINDS = ['requirement_meta', 'archetype', 'mapping', 'rule', 'custom_requirement'] as const;
 export type Kind = (typeof KINDS)[number];
 
 export const MODULES = ['muster', 'stamper', 'adminops', 'evidenceops'] as const;
@@ -29,12 +29,46 @@ const CONTROL_ID = /^[A-Z]{2}\.L[12]-3\.\d{1,2}\.\d{1,2}$/;
 const ARCHETYPE_CODE = /^EMX-[A-Z0-9]+-\d{3}$/;
 const RULE_CODE = /^EVR-[A-Z0-9][A-Z0-9.-]{1,40}$/;
 
+/** S1.9: a requirement this item may point at — one of the 110, or an organisation-defined one. */
+const ANY_REQ_ID = /^[A-Z][A-Z0-9.-]{1,29}$/;
+const ISO_DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** S1.9 (Create Requirement mockup): fields both kinds of requirement can carry. All optional, so older drafts stay valid. */
+const requirementExtras = {
+  assessment_criteria: text(1000).optional(),
+  related: z.array(z.string().regex(ANY_REQ_ID)).max(20).optional(),
+  dependent: z.array(z.string().regex(ANY_REQ_ID)).max(20).optional(),
+  references: z.array(z.string().trim().url().max(500).refine((u) => /^https?:\/\//.test(u), 'Use an http(s) link')).max(10).optional(),
+  status: z.enum(['active', 'inactive']).optional(),
+  effective_date: ISO_DATE.nullable().optional(),
+};
+
 export const requirementMetaSchema = z
   .object({
     control_id: z.string().regex(CONTROL_ID),
     priority: z.enum(['high', 'medium', 'low']).nullable(),
     modules: z.array(z.enum(MODULES)).max(4),
     implementation_guidance: text(1000),
+    ...requirementExtras,
+  })
+  .strict();
+
+/**
+ * S1.9: an organisation-defined requirement (not one of the 110). It has no
+ * SPRS weight and never changes the SPRS score. Its ID must not be one of
+ * the 110 (checked in the service).
+ */
+export const customRequirementSchema = z
+  .object({
+    control_id: z.string().trim().regex(ANY_REQ_ID, 'Use letters, digits, dots and dashes, starting with a letter (e.g. ORG-AC-01)'),
+    title: text(200).min(3),
+    family: z.string().regex(/^[A-Z]{2}$/),
+    priority: z.enum(['high', 'medium', 'low']),
+    description: text(2000).min(3),
+    source_standard: text(120).min(1),
+    source_section: text(40),
+    modules: z.array(z.enum(MODULES)).max(4),
+    implementation_guidance: text(1000),
+    ...requirementExtras,
   })
   .strict();
 
@@ -134,6 +168,7 @@ export const SCHEMAS = {
   archetype: archetypeSchema,
   mapping: mappingSchema,
   rule: ruleSchema,
+  custom_requirement: customRequirementSchema,
 } as const;
 
 export type ItemData = {
@@ -141,12 +176,14 @@ export type ItemData = {
   archetype: z.infer<typeof archetypeSchema>;
   mapping: z.infer<typeof mappingSchema>;
   rule: z.infer<typeof ruleSchema>;
+  custom_requirement: z.infer<typeof customRequirementSchema>;
 };
 
 /** The stable key of an item, derived from its data (never sent separately). */
 export function keyOf(kind: Kind, data: Record<string, unknown>): string {
   switch (kind) {
     case 'requirement_meta':
+    case 'custom_requirement':
       return String(data.control_id);
     case 'archetype':
     case 'rule':

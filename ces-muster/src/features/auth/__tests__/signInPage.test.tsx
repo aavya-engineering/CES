@@ -179,27 +179,45 @@ describe('UI-01 sign-in page', () => {
     expect(q('signin-reveal').getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('SSO, Microsoft and Forgot password say plainly that they are not available yet', async () => {
+  it('S1.9: no SSO, Microsoft or offline link on the page', async () => {
     await render();
-    expect(q('signin-microsoft').getAttribute('aria-disabled')).toBe('true');
-    await act(async () => q('signin-microsoft').click());
-    expect(q('signin-microsoft-note').textContent).toMatch(/not available yet/);
-    await act(async () => q('signin-forgot').click());
-    expect(q('signin-reset-help').textContent).toMatch(/no self-service password reset/);
-    expect(q('signin-reset-help').textContent).toMatch(/no email is sent/);
-    await act(async () => q('signin-back').click());
-    await act(async () => q('signin-method-sso').click());
-    expect(q('signin-sso-panel').textContent).toMatch(/not set up for CES yet/);
-    expect(q('signin-method-sso').getAttribute('aria-selected')).toBe('true');
+    for (const id of ['signin-microsoft', 'signin-method-sso', 'signin-work-offline']) {
+      expect(container.querySelector(`[data-testid="${id}"]`)).toBeNull();
+    }
+    expect(container.textContent).not.toMatch(/Single Sign-On|Sign in with Microsoft|Continue offline/);
   });
 
-  it('"Work offline" makes no network call and hands control back', async () => {
-    const fetchSpy = vi.fn();
+  it('S1.9: Forgot password sends one reset request and shows the same answer for any email', async () => {
+    const fetchSpy = vi.fn(async () => new Response(JSON.stringify({ ok: true, message: 'If an account exists for this email, a reset link has been sent.' }), { status: 202 }));
     vi.stubGlobal('fetch', fetchSpy);
     await render();
-    await act(async () => q('signin-work-offline').click());
-    expect(onWorkOffline).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).not.toHaveBeenCalled();
+    await act(async () => q('signin-forgot').click());
+    type(q<HTMLInputElement>('signin-forgot-email'), 'op@example.com');
+    await act(async () => {
+      q<HTMLFormElement>('signin-forgot-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toMatch(/\/auth\/forgot-password$/);
+    expect(JSON.parse(String(init.body))).toEqual({ email: 'op@example.com' });
+    expect(q('signin-reset-sent').textContent).toMatch(/If an account exists/);
+    await act(async () => q('signin-back').click());
+    expect(q('signin-form')).toBeTruthy();
+  });
+
+  it('S1.9: "Keep me signed in" remembers the email on this device', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ token: fakeJwt({ sub: 'u', role: 'bhd_operator', exp: inHours(1) }) }), { status: 200 })));
+    await render();
+    type(q<HTMLInputElement>('signin-email'), 'op@example.com');
+    type(q<HTMLInputElement>('signin-password'), 'a-long-password');
+    await act(async () => q<HTMLInputElement>('signin-remember').click());
+    await submit();
+    expect(localStorage.getItem('ces-remember-email')).toBe('op@example.com');
+    act(() => root.unmount());
+    root = createRoot(container);
+    await render();
+    expect(q<HTMLInputElement>('signin-email').value).toBe('op@example.com');
+    expect(q<HTMLInputElement>('signin-remember').checked).toBe(true);
   });
 
   it('shows the authorized-use notice', async () => {

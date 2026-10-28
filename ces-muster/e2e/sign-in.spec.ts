@@ -41,8 +41,8 @@ test('sign-in: wrong password → error; right password → app with role in hea
 
   await page.getByLabel('Password', { exact: true }).fill('right-password');
   await page.getByTestId('signin-submit').click();
-  // UI-02: a signed-in operator lands on Home in the portal (doc 18 §3.3).
-  await expect(page.getByTestId('page-home')).toBeVisible();
+  // UI-02 / S1.8: a signed-in operator lands on Home / Portfolio (doc 18 §3.3).
+  await expect(page.getByTestId('page-portfolio')).toBeVisible();
   await expect(page.getByTestId('header-account')).toContainText('BHD operator');
   await page.getByTestId('nav-muster-situation').click();
   await expect(page.getByTestId('begin-interview')).toBeVisible();
@@ -61,8 +61,8 @@ test('sign-in: "Work offline" opens the interview with no network call, and can 
   page.on('request', (r) => {
     if (/\/(api|auth)\//.test(new URL(r.url()).pathname)) apiCalls.push(r.url());
   });
-  await page.goto('/');
-  await page.getByTestId('signin-work-offline').click();
+  // S1.9: the offline link is gone from the sign-in page; ?offline=1 still works (DW#5).
+  await page.goto('/?offline=1');
   await expect(page.getByTestId('begin-interview')).toBeVisible();
   await expect(page.getByTestId('header-account')).toContainText('Working offline');
   expect(apiCalls).toEqual([]);

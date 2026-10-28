@@ -124,6 +124,31 @@ const changeSchema = z.object({
   new_password: z.string(),
 });
 
+// S1.9 (demo feedback, 2026-10-27): sliding session. While the user is active the
+// portal swaps its token for a fresh one; an idle user's token simply expires
+// (JWT_EXPIRES_IN — 30m in the deployment kit). A disabled user, or one who must
+// still change a temporary password, gets no new token.
+router.post('/refresh', bearerAuth, async (req, res, next) => {
+  try {
+    const user = await db.user.findUnique({ where: { id: req.user!.sub } });
+    if (!user || user.disabled_at || user.must_change_password) {
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
+    const token = mintToken({
+      sub: user.id,
+      tenant_id: user.tenant_id,
+      party_id: user.party_id ?? null,
+      role: user.role,
+      email: user.email,
+      name: user.display_name ?? null,
+    });
+    res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // RBAC-01: a user replaces their own password (required after a temporary one).
 router.post('/change-password', bearerAuth, async (req, res, next) => {
   try {

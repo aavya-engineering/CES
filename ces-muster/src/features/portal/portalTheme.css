@@ -2086,3 +2086,687 @@ th[aria-sort='descending'] .th-sort-ind {
 @media (min-width: 1280px) {
   .dash-row-2 { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
 }
+
+/* ---- S1.9: idle sign-out warning ---- */
+.idle-warning {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  max-width: min(640px, calc(100vw - 32px));
+  padding: 14px 18px;
+  color: var(--co-text);
+  background: var(--co-surface);
+  border: 1px solid var(--co-risk);
+  border-radius: var(--portal-radius-lg);
+  box-shadow: var(--co-shadow-lg);
+}
+.idle-warning p {
+  margin: 0;
+  flex: 1 1 280px;
+  font-size: 14px;
+}
+.help-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+.help-list .card-title {
+  font-size: 15px;
+}
+
+/* ---- S1.9: demo feedback (2026-10-27) — shell, icons and type scale as in the mockups ---- */
+.portal-menu-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  color: var(--co-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--co-radius);
+  cursor: pointer;
+}
+.portal-menu-btn:hover,
+.portal-icon-btn:hover {
+  background: var(--co-bg-elevated);
+}
+.portal-menu-btn:focus-visible,
+.portal-icon-btn:focus-visible {
+  outline: 2px solid var(--co-primary-focus);
+  outline-offset: 2px;
+}
+@media (min-width: 961px) {
+  .portal[data-nav-hidden] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .portal[data-nav-hidden] .portal-sidebar {
+    display: none;
+  }
+}
+.portal-topbar .portal-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.portal-search {
+  flex: 0 1 560px;
+}
+.portal-search-input {
+  min-height: 42px;
+  padding-left: 40px;
+  font-size: 14px;
+  background: #eef3fb;
+  border-radius: 10px;
+}
+[data-theme='dark'] .portal-search-input {
+  background: var(--co-bg-elevated);
+}
+.portal-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.portal-user-name {
+  font-size: 14px;
+}
+.portal-user-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.portal-user-menu-row #ces-theme-toggle {
+  min-width: 34px;
+  min-height: 34px;
+}
+
+/* Sidebar: outline icons on every section and item; coloured squares for the four modules. */
+.portal-sidebar .portal-icon {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+}
+.portal-sidebar .portal-icon[data-mod] {
+  border-radius: 8px;
+}
+.portal-nav-head {
+  font-size: 15px;
+}
+.portal-nav-head .chev {
+  margin-left: auto;
+}
+.portal-nav-item {
+  gap: 10px;
+  font-size: 14px;
+}
+.portal-nav-item-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: var(--portal-sidebar-muted);
+}
+.portal-nav-item[aria-current='page'] .portal-nav-item-icon {
+  color: #ffffff;
+}
+.portal-nav-item-label {
+  min-width: 0;
+}
+.portal-nav-subhead {
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.portal-nav-subhead .portal-nav-item-icon {
+  color: #ffffff;
+}
+
+/* Page header and tiles: large outline icons on a tinted tile. */
+.pg-head-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+}
+.pg-title {
+  font-size: 30px;
+  letter-spacing: -0.01em;
+}
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.glyph-text {
+  font-size: 15px;
+  font-weight: 700;
+}
+.stat-value {
+  font-size: 22px;
+}
+.stat-label {
+  font-size: 13px;
+}
+
+/* Tables: the mockup's denser type. */
+.tbl {
+  font-size: 13px;
+}
+.tbl th {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--co-text);
+}
+.tbl td {
+  padding: 9px 12px;
+}
+
+/* ---- S1.9: 110 Requirements header, filter card and Create / Edit Requirement form ---- */
+.btn {
+  gap: 8px;
+}
+.btn-link {
+  color: var(--co-primary);
+  font-weight: 600;
+  background: transparent;
+  border: 0;
+}
+.btn-soft {
+  color: var(--co-primary);
+  font-weight: 600;
+  background: var(--co-primary-subtle);
+  border: 1px solid transparent;
+}
+.btn-icon {
+  width: 40px;
+  padding: 0;
+}
+.source-box {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--co-text-muted);
+  border: 1px solid var(--co-border);
+  border-radius: 10px;
+  background: var(--co-surface);
+}
+.source-box strong {
+  font-size: 14px;
+  color: var(--co-text);
+}
+.split-btn {
+  position: relative;
+  display: inline-flex;
+}
+.split-btn > .btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.split-btn-caret {
+  width: 40px;
+  padding: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.split-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 70;
+  min-width: 230px;
+  padding: 6px;
+  background: var(--co-surface);
+  border: 1px solid var(--co-border);
+  border-radius: var(--co-radius);
+  box-shadow: var(--co-shadow-lg);
+}
+.split-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--co-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.split-menu button:hover,
+.split-menu button:focus-visible {
+  background: var(--co-primary-subtle);
+}
+.filter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px;
+}
+.filter-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 320px;
+}
+.search-input > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--co-text-muted);
+  pointer-events: none;
+}
+.search-input .input {
+  width: 100%;
+  padding-left: 40px;
+}
+.search-input-lg .input {
+  min-height: 42px;
+  background: #f5f8fc;
+  border-radius: 10px;
+}
+[data-theme='dark'] .search-input-lg .input {
+  background: var(--co-bg-elevated);
+}
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.filter-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.filter-grid .select {
+  width: 100%;
+}
+.clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 420px;
+}
+.tbl-req td {
+  vertical-align: middle;
+}
+
+.req-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: 16px;
+  align-items: start;
+}
+.form-main {
+  padding: 18px 20px 20px;
+}
+.form-main-title {
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  font-size: 18px;
+  border-bottom: 1px solid var(--co-border);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+.form-grid > .form-field {
+  grid-column: span 2;
+}
+.form-grid > .span-2 { grid-column: span 4; }
+.form-grid > .span-3 { grid-column: span 6; }
+.form-grid > .span-15 { grid-column: span 3; }
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+.form-field > label,
+.form-field > legend {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--co-text);
+}
+.form-field .input,
+.form-field .select {
+  width: 100%;
+}
+.form-field .input:disabled,
+.form-field .select:disabled {
+  color: var(--co-text-secondary);
+  background: var(--co-bg-elevated);
+}
+.req-star {
+  color: #dc2626;
+}
+.field-hint {
+  font-size: 12px;
+  color: var(--co-text-muted);
+}
+.field-count {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--co-text-muted);
+}
+.field-error {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--co-violation);
+}
+.module-box {
+  padding: 12px 14px;
+  border: 1px solid var(--co-border);
+  border-radius: 10px;
+}
+.module-box .field-hint {
+  margin: 0 0 6px;
+}
+.module-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+}
+.module-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.module-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--co-primary);
+}
+.form-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-panel {
+  padding: 0;
+}
+.form-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 18px;
+  font: inherit;
+  color: var(--co-text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.form-panel-head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.form-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 18px 18px;
+}
+.pick-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--co-surface);
+  border: 1px solid var(--co-border);
+  border-radius: var(--co-radius);
+  box-shadow: var(--co-shadow-lg);
+}
+.search-input .pick-list ~ svg,
+.form-side .search-input > svg {
+  left: auto;
+  right: 12px;
+}
+.form-side .search-input .input {
+  padding-left: 12px;
+  padding-right: 38px;
+}
+.pick-list button {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--co-text);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pick-list button span {
+  color: var(--co-text-muted);
+}
+.pick-list button:hover {
+  background: var(--co-primary-subtle);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--co-primary);
+  background: var(--co-primary-subtle);
+  border-radius: 999px;
+}
+.chip button,
+.ref-list button {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.ref-row {
+  display: flex;
+  gap: 8px;
+}
+.ref-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.ref-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.preview-kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 8px 18px;
+  margin: 0;
+  padding: 14px;
+  font-size: 13.5px;
+  background: #f5f8fc;
+  border-radius: 10px;
+}
+[data-theme='dark'] .preview-kv {
+  background: var(--co-bg-elevated);
+}
+.preview-kv dt {
+  color: var(--co-text-secondary);
+}
+.preview-kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.audit-box {
+  display: flex;
+  gap: 12px;
+  color: var(--co-primary);
+}
+.audit-box .preview-kv {
+  flex: 1;
+  color: var(--co-text);
+}
+.form-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+.form-footer .note {
+  flex: 1 1 100%;
+  margin: 0;
+}
+@media (max-width: 1100px) {
+  .req-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-grid > .form-field,
+  .form-grid > .span-2,
+  .form-grid > .span-3,
+  .form-grid > .span-15 {
+    grid-column: 1 / -1;
+  }
+}
+/* S1.9 fix: inside a column-direction form field the search box must not
+   take its 320 px flex basis as height (it left large gaps in the side panel). */
+.form-field > .search-input {
+  flex: none;
+}
+/* S1.9: keep header actions on the title row (as in the mockups) on wide screens. */
+@media (min-width: 1200px) {
+  .pg-head {
+    flex-wrap: nowrap;
+  }
+  .pg-head > div:nth-child(2) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .pg-head-actions {
+    flex: none;
+  }
+}
+
+/* ---- S1.9: density matched to the Demo Sprint 1 mockups (desktop) ----
+   Measured on the 1536 px mockups: table rows ~33 px, 12.5 px body text,
+   stat tiles ~95 px tall, sidebar items ~32 px. Touch sizes stay larger on
+   phones (the media query below only applies to wide screens). */
+@media (min-width: 961px) {
+  .tbl {
+    font-size: 12.5px;
+  }
+  .tbl th {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .tbl td {
+    padding: 6px 12px;
+  }
+  .tbl .row-menu-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .tbl .pill {
+    padding: 1px 8px;
+    font-size: 11.5px;
+  }
+  .tbl .clamp-3 {
+    -webkit-line-clamp: 2;
+  }
+  .stat {
+    padding: 14px 16px;
+  }
+  .stat-value {
+    font-size: 21px;
+  }
+  .stat-label {
+    font-size: 12.5px;
+  }
+  .stat-sub {
+    font-size: 11.5px;
+  }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .pg-title {
+    font-size: 30px;
+  }
+  .pg-lede {
+    font-size: 14px;
+  }
+  .portal-nav-head {
+    min-height: 38px;
+    font-size: 14.5px;
+  }
+  .portal-nav-item {
+    min-height: 32px;
+    padding: 5px 10px;
+    font-size: 13.5px;
+  }
+  .portal-nav-subhead {
+    min-height: 32px;
+    font-size: 13.5px;
+  }
+  .input,
+  .select {
+    min-height: 38px;
+    font-size: 13.5px;
+  }
+}

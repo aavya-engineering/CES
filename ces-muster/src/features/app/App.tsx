@@ -28,6 +28,8 @@ import { executeExportAndDownload } from '@/features/export/exportPipeline';
 import { db } from '@/shared/db/schema';
 import SignInPage from '@/features/auth/SignInPage';
 import PortalShell from '@/features/portal/PortalShell';
+import { useIdleSignOut } from '@/features/app/idleSignOut';
+import { refreshMusterSession } from '@/shared/api/musterAuth';
 import { defaultRoute, routesFor, type MusterView, type RouteId, type Viewer } from '@/features/portal/nav';
 import { currentAccount, parseHash, writeOfflineChoice, type Account } from './account';
 import RequirementsPage from '@/features/portal/pages/RequirementsPage';
@@ -38,7 +40,7 @@ import CatalogPage from '@/features/portal/pages/shared/CatalogPage';
 import MappingPage from '@/features/portal/pages/shared/MappingPage';
 import RulesPage from '@/features/portal/pages/shared/RulesPage';
 import { SharedViewerContext, type SharedViewer } from '@/features/portal/governedState';
-import { ContractsInfoPage, ModulePage, NotBuiltPage, SharedOverviewPage } from '@/features/portal/pages/InfoPages';
+import { ContractsInfoPage, HelpPage, ModulePage, NotBuiltPage, SharedOverviewPage } from '@/features/portal/pages/InfoPages';
 import { EngagementsPage, HomePage } from '@/features/portal/pages/HomeAndEngagements';
 import PortfolioPage from '@/features/portal/PortfolioPage';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
@@ -203,6 +205,15 @@ export default function App() {
     return () => window.removeEventListener(MUSTER_AUTH_EVENT, sync);
   }, []);
 
+  // S1.9: sign out after 30 minutes without activity (warning 2 minutes before).
+  const [signOutNotice, setSignOutNotice] = useState<string | null>(null);
+  const idle = useIdleSignOut(account.kind === 'signed-in', () => {
+    writeOfflineChoice(false);
+    clearMusterToken();
+    setSignOutNotice('You were signed out after 30 minutes without activity. Sign in again to continue.');
+    setAccount({ kind: 'signed-out' });
+  }, undefined, refreshMusterSession);
+
   // UI-02: portal route, mirrored in the URL hash (#/shared/requirements,
   // #/muster/discovery) so the back button and deep links work.
   const viewer: Viewer =
@@ -327,8 +338,10 @@ export default function App() {
   if (account.kind === 'signed-out') {
     return (
       <SignInPage
+        notice={signOutNotice}
         onSignedIn={() => {
           writeOfflineChoice(false);
+          setSignOutNotice(null);
           setAccount(currentAccount());
         }}
         onWorkOffline={() => {
@@ -411,6 +424,13 @@ export default function App() {
       case 'shared/rules':
         return sharedViewer.signedIn ? <RulesPage /> : <NotBuiltPage route={route} />;
       case 'shared/tests':
+      case 'shared/registry':
+      case 'shared/compat':
+      case 'shared/interfaces':
+      case 'store/adminops':
+      case 'store/tokens':
+      case 'store/passkeys':
+      case 'store/integrity':
       case 'engagements/tenants':
         return <NotBuiltPage route={route} />;
       case 'engagements/all':
@@ -429,6 +449,8 @@ export default function App() {
         return <AuditPage />;
       case 'account/password':
         return <ChangePasswordPage />;
+      case 'help':
+        return <HelpPage role={account.kind === 'signed-in' ? account.roleId : null} go={go} />;
       default:
         return null;
     }
@@ -443,12 +465,29 @@ export default function App() {
       onGo={go}
       onSignOut={signOut}
       onSignIn={() => {
+        // S1.9: drop ?offline=1 so the sign-in page does not switch straight back to offline.
+        try {
+          if (window.location.search) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+        } catch {
+          /* ignore */
+        }
         writeOfflineChoice(false);
         setAccount({ kind: 'signed-out' });
       }}
       themeToggle={<ThemeToggle />}
       userId={sharedViewer.userId}
     >
+      {idle.left !== null && (
+        <div className="idle-warning" role="alertdialog" aria-live="assertive" aria-label="Session ending" data-testid="idle-warning">
+          <p>
+            <strong>Your session is about to end.</strong> You will be signed out in {Math.ceil(idle.left / 1000)} seconds because
+            there has been no activity for almost 30 minutes.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={idle.stay} data-testid="idle-stay">
+            Stay signed in
+          </button>
+        </div>
+      )}
       {route !== 'muster' ? (
         <SharedViewerContext.Provider value={sharedViewer}>{page}</SharedViewerContext.Provider>
       ) : (

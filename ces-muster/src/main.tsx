@@ -10,6 +10,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './features/app/App';
+// S1.9: Inter (as in the Aavya mockups), bundled with the app: no font request leaves the server.
+import '@fontsource-variable/inter';
 import './muster.css';
 
 createRoot(document.getElementById('root')!).render(

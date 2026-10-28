@@ -9,6 +9,8 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import authRouter from './routes/auth.js';
+import { createPasswordResetRouter, type ResetDb } from './routes/passwordReset.js';
+import { createMailer } from './lib/mailer.js';
 import { createEngagementsRouter } from './routes/engagements.js';
 import { createPortfolioRouter } from './routes/portfolio.js';
 import { createPartiesRouter, createPartyRouter } from './routes/parties.js';
@@ -104,6 +106,8 @@ export function createApp(opts: AppOptions = {}) {
   app.use(express.json());
 
   // Auth (keep as-is)
+  // S1.9: forgot / reset password (decision D3).
+  app.use('/auth', createPasswordResetRouter(db as unknown as ResetDb, createMailer()));
   app.use('/auth', authRouter);
 
   app.use('/api/users', createUsersRouter(db as unknown as UsersDb));

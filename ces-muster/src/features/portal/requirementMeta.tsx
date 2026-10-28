@@ -14,15 +14,17 @@
 import { useEffect, useState } from 'react';
 import { sharedApi, type ItemView, type ModuleId, type RequirementMeta } from '@/shared/api/sharedApi';
 import { describeFailure } from './governedState';
-import { MODULE_LABEL, PRIORITY_LABEL, PRIORITY_TONE, metaFor } from './requirementMetaData';
+import { MODULE_LABEL, PRIORITY_LABEL, PRIORITY_TONE, effectivePriority, metaFor } from './requirementMetaData';
 import { Drawer, GovernanceBar } from './governed';
 import { SPRS_META, type RequirementRow } from './referenceData';
 
+/** Priority pill: the value an administrator set, else a dash. */
 export function PriorityPill({ meta }: { meta: RequirementMeta | null }) {
-  if (!meta?.priority) return <span className="muted">—</span>;
+  const p = effectivePriority(meta);
+  if (!p) return <span className="muted">—</span>;
   return (
-    <span className="pill" data-tone={PRIORITY_TONE[meta.priority]}>
-      {PRIORITY_LABEL[meta.priority]}
+    <span className="pill" data-tone={PRIORITY_TONE[p]}>
+      {PRIORITY_LABEL[p]}
     </span>
   );
 }

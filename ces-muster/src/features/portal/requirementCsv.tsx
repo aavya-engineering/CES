@@ -10,19 +10,29 @@
 // requirementCsv.tsx — S1.2: "Import / Update" drawer and the CSV export action
 // for the 110 Requirements page (helpers in requirementCsvData.ts).
 import { useMemo, useState } from 'react';
-import { sharedApi, type ItemView, type RequirementMeta } from '@/shared/api/sharedApi';
+import { sharedApi, type CustomRequirement, type ItemView, type RequirementMeta } from '@/shared/api/sharedApi';
 import { Drawer } from './governed';
 import { REQUIREMENTS } from './referenceData';
-import { CSV_HEADER, planImport } from './requirementCsvData';
+import { TEMPLATE_HEADER, downloadRequirementTemplate, planImport } from './requirementCsvData';
 
 
 const KNOWN = new Set(REQUIREMENTS.map((r) => r.control_id));
 
-export function ImportMetaDrawer({ existing, onClose, onDone }: { existing: Map<string, ItemView<RequirementMeta>>; onClose: () => void; onDone: (msg: string) => void }) {
+export function ImportMetaDrawer({
+  existing,
+  customExisting = new Map(),
+  onClose,
+  onDone,
+}: {
+  existing: Map<string, ItemView<RequirementMeta>>;
+  customExisting?: Map<string, ItemView<CustomRequirement>>;
+  onClose: () => void;
+  onDone: (msg: string) => void;
+}) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [failures, setFailures] = useState<string[]>([]);
-  const plan = useMemo(() => (text.trim() ? planImport(text, KNOWN, existing) : null), [text, existing]);
+  const plan = useMemo(() => (text.trim() ? planImport(text, KNOWN, existing, customExisting) : null), [text, existing, customExisting]);
   const changes = plan?.lines.filter((l) => l.status === 'change') ?? [];
   const errors = plan?.lines.filter((l) => l.status === 'error') ?? [];
 
@@ -35,7 +45,7 @@ export function ImportMetaDrawer({ existing, onClose, onDone }: { existing: Map<
     const failed: string[] = [];
     for (const l of changes) {
       if (l.status !== 'change') continue;
-      const r = l.isNew ? await sharedApi.create('requirement_meta', l.data) : await sharedApi.saveDraft('requirement_meta', l.controlId, l.data);
+      const r = l.isNew ? await sharedApi.create(l.kind, l.data) : await sharedApi.saveDraft(l.kind, l.controlId, l.data);
       if (!r.ok) failed.push(`${l.controlId}: ${r.message}`);
     }
     setBusy(false);
@@ -45,8 +55,8 @@ export function ImportMetaDrawer({ existing, onClose, onDone }: { existing: Map<
 
   return (
     <Drawer
-      title="Import / Update requirement metadata"
-      subtitle="Priority, modules and implementation guidance only. Requirement ID, text, family, level and SPRS weight are locked and ignored."
+      title="Bulk import requirements"
+      subtitle="For the 110: priority, modules, guidance, assessment criteria, status and effective date (ID, text, family, level and SPRS weight are locked). Any other ID with a title adds or updates an organisation-defined requirement."
       onClose={onClose}
       testId="req-import-drawer"
       wide
@@ -62,7 +72,10 @@ export function ImportMetaDrawer({ existing, onClose, onDone }: { existing: Map<
       }
     >
       <p className="hint">
-        Columns: <code>{CSV_HEADER.slice(0, 1).concat(['priority', 'modules', 'implementation_guidance']).join(', ')}</code>. Modules are separated by ";" (muster;stamper). A file from <strong>Export</strong> can be edited and imported back.
+        Columns: <code>{TEMPLATE_HEADER.join(', ')}</code>. Modules are separated by ";" (muster;stamper). A file from <strong>Export</strong> can be edited and imported back.{' '}
+        <button type="button" className="row-btn" onClick={downloadRequirementTemplate}>
+          Download the template
+        </button>
       </p>
       <label className="form-row">
         CSV file
@@ -106,6 +119,7 @@ export function ImportMetaDrawer({ existing, onClose, onDone }: { existing: Map<
                           </span>
                         ) : l.status === 'change' ? (
                           <>
+                            {l.kind === 'custom_requirement' ? (l.isNew ? 'New organisation-defined · ' : 'Update organisation-defined · ') : ''}
                             {l.data.priority ?? 'no priority'} · {l.data.modules.join(', ') || 'no modules'}
                           </>
                         ) : null}

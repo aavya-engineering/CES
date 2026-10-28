@@ -13,7 +13,7 @@
 import { getApiBase } from './musterApi';
 import { getMusterToken } from './musterToken';
 
-export type Kind = 'requirement_meta' | 'archetype' | 'mapping' | 'rule';
+export type Kind = 'requirement_meta' | 'archetype' | 'mapping' | 'rule' | 'custom_requirement';
 export type Status = 'draft' | 'published' | 'retired';
 
 export interface ItemRow<D = Record<string, unknown>> {
@@ -60,9 +60,32 @@ export interface ItemDetail<D = Record<string, unknown>> extends ItemView<D> {
   changes: ChangeRow[];
 }
 
-export interface RequirementMeta {
+/** S1.9: fields the Create / Edit Requirement page adds (optional on older items). */
+export interface RequirementExtras {
+  assessment_criteria?: string;
+  related?: string[];
+  dependent?: string[];
+  references?: string[];
+  status?: 'active' | 'inactive';
+  effective_date?: string | null;
+}
+
+export interface RequirementMeta extends RequirementExtras {
   control_id: string;
   priority: 'high' | 'medium' | 'low' | null;
+  modules: ModuleId[];
+  implementation_guidance: string;
+}
+
+/** S1.9: an organisation-defined requirement (not one of the 110; no SPRS weight). */
+export interface CustomRequirement extends RequirementExtras {
+  control_id: string;
+  title: string;
+  family: string;
+  priority: 'high' | 'medium' | 'low';
+  description: string;
+  source_standard: string;
+  source_section: string;
   modules: ModuleId[];
   implementation_guidance: string;
 }

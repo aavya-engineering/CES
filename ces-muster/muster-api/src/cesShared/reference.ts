@@ -98,3 +98,4 @@ export const FAMILIES = families.map((f, i) => ({
 }));
 
 export const CONTROL_IDS = new Set(REQUIREMENTS.map((r) => r.controlId));
+export const FAMILY_CODES = new Set(FAMILIES.map((f) => f.code));

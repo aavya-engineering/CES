@@ -7,10 +7,11 @@
 // Removing or altering this notice is prohibited (17 U.S.C. 1202). Ref: BHD-CES-MUSTER-2026A
 // See LICENSE and TERMS.md.
 
-// RequirementsPage.tsx — UI-02: CES-Shared → 110 Requirements (mockup 3).
-// Real reference data, read-only. The mockup's "Priority", "Assessment status"
-// and "Add / Import" are not shown: no such data or editing exists in CES
-// (one canonical copy, PRD SH-FR-04; doc 14 M1–M5, M9).
+// RequirementsPage.tsx — CES-Shared → 110 Requirements (mockup 6).
+// The 110 NIST SP 800-171 Rev. 2 requirements are fixed (decision D2);
+// platform administrators add metadata to them and, since S1.9, create /
+// edit / delete organisation-defined requirements (no SPRS weight) and bulk
+// import both from CSV. Every change is a draft a second admin publishes.
 import { takePendingSearch } from '../searchHandoff';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRequirementFilter } from '../requirementFilter';
@@ -18,13 +19,15 @@ import { FAMILIES, REQUIREMENTS, SPRS_META, type RequirementRow } from '../refer
 import { PageHeader, Pager, Stat, Empty, RowsPerPage, SelectBox, SortTh } from '../ui';
 import { usePaged, useSelection, useSort, weightTone } from '../paging';
 import { OBJECTIVES } from '../objectivesData';
-import { EditRequirementDrawer, ModulePills, PriorityPill } from '../requirementMeta';
-import { metaFor, nistOf, useRequirementMeta, MODULE_LABEL, PRIORITY_LABEL } from '../requirementMetaData';
-import { useSharedViewer } from '../governedState';
-import { DeleteItemDialog, RowActions, Toast } from '../governed';
+import { ModulePills, PriorityPill } from '../requirementMeta';
+import { effectivePriority, metaFor, nistOf, useRequirementMeta, MODULE_LABEL, PRIORITY_LABEL } from '../requirementMetaData';
+import { shownData, useGovernedList, useSharedViewer } from '../governedState';
+import { DeleteItemDialog, RowActions, StatusPill, Toast } from '../governed';
 import { ImportMetaDrawer } from '../requirementCsv';
-import { exportRequirementsCsv } from '../requirementCsvData';
-import type { ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
+import { downloadRequirementTemplate, exportRequirementsCsv } from '../requirementCsvData';
+import RequirementFormPage, { type RequirementFormMode } from './RequirementFormPage';
+import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, FileText, Network, Pencil, Plus, Search, ShieldCheck, Tag, Upload } from 'lucide-react';
+import type { CustomRequirement, ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
 
 export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typeof useRequirementFilter>; showWeight?: boolean }) {
   return (
@@ -209,7 +212,7 @@ function ColumnChooser({ hidden, setHidden }: { hidden: Set<HideableCol>; setHid
   return (
     <span className="col-chooser" ref={box}>
       <button type="button" className="btn btn-secondary" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-columns">
-        ⚙ Columns
+        <Settings size={16} aria-hidden="true" /> Columns
       </button>
       {open && (
         <div className="col-chooser-menu" role="group" aria-label="Visible columns" onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}>
@@ -238,49 +241,131 @@ function ColumnChooser({ hidden, setHidden }: { hidden: Set<HideableCol>; setHid
   );
 }
 
+/** S1.9: an organisation-defined requirement shown as a table row (no SPRS weight, no CMMC level). */
+function customRow(d: CustomRequirement): RequirementRow {
+  return {
+    control_id: d.control_id,
+    nist_ref: d.source_section,
+    family: d.family,
+    family_name: FAMILIES.find((f) => f.abbreviation === d.family)?.name ?? '',
+    cmmc_level: 0,
+    practice: d.title,
+    weight: 0,
+    poam_allowed: true,
+    unscored: false,
+    level: 'L2',
+    poam_prohibited: false,
+  };
+}
+
+/** S1.9: the "Import / Update" split button — create, bulk import, template. */
+function ImportMenu({ onCreate, onImport }: { onCreate: () => void; onImport: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  return (
+    <div className="split-btn" ref={box}>
+      <button type="button" className="btn btn-primary" onClick={onImport} data-testid="req-import">
+        Import / Update
+      </button>
+      <button type="button" className="btn btn-primary split-btn-caret" aria-label="More create and import options" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-import-menu">
+        <ChevronDown size={18} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="split-menu" role="menu">
+          <button type="button" role="menuitem" onClick={pick(onCreate)} data-testid="req-create">
+            <Plus size={16} aria-hidden="true" /> Create requirement
+          </button>
+          <button type="button" role="menuitem" onClick={pick(onImport)} data-testid="req-bulk-import">
+            <Upload size={16} aria-hidden="true" /> Bulk import (CSV)
+          </button>
+          <button type="button" role="menuitem" onClick={pick(downloadRequirementTemplate)} data-testid="req-template">
+            <Download size={16} aria-hidden="true" /> Download CSV template
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const fmtStamp = (iso: string) => {
+  const d = new Date(iso.length === 10 ? `${iso}T00:00:00` : iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(undefined, { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
 export default function RequirementsPage() {
   const viewer = useSharedViewer();
   const meta = useRequirementMeta();
-  const f = useRequirementFilter(REQUIREMENTS, takePendingSearch('shared/requirements'));
+  const customList = useGovernedList<CustomRequirement>('custom_requirement', viewer.signedIn);
+  const customViews = useMemo(() => (customList.s.state === 'ready' ? customList.s.data : []).filter((v) => shownData(v, viewer.canEdit) && v.status !== 'retired'), [customList.s, viewer.canEdit]);
+  const customById = useMemo(() => new Map(customViews.map((v) => [v.key, v])), [customViews]);
+  const allRows = useMemo(() => [...REQUIREMENTS, ...customViews.map((v) => customRow(shownData(v, viewer.canEdit)!))], [customViews, viewer.canEdit]);
+  const f = useRequirementFilter(allRows, takePendingSearch('shared/requirements'));
   const [priority, setPriority] = useState('');
   const [module, setModule] = useState('');
   const [type, setType] = useState('');
+  const [showFilters, setShowFilters] = useState(true);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selected, setSelected] = useState<RequirementRow | null>(null);
-  const [editing, setEditing] = useState<RequirementRow | null>(null);
+  const [form, setForm] = useState<RequirementFormMode | null>(null);
   const [importing, setImporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<ItemView<RequirementMeta> | null>(null);
-  const metaOf = (id: string) => metaFor(meta.byId.get(id), viewer.canEdit);
+  const [deleting, setDeleting] = useState<{ kind: 'requirement_meta' | 'custom_requirement'; view: ItemView<unknown>; name: string } | null>(null);
+  const isCustom = (id: string) => customById.has(id);
+  const metaOf = (id: string): RequirementMeta | null => {
+    const c = customById.get(id);
+    if (c) {
+      const d = shownData(c, viewer.canEdit)!;
+      return { control_id: d.control_id, priority: d.priority, modules: d.modules, implementation_guidance: d.implementation_guidance };
+    }
+    return metaFor(meta.byId.get(id), viewer.canEdit);
+  };
+  // Only the priority an administrator set (decision 2026-10-27: no weight default).
+  const prio = (r: RequirementRow) => effectivePriority(metaOf(r.control_id));
+  const typeOf = (r: RequirementRow) => (isCustom(r.control_id) ? 'Custom' : nistOf(r.nist_ref)?.requirement_type ?? '—');
 
   const rows = useMemo(
     () =>
       f.filtered.filter((r) => {
         const m = metaOf(r.control_id);
         return (
-          (!priority || (priority === 'unset' ? !m?.priority : m?.priority === priority)) &&
+          (!priority || (priority === 'unset' ? !m?.priority : prio(r) === priority)) &&
           (!module || (m?.modules ?? []).includes(module as ModuleId)) &&
-          (!type || nistOf(r.nist_ref)?.requirement_type === type)
+          (!type || typeOf(r) === type)
         );
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [f.filtered, priority, module, type, meta.byId, viewer.canEdit]
+    [f.filtered, priority, module, type, meta.byId, customById, viewer.canEdit]
   );
   const { sort, onSort, sorted } = useSort<RequirementRow, ReqCol>(rows, (row, col) => {
-    const m = metaOf(row.control_id);
     switch (col) {
       case 'id':
-        return row.nist_ref;
+        return isCustom(row.control_id) ? `~${row.control_id}` : row.nist_ref;
       case 'title':
         return row.practice;
       case 'family':
         return row.family;
       case 'type':
-        return nistOf(row.nist_ref)?.requirement_type ?? '';
+        return typeOf(row);
       case 'priority':
-        return m?.priority ? PRIORITY_RANK[m.priority] : 9;
+        return prio(row) ? PRIORITY_RANK[prio(row)!] : 9;
       case 'weight':
-        return row.weight;
+        return isCustom(row.control_id) ? -1 : row.weight;
     }
   });
   const paged = usePaged(sorted, rowsPerPage);
@@ -288,8 +373,14 @@ export default function RequirementsPage() {
   const [hidden, setHidden] = useState<Set<HideableCol>>(new Set());
   const show = (c: HideableCol) => !hidden.has(c);
   const exportRows = pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted;
-  const withPriority = REQUIREMENTS.filter((r) => metaOf(r.control_id)?.priority).length;
-  const drafts = [...meta.byId.values()].filter((v) => v.draft).length;
+  const withPriority = allRows.filter((r) => metaOf(r.control_id)?.priority).length;
+  const drafts = [...meta.byId.values(), ...customViews].filter((v) => v.draft).length;
+  const stamps = [...meta.byId.values(), ...customViews]
+    .flatMap((v) => [v.published?.published_at, viewer.canEdit ? v.draft?.updated_at : null])
+    .filter((x): x is string => !!x)
+    .sort();
+  const lastUpdated = stamps.length ? stamps[stamps.length - 1] : SPRS_META.generated_on;
+  const options = useMemo(() => allRows.map((r) => ({ id: r.control_id, title: r.practice })), [allRows]);
   const clearAll = () => {
     f.clear();
     setPriority('');
@@ -298,10 +389,19 @@ export default function RequirementsPage() {
   };
   const done = (msg: string) => {
     setToast(msg);
-    setEditing(null);
+    setForm(null);
     setImporting(false);
     void meta.reload();
+    void customList.reload();
   };
+  const edit = (r: RequirementRow) => {
+    const c = customById.get(r.control_id);
+    setForm(c ? { mode: 'edit-custom', view: c } : { mode: 'edit-base', row: r, view: meta.byId.get(r.control_id) });
+  };
+
+  if (form) {
+    return <RequirementFormPage form={form} options={options} onBack={() => setForm(null)} onSaved={done} />;
+  }
 
   return (
     <div className="pg" data-testid="page-requirements">
@@ -311,85 +411,102 @@ export default function RequirementsPage() {
         lede="CMMC Level 2 (NIST SP 800-171 Rev. 2) control requirements used across all CES modules. This reference data is used for readiness assessment, scoring and evidence validation."
         actions={
           <div className="pg-head-buttons">
-            <div className="pg-meta">
+            <div className="source-box">
               <strong>NIST SP 800-171 Rev. 2</strong>
-              Source Standard
+              <span>Source Standard</span>
             </div>
+            <div className="pg-meta" data-testid="req-last-updated">
+              Last updated
+              <strong>{fmtStamp(lastUpdated)}</strong>
+            </div>
+            {/* S1.10: Create stays visible — demo feedback said create / import were "missing" when only in the caret menu. */}
             {viewer.canEdit && (
-              <button type="button" className="btn btn-primary" onClick={() => setImporting(true)} data-testid="req-import">
-                Import / Update
+              <button type="button" className="btn btn-secondary" onClick={() => setForm({ mode: 'create' })} data-testid="req-create-visible">
+                <Plus size={16} aria-hidden="true" /> Create Requirement
               </button>
             )}
+            {viewer.canEdit && <ImportMenu onCreate={() => setForm({ mode: 'create' })} onImport={() => setImporting(true)} />}
           </div>
         }
       />
       <div className="stats stats-6">
-        <Stat icon="▤" value={REQUIREMENTS.length} label="Total Requirements" testId="stat-req-total" />
-        <Stat icon="⛨" value={FAMILIES.length} label="Security Families" tone="good" />
-        <Stat icon="L1" value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" sub={`${REQUIREMENTS.filter((r) => r.cmmc_level === 2).length} at Level 2`} tone="muster" />
-        <Stat icon="⚑" value={viewer.signedIn ? withPriority : '—'} label="Priority Set" sub={viewer.signedIn ? 'High / Medium / Low' : 'Sign in to see metadata'} tone="warn" testId="stat-req-priority" />
-        <Stat icon="⛁" value="Rev. 2" label="Source Version" sub="NIST SP 800-171" />
-        <Stat icon="✎" value={viewer.canEdit ? drafts : SPRS_META.generated_on} label={viewer.canEdit ? 'Drafts to publish' : 'Last Updated'} sub={viewer.canEdit ? 'Metadata changes' : 'Reference Data'} testId="stat-req-drafts" />
+        <Stat icon={<FileText size={24} />} value={REQUIREMENTS.length} label="Total Requirements" sub={customViews.length ? `+${customViews.length} organisation-defined` : 'NIST SP 800-171 Rev. 2'} testId="stat-req-total" />
+        <Stat icon={<ShieldCheck size={24} />} value={FAMILIES.length} label="Security Families" sub="Control families" tone="good" />
+        <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" sub={`${REQUIREMENTS.filter((r) => r.cmmc_level === 2).length} at Level 2`} tone="muster" />
+        <Stat icon={<Tag size={24} />} value={viewer.signedIn ? withPriority : '—'} label="Priority Set" sub={viewer.signedIn ? 'High / Medium / Low' : 'Sign in to see metadata'} tone="warn" testId="stat-req-priority" />
+        <Stat icon={<Database size={24} />} value="Rev. 2" label="Source Version" sub="NIST SP 800-171" />
+        <Stat icon={viewer.canEdit ? <Pencil size={24} /> : <CalendarDays size={24} />} value={viewer.canEdit ? drafts : fmtStamp(lastUpdated).split(',')[0]} label={viewer.canEdit ? 'Drafts to publish' : 'Last Updated'} sub={viewer.canEdit ? 'Waiting for a second admin' : 'Reference Data'} testId="stat-req-drafts" />
       </div>
 
-      <div className="card toolbar toolbar-grid" role="search">
-        <label className="grow span-all">
-          <span className="sr-only">Search</span>
-          <input className="input" type="search" placeholder="Search requirements by ID, title or description…" value={f.q} onChange={(e) => f.setQ(e.target.value)} data-testid="req-search" />
-        </label>
-        <label>
-          Control Family
-          <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family">
-            <option value="">All</option>
-            {FAMILIES.map((fam) => (
-              <option key={fam.abbreviation} value={fam.abbreviation}>
-                {fam.abbreviation} - {fam.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          CMMC Level
-          <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
-            <option value="">All</option>
-            <option value="1">Level 1</option>
-            <option value="2">Level 2</option>
-          </select>
-        </label>
-        <label>
-          Priority
-          <select className="select" value={priority} onChange={(e) => setPriority(e.target.value)} disabled={!viewer.signedIn} data-testid="req-priority">
-            <option value="">All</option>
-            {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-            <option value="unset">Not set</option>
-          </select>
-        </label>
-        <label>
-          Requirement Type
-          <select className="select" value={type} onChange={(e) => setType(e.target.value)} data-testid="req-type">
-            <option value="">All</option>
-            <option value="Basic">Basic</option>
-            <option value="Derived">Derived</option>
-          </select>
-        </label>
-        <label>
-          Used In Module
-          <select className="select" value={module} onChange={(e) => setModule(e.target.value)} disabled={!viewer.signedIn} data-testid="req-module">
-            <option value="">All</option>
-            {Object.entries(MODULE_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="button" className="btn btn-ghost" onClick={clearAll}>
-          Clear Filters
-        </button>
+      <div className="card filter-card" role="search">
+        <div className="filter-top">
+          <label className="search-input search-input-lg">
+            <span className="sr-only">Search requirements</span>
+            <Search size={20} aria-hidden="true" />
+            <input className="input" type="search" placeholder="Search requirements by ID, title or description…" value={f.q} onChange={(e) => f.setQ(e.target.value)} data-testid="req-search" />
+          </label>
+          <button type="button" className="btn btn-link" onClick={clearAll}>
+            Clear Filters
+          </button>
+          <button type="button" className="btn btn-secondary" aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)} data-testid="req-toggle-filters">
+            {showFilters ? 'Hide Filters' : 'Show Filters'} {showFilters ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+          </button>
+        </div>
+        {showFilters && (
+          <div className="filter-grid">
+            <label>
+              Control Family
+              <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family">
+                <option value="">All</option>
+                {FAMILIES.map((fam) => (
+                  <option key={fam.abbreviation} value={fam.abbreviation}>
+                    {fam.abbreviation} - {fam.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              CMMC Level
+              <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
+                <option value="">All</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+              </select>
+            </label>
+            <label>
+              Priority
+              <select className="select" value={priority} onChange={(e) => setPriority(e.target.value)} disabled={!viewer.signedIn} data-testid="req-priority">
+                <option value="">All</option>
+                {Object.entries(PRIORITY_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+                <option value="unset">Default (from SPRS weight)</option>
+              </select>
+            </label>
+            <label>
+              Requirement Type
+              <select className="select" value={type} onChange={(e) => setType(e.target.value)} data-testid="req-type">
+                <option value="">All</option>
+                <option value="Basic">Basic</option>
+                <option value="Derived">Derived</option>
+                <option value="Custom">Organisation-defined</option>
+              </select>
+            </label>
+            <label>
+              Used In Module
+              <select className="select" value={module} onChange={(e) => setModule(e.target.value)} disabled={!viewer.signedIn} data-testid="req-module">
+                <option value="">All</option>
+                {Object.entries(MODULE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
       {meta.error && (
         <p className="note" data-tone="warn" role="alert">
@@ -400,16 +517,18 @@ export default function RequirementsPage() {
       <div className={selected ? 'split' : undefined}>
         <section className="card" aria-label="Requirements">
           <div className="card-bar">
-            <strong data-testid="req-count">{rows.length} requirements</strong>
+            <strong data-testid="req-count">
+              {rows.length} requirement{rows.length === 1 ? '' : 's'}
+            </strong>
             <span className="card-bar-actions">
               <button type="button" className="btn btn-secondary" onClick={() => exportRequirementsCsv(exportRows, metaOf)} data-testid="req-export">
-                ⭳ {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
+                <Download size={16} aria-hidden="true" /> {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
               </button>
               <ColumnChooser hidden={hidden} setHidden={setHidden} />
             </span>
           </div>
           <div className="table-wrap">
-            <table className="tbl" data-testid="req-table">
+            <table className="tbl tbl-req" data-testid="req-table">
               <thead>
                 <tr>
                   <th scope="col" className="col-check">
@@ -428,7 +547,8 @@ export default function RequirementsPage() {
               <tbody>
                 {paged.slice.map((r) => {
                   const m = metaOf(r.control_id);
-                  const v = meta.byId.get(r.control_id);
+                  const custom = customById.get(r.control_id);
+                  const v = custom ?? meta.byId.get(r.control_id);
                   return (
                     <tr key={r.control_id} aria-selected={selected?.control_id === r.control_id}>
                       <td className="col-check">
@@ -444,20 +564,30 @@ export default function RequirementsPage() {
                           </span>
                         )}
                       </td>
-                      <td>{r.practice}</td>
+                      <td>
+                        <span className="clamp-1" title={r.practice}>
+                          {r.practice}
+                        </span>
+                      </td>
                       {show('family') && (
                         <td style={{ whiteSpace: 'nowrap' }}>
                           {r.family} - {r.family_name}
                         </td>
                       )}
-                      {show('type') && <td>{nistOf(r.nist_ref)?.requirement_type ?? '—'}</td>}
-                      {show('priority') && <td>{viewer.signedIn ? <PriorityPill meta={m} /> : '—'}</td>}
+                      {show('type') && <td>{custom ? <span className="pill" data-tone="info">Custom</span> : typeOf(r)}</td>}
+                      {show('priority') && <td><PriorityPill meta={m} /></td>}
                       {show('modules') && <td>{viewer.signedIn ? <ModulePills meta={m} /> : '—'}</td>}
                       {show('weight') && (
                         <td className="num">
-                          <span className="pill" data-tone={weightTone(r.weight)}>
-                            {r.weight}
-                          </span>
+                          {custom ? (
+                            <span className="muted" title="Organisation-defined: not part of the SPRS score">
+                              —
+                            </span>
+                          ) : (
+                            <span className="pill" data-tone={weightTone(r.weight)}>
+                              {r.weight}
+                            </span>
+                          )}
                         </td>
                       )}
                       {viewer.canEdit && (
@@ -467,8 +597,12 @@ export default function RequirementsPage() {
                             testId={`req-actions-${r.control_id}`}
                             actions={[
                               { label: 'View', onSelect: () => setSelected(r) },
-                              { label: 'Edit', onSelect: () => setEditing(r), testId: `req-edit-${r.control_id}` },
-                              ...(v ? [{ label: 'Clear metadata', tone: 'danger' as const, onSelect: () => setDeleting(v), testId: `req-delete-${r.control_id}` }] : []),
+                              { label: 'Edit', onSelect: () => edit(r), testId: `req-edit-${r.control_id}` },
+                              ...(custom
+                                ? [{ label: 'Delete', tone: 'danger' as const, onSelect: () => setDeleting({ kind: 'custom_requirement', view: custom, name: `${r.control_id} ${r.practice}` }), testId: `req-delete-${r.control_id}` }]
+                                : v
+                                  ? [{ label: 'Clear metadata', tone: 'danger' as const, onSelect: () => setDeleting({ kind: 'requirement_meta', view: v, name: `${r.control_id} metadata` }), testId: `req-delete-${r.control_id}` }]
+                                  : []),
                             ]}
                           />
                         </td>
@@ -486,21 +620,24 @@ export default function RequirementsPage() {
           </div>
         </section>
         {selected && (
-          <RequirementDetail
-            row={selected}
-            onClose={() => setSelected(null)}
-            meta={viewer.signedIn ? metaOf(selected.control_id) : undefined}
-            onEdit={viewer.canEdit ? () => setEditing(selected) : undefined}
-          />
+          isCustom(selected.control_id) ? (
+            <CustomDetail view={customById.get(selected.control_id)!} canEdit={viewer.canEdit} onClose={() => setSelected(null)} onEdit={viewer.canEdit ? () => edit(selected) : undefined} />
+          ) : (
+            <RequirementDetail
+              row={selected}
+              onClose={() => setSelected(null)}
+              meta={viewer.signedIn ? metaOf(selected.control_id) : undefined}
+              onEdit={viewer.canEdit ? () => edit(selected) : undefined}
+            />
+          )
         )}
       </div>
-      {editing && <EditRequirementDrawer row={editing} view={meta.byId.get(editing.control_id)} onClose={() => setEditing(null)} onSaved={done} />}
-      {importing && <ImportMetaDrawer existing={meta.byId} onClose={() => setImporting(false)} onDone={done} />}
+      {importing && <ImportMetaDrawer existing={meta.byId} customExisting={customById} onClose={() => setImporting(false)} onDone={done} />}
       {deleting && (
         <DeleteItemDialog
-          kind="requirement_meta"
-          view={deleting}
-          name={`${deleting.key} metadata`}
+          kind={deleting.kind}
+          view={deleting.view}
+          name={deleting.name}
           onCancel={() => setDeleting(null)}
           onDone={(msg) => {
             setDeleting(null);
@@ -510,5 +647,70 @@ export default function RequirementsPage() {
       )}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
+  );
+}
+
+function CustomDetail({ view, canEdit, onClose, onEdit }: { view: ItemView<CustomRequirement>; canEdit: boolean; onClose: () => void; onEdit?: () => void }) {
+  const d = shownData(view, canEdit)!;
+  return (
+    <aside className="card card-pad detail" aria-label="Requirement details" data-testid="req-detail">
+      <div className="detail-head">
+        <div>
+          <span className="pill" data-tone="info">
+            Organisation-defined · not scored
+          </span>
+          <h2>{d.control_id}</h2>
+        </div>
+        <button type="button" className="icon-x" onClick={onClose} aria-label="Close details">
+          ×
+        </button>
+      </div>
+      <p>
+        <strong>{d.title}</strong>
+      </p>
+      <p>{d.description}</p>
+      {onEdit && (
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onEdit}>
+          <Pencil size={14} aria-hidden="true" /> Edit
+        </button>
+      )}
+      <dl className="kv">
+        <dt>Status</dt>
+        <dd>
+          <StatusPill view={view} />
+        </dd>
+        <dt>Family</dt>
+        <dd>
+          {d.family} — {FAMILIES.find((f) => f.abbreviation === d.family)?.name}
+        </dd>
+        <dt>Priority</dt>
+        <dd>{PRIORITY_LABEL[d.priority]}</dd>
+        <dt>Source</dt>
+        <dd>
+          {d.source_standard}
+          {d.source_section ? ` · ${d.source_section}` : ''}
+        </dd>
+        <dt>Used in modules</dt>
+        <dd>{d.modules.map((m) => MODULE_LABEL[m]).join(', ') || '—'}</dd>
+        {d.assessment_criteria && (
+          <>
+            <dt>Assessment criteria</dt>
+            <dd>{d.assessment_criteria}</dd>
+          </>
+        )}
+        {!!d.related?.length && (
+          <>
+            <dt>Related</dt>
+            <dd>{d.related.join(', ')}</dd>
+          </>
+        )}
+        {d.effective_date && (
+          <>
+            <dt>Effective</dt>
+            <dd>{d.effective_date}</dd>
+          </>
+        )}
+      </dl>
+    </aside>
   );
 }

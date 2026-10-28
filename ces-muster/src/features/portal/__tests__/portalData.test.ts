@@ -28,7 +28,7 @@ describe('UI-02 navigation by role', () => {
     expect(r.has('platform/users')).toBe(true);
     expect(r.has('platform/audit')).toBe(true);
     for (const forbidden of ['muster', 'engagements/all', 'module/stamper'] as const) expect(r.has(forbidden)).toBe(false);
-    expect(defaultRoute(as('platform_admin'))).toBe('platform/users');
+    expect(defaultRoute(as('platform_admin'))).toBe('home');
   });
 
   it.each(['bhd_operator', 'prime', 'sub', 'assessor_read_only'])('%s: no Users or Audit, but Roles; lands on Home', (role) => {
@@ -48,7 +48,7 @@ describe('UI-02 navigation by role', () => {
 
   it('every planned item is labelled planned (never presented as working)', () => {
     const planned = navFor(as('bhd_operator')).flatMap((s) => s.items).filter((i) => i.planned).map((i) => i.route);
-    expect(planned.sort()).toEqual(['engagements/tenants', 'shared/tests']);
+    expect(planned.sort()).toEqual(['engagements/tenants', 'shared/compat', 'shared/interfaces', 'shared/registry', 'shared/tests', 'store/adminops', 'store/integrity', 'store/passkeys', 'store/tokens']);
   });
 
   it('hash parsing', () => {

@@ -58,7 +58,7 @@ test('offline: CES-Shared reference pages show the real data', async ({ page }) 
   await expect(page.getByTestId('page-sprs')).toBeVisible();
 });
 
-test('platform admin: lands on Users, no customer screens, adds a user and sees the temporary password once', async ({ page }) => {
+test('platform admin: lands on Home (counts only), no customer screens, adds a user and sees the temporary password once', async ({ page }) => {
   const users = [
     { id: 'me', email: 'admin@bhd.test', display_name: 'Admin', role: 'platform_admin', tenant_id: 't1', organization: 'BHD', party_id: null, disabled: false, must_change_password: false, last_login_at: null, created_at: '2026-10-01T00:00:00Z' },
   ];
@@ -74,11 +74,13 @@ test('platform admin: lands on Users, no customer screens, adds a user and sees 
   });
   await signInAs(page, fakeJwt({ sub: 'me', role: 'platform_admin', name: 'Admin', exp: inAnHour() }));
 
-  await expect(page.getByTestId('page-users')).toBeVisible();
+  // S1.9: everyone lands on Home / Portfolio; a platform administrator sees counts only (doc 28 D-1).
+  await expect(page.getByTestId('page-portfolio')).toBeVisible();
   await expect(page.getByTestId('nav-muster-situation')).toHaveCount(0);
-  await expect(page.getByTestId('nav-home')).toHaveCount(0);
-  // A typed-in customer route falls back to the admin landing page.
+  // A typed-in customer route falls back to the landing page.
   await page.goto('/#/muster/assessment');
+  await expect(page.getByTestId('page-portfolio')).toBeVisible();
+  await page.getByTestId('nav-platform-users').click();
   await expect(page.getByTestId('page-users')).toBeVisible();
 
   await page.getByTestId('users-add').click();

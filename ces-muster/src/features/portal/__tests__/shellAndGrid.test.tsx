@@ -25,8 +25,8 @@ describe('S1.4 sidebar follows the wireframe tree', () => {
   it('CES-Shared groups: Reference Data, Standard Evidence & Evaluation Rules, Contract Validation', () => {
     const shared = navFor(op).find((s) => s.id === 'shared')!;
     const groups = [...new Set(shared.items.map((i) => i.group).filter(Boolean))];
-    expect(groups).toEqual(['Reference Data', 'Standard Evidence & Evaluation Rules', 'Contract Validation']);
-    expect(shared.items.filter((i) => i.group === 'Contract Validation').map((i) => i.label)).toEqual(['Golden Files', 'Contract Tests']);
+    expect(groups).toEqual(['Reference Data', 'Standard Evidence & Evaluation Rules', 'Contract Validation', 'Evidence Store']);
+    expect(shared.items.filter((i) => i.group === 'Contract Validation').map((i) => i.label)).toEqual(['Golden Files', 'Contract Tests', 'Version Compatibility']);
   });
 
   it('Engagements: Tenant Registration, All Engagements, Create Engagement, Engagement Workspace', () => {
@@ -77,7 +77,7 @@ describe('S1.4 standard grid on 110 Requirements', () => {
     click(host.querySelector('[data-testid="sort-weight"]'));
     click(host.querySelector('[data-testid="sort-weight"]'));
     expect(host.querySelector('th[aria-sort="descending"]')).not.toBeNull();
-    expect(host.querySelector('[data-testid="req-table"] tbody tr .pill')?.textContent).toBe('5');
+    expect(host.querySelector('[data-testid="req-table"] tbody tr td.num .pill')?.textContent).toBe('5');
 
     click(host.querySelector('input[aria-label="Select all requirements"]'));
     expect(host.querySelector('[data-testid="req-export"]')?.textContent).toContain('Export 110 selected');
@@ -98,5 +98,18 @@ describe('S1.4 standard grid on 110 Requirements', () => {
     setPendingSearch('shared/requirements', 'AC.L2-3.1.5');
     act(() => root.render(<RequirementsPage />));
     expect(ids()).toEqual(['AC.L2-3.1.5']);
+  });
+});
+
+describe('S1.9 sidebar from the Create Requirement mockup', () => {
+  it('adds Contract Registry, Version Compatibility, Interfaces and Evidence Store; modules come before Engagements', () => {
+    const ids = navFor(op).map((s) => s.id);
+    expect(ids.indexOf('evidenceops')).toBeLessThan(ids.indexOf('engagements'));
+    const shared = navFor(op).find((s) => s.id === 'shared')!;
+    expect(shared.items.map((i) => i.label)).toEqual(expect.arrayContaining(['Contract Registry', 'Version Compatibility', 'Interfaces', 'Storage Integrity']));
+  });
+  it('a platform administrator does not get the Evidence Store (customer evidence)', () => {
+    const shared = navFor({ kind: 'signed-in', role: 'platform_admin' }).find((s) => s.id === 'shared')!;
+    expect(shared.items.some((i) => i.group === 'Evidence Store')).toBe(false);
   });
 });

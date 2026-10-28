@@ -13,6 +13,7 @@
 // platform administrator may not publish their own draft). Other roles see
 // "No notifications" until BHD defines more sources (e.g. the review queue).
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Bell } from 'lucide-react';
 import { sharedApi, type Kind } from '@/shared/api/sharedApi';
 import type { RouteId, Viewer } from './nav';
 
@@ -21,12 +22,14 @@ const KIND_ROUTE: Record<Kind, RouteId> = {
   archetype: 'shared/evidence',
   mapping: 'shared/mapping',
   rule: 'shared/rules',
+  custom_requirement: 'shared/requirements',
 };
 const KIND_LABEL: Record<Kind, string> = {
   requirement_meta: 'Requirement metadata',
   archetype: 'Evidence archetype',
   mapping: 'Mapping',
   rule: 'Evaluation rule',
+  custom_requirement: 'Organisation-defined requirement',
 };
 
 interface Note {
@@ -83,7 +86,7 @@ export default function NotificationsBell({ viewer, userId, go }: { viewer: View
         }}
         data-testid="notifications-bell"
       >
-        <span aria-hidden="true">🔔︎</span>
+        <Bell size={22} aria-hidden="true" />
         {notes.length > 0 && (
           <span className="portal-badge" data-testid="notifications-count">
             {notes.length > 99 ? '99+' : notes.length}

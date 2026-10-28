@@ -72,7 +72,7 @@ describe('CSV', () => {
     const first = lines[0];
     expect(first.status === 'change' && first.data).toEqual({ control_id: 'AC.L1-3.1.1', priority: 'high', modules: ['muster', 'stamper'], implementation_guidance: 'Check CA' });
     expect(first.status === 'change' && first.isNew).toBe(true);
-    expect(lines.map((l) => (l.status === 'error' ? l.message : ''))).toEqual(['', '', 'Unknown requirement ID', 'Priority "urgent" must be High, Medium, Low or empty', 'Unknown module "cloud"', 'Listed twice']);
+    expect(lines.map((l) => (l.status === 'error' ? l.message : ''))).toEqual(['', '', 'Not one of the 110. To add an organisation-defined requirement, fill the title column', 'Priority "urgent" must be High, Medium, Low or empty', 'Unknown module "cloud"', 'Listed twice']);
     expect(planImport('priority\nhigh', known, existing).headerError).toMatch(/control_id/);
   });
 });

@@ -20,7 +20,7 @@
 //     them and published as the next version; old versions become "retired";
 //   * every change writes a shared_changes row in the same transaction.
 import { SCHEMAS, keyOf, type Kind } from './schemas.js';
-import { CONTROL_IDS, REFERENCE_VERSION } from './reference.js';
+import { CONTROL_IDS, FAMILY_CODES, REFERENCE_VERSION } from './reference.js';
 
 export type Status = 'draft' | 'published' | 'retired';
 
@@ -133,6 +133,19 @@ export function createSharedService(db: SharedDb) {
     if (kind === 'requirement_meta' || kind === 'mapping') {
       const bad = unknownControls([String(data.control_id)]);
       if (bad.length) throw new SharedError(400, 'UNKNOWN_REQUIREMENT', 'The requirement does not exist', { controlIds: bad });
+    }
+    if (kind === 'custom_requirement') {
+      const id = String(data.control_id);
+      if (CONTROL_IDS.has(id)) throw new SharedError(409, 'RESERVED_REQUIREMENT_ID', 'This ID belongs to one of the 110 NIST requirements. Choose another ID.', { controlId: id });
+      if (!FAMILY_CODES.has(String(data.family))) throw new SharedError(400, 'UNKNOWN_FAMILY', 'Choose one of the 14 control families', { family: data.family });
+    }
+    if (kind === 'requirement_meta' || kind === 'custom_requirement') {
+      const linked = [...((data.related as string[] | undefined) ?? []), ...((data.dependent as string[] | undefined) ?? [])];
+      if (linked.length) {
+        const custom = new Set((await rowsOf(tx, 'custom_requirement')).filter((r) => r.status !== 'retired').map((r) => r.item_key));
+        const bad = linked.filter((id) => !CONTROL_IDS.has(id) && !custom.has(id));
+        if (bad.length) throw new SharedError(400, 'UNKNOWN_REQUIREMENT', 'A related or dependent requirement does not exist', { controlIds: bad });
+      }
     }
     const archetypes = kind === 'mapping' ? [String(data.archetype_code)] : kind === 'rule' ? ((data.applies_to as { archetypes: string[] }).archetypes ?? []) : [];
     if (kind === 'rule') {

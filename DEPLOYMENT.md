@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Package** | `CES-platform-2026-10-26.zip`, prepared by Aavya engineering |
-| **Code level** | ces-muster `3289c29` (Sprint 1 up to S1.4, S1.8 and DEP-01). CES monorepo `7fd9663` (`wk2-integration-check`). ces-tenant as of 2026-10-24 |
+| **Package** | `CES-platform-2026-10-27-v2.zip`, prepared by Aavya engineering |
+| **Code level** | ces-muster `bb911f7` (Sprint 1: S1.4, S1.8, S1.9 demo feedback, S1.10 fixes, DEP-01). CES monorepo `7fd9663` (`wk2-integration-check`). ces-tenant as of 2026-10-24 |
 | **What gets deployed** | The CES portal (sign-in, Home / Portfolio, CES-Shared, Engagements, Muster, Platform administration), muster-api and its PostgreSQL database |
 | **Not deployed by this package** | Stamper, AdminOps, EvidenceOps, Evidence Collector, Planner. Their code is in the repository, but no container is defined for them yet |
 | **Audience** | The engineer who creates the new repository from a Windows laptop and puts the build on a server |
@@ -79,7 +79,7 @@ Browser ──HTTPS──► TLS proxy (Caddy/nginx/LB) ──HTTP──► web:
 
 ## 3. Part A — create the new repository (Windows)
 
-1. Unzip `CES-platform-2026-10-26.zip` to a short path, for example `C:\ces\`. You get `C:\ces\ces-platform\`.
+1. Unzip `CES-platform-2026-10-27-v2.zip` to a short path, for example `C:\ces\`. You get `C:\ces\ces-platform\`.
 2. On your Git host, create a **new private, empty repository**, for example `ces-platform`. Do **not** add a README, licence or .gitignore there.
 3. Open **Git Bash** (or PowerShell) and run:
 
@@ -88,10 +88,10 @@ Browser ──HTTPS──► TLS proxy (Caddy/nginx/LB) ──HTTP──► web:
    git init -b main
    git add .
    git status                        # deploy/.env and node_modules must NOT be listed
-   git commit -m "CES platform: initial import (ces-muster 3289c29, Sprint 1 S1.4 + S1.8 + DEP-01)"
+   git commit -m "CES platform: initial import (ces-muster 8bc2206, Sprint 1 S1.4 + S1.8 + S1.9 + DEP-01)"
    git remote add origin <URL of the new repository>
    git push -u origin main
-   git tag v2026.10.26 && git push origin v2026.10.26
+   git tag v2026.10.27 && git push origin v2026.10.27
    ```
 
 4. Protect the repository on the Git host:
@@ -138,7 +138,7 @@ Use a read-only **deploy key** or access token for the private repository. Do no
 sudo mkdir -p /opt/ces && sudo chown $USER /opt/ces
 git clone <URL of the new repository> /opt/ces/ces-platform
 cd /opt/ces/ces-platform
-git checkout v2026.10.26
+git checkout v2026.10.27
 ```
 
 ### 5.3 Configure
@@ -156,9 +156,11 @@ nano .env                  # set INITIAL_ADMIN_EMAIL; for a TLS proxy on this se
 | `INITIAL_ADMIN_EMAIL` | First platform administrator. Created **once**, on an empty database |
 | `INITIAL_TENANT_NAME` | Organisation that the first admin belongs to (default `Blue Heron Defense`) |
 | `HTTP_PORT` / `HTTP_BIND` | Where the portal listens (default `0.0.0.0:8080`). Use `127.0.0.1` behind a TLS proxy on the same server |
-| `CES_VERSION` | Image tag, for example `v2026.10.26` |
+| `CES_VERSION` | Image tag, for example `v2026.10.27` |
 | `ANTHROPIC_API_KEY` | Optional. Without it the interview uses the static question set |
-| `JWT_EXPIRES_IN` | Optional, default `8h` |
+| `PUBLIC_URL` | The address users open, e.g. `https://ces.example.com`. Used in password-reset e-mails |
+| `SMTP_URL` / `MAIL_FROM` | Outbound e-mail for **Forgot password**, e.g. `smtps://user:pass@smtp.example.com:465`. Empty = no e-mail; an admin resets passwords in **Users** |
+| `JWT_EXPIRES_IN` | Sign-in token lifetime, default `30m`. Active users get a fresh token automatically; the portal signs out after 30 minutes without activity |
 
 **Keep `.env` safe.** Only the deploy user should be able to read it. Back it up with the database (§8), because without it the stored data cannot be reached.
 
@@ -170,7 +172,7 @@ docker compose logs -f api         # wait for: "[ces] muster-api starting on por
 
 What the API does on start:
 - Waits for the database.
-- Applies migrations `001`–`011`.
+- Applies migrations `001`–`013`.
 - Creates or refreshes the `muster_app` role and its grants.
 - Loads the CES-Shared reference content: 50 evidence archetypes, 450 mappings and 107 rules. On later starts it skips content that is already there.
 - If there are no users yet, creates the first administrator and writes the one-time password to `deploy/output/initial-admin.txt`.
@@ -290,12 +292,12 @@ cd deploy && ./start.sh             # rebuilds; new migrations are applied autom
 ## 12. Known limits of this build (Sprint 1)
 
 These are open items, not defects of the deployment:
-- **Forgot password:** the self-service reset link (decision D3) is not built yet. An administrator resets passwords in **Users**.
+- **Forgot password** sends a reset link (valid 30 minutes, single use) only when `SMTP_URL` is set. Without e-mail, an administrator resets passwords in **Users**.
 - **Single API instance only:** the sign-in attempt counter is held in memory.
 - **Tenant Registration and Contract Tests are not built yet:** they are marked "Planned" in the menu (releases S1.7 and S1.6).
 - **Home / Portfolio readiness:** Stamper, AdminOps and EvidenceOps show **TBD** until BHD agrees a formula. The rules are in `ces-muster/muster-api/src/services/portfolioService.ts`.
 - **Live Microsoft tenant access is off by default.** Turning it on needs the app registration and consent steps in `ces-muster/docs/`; it is not part of this deployment.
-- **No e-mail (SMTP) is configured,** so reminders and nudges are recorded but not sent.
+- Reminders and nudges are recorded but not sent; only password-reset e-mail uses `SMTP_URL`.
 
 ## 13. Open decisions (TBD)
 

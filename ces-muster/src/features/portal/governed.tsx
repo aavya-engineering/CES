@@ -259,7 +259,9 @@ export function RowActions({ label, actions, testId }: { label: string; actions:
     document.addEventListener('mousedown', close);
     window.addEventListener('scroll', shut, true);
     window.addEventListener('resize', shut);
-    requestAnimationFrame(() => ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus());
+    // preventScroll: focusing the first item must not scroll the table box, which would fire the
+    // scroll listener above and close the menu on its first click (S1.10, short tables).
+    requestAnimationFrame(() => ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus({ preventScroll: true }));
     return () => {
       document.removeEventListener('mousedown', close);
       window.removeEventListener('scroll', shut, true);

@@ -33,7 +33,7 @@ import { randomUUID } from 'node:crypto';
 import { bearerAuth, requireRole } from '../middleware/auth.js';
 import { createSharedService, SharedError, type SharedDb } from '../cesShared/service.js';
 import { FAMILIES, REFERENCE_VERSION, REQUIREMENTS } from '../cesShared/reference.js';
-import { isKind, type Kind } from '../cesShared/schemas.js';
+import { KINDS, isKind, type Kind } from '../cesShared/schemas.js';
 
 const READ_ROLES = ['platform_admin', 'bhd_operator', 'prime', 'sub', 'assessor_read_only'];
 const EDIT_ROLES = ['platform_admin'];
@@ -52,7 +52,7 @@ const wrap = (fn: Handler) => (req: Request, res: Response, next: NextFunction) 
 function kindParam(req: Request, res: Response): Kind | null {
   const k = req.params.kind;
   if (!isKind(k)) {
-    fail(res, 404, 'UNKNOWN_KIND', 'Unknown item kind', { kind: k, kinds: ['requirement_meta', 'archetype', 'mapping', 'rule'] });
+    fail(res, 404, 'UNKNOWN_KIND', 'Unknown item kind', { kind: k, kinds: [...KINDS] });
     return null;
   }
   return k;

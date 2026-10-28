@@ -20,6 +20,13 @@ export const nistOf = (nistRef: string) => nist.get(nistRef) ?? null;
 export const MODULE_LABEL: Record<ModuleId, string> = { muster: 'Muster', stamper: 'Stamper', adminops: 'AdminOps', evidenceops: 'EvidenceOps' };
 export const PRIORITY_LABEL = { high: 'High', medium: 'Medium', low: 'Low' } as const;
 export const PRIORITY_TONE = { high: 'bad', medium: 'warn', low: 'info' } as const;
+export type Priority = keyof typeof PRIORITY_LABEL;
+
+/** The priority to show, sort and filter by: only what an administrator set.
+ *  Decision 2026-10-27: no default from the SPRS weight — an unset priority stays empty. */
+export function effectivePriority(meta: RequirementMeta | null): Priority | null {
+  return meta?.priority ?? null;
+}
 
 /** Requirement metadata keyed by control ID (signed in only). */
 export function useRequirementMeta() {

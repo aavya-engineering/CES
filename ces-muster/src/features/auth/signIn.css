@@ -587,3 +587,18 @@ body.ces-signin::before {
     font-size: 13px;
   }
 }
+
+/* S1.9: status messages (signed out for inactivity, reset link sent, password changed). */
+.signin-status {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--co-text);
+  background: var(--co-primary-subtle, #e8f0fe);
+  border-left: 3px solid var(--co-primary, #1d5fd6);
+  border-radius: 6px;
+}
+[data-testid='signin-forgot-panel'] {
+  display: flex;
+  flex-direction: column;
+}

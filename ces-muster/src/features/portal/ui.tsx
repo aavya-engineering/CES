@@ -10,6 +10,7 @@
 // ui.tsx — UI-02: small shared building blocks for portal pages (page header,
 // stat tile, pager, empty state). Styles in portalTheme.css.
 import type { ReactNode } from 'react';
+import { GlyphIcon } from './icons';
 
 export function PageHeader({
   icon,
@@ -17,7 +18,8 @@ export function PageHeader({
   lede,
   actions,
 }: {
-  icon: string;
+  /** A glyph from icons.tsx (shown as an outline icon) or any element. */
+  icon: ReactNode;
   title: string;
   lede?: ReactNode;
   actions?: ReactNode;
@@ -25,7 +27,7 @@ export function PageHeader({
   return (
     <header className="pg-head">
       <div className="pg-head-icon" aria-hidden="true">
-        {icon}
+        {typeof icon === 'string' ? <GlyphIcon glyph={icon} size={32} /> : icon}
       </div>
       <div>
         <h1 className="pg-title">{title}</h1>
@@ -44,7 +46,7 @@ export function Stat({
   tone,
   testId,
 }: {
-  icon: string;
+  icon: ReactNode;
   value: ReactNode;
   label: string;
   sub?: ReactNode;
@@ -54,7 +56,7 @@ export function Stat({
   return (
     <div className="stat" data-testid={testId}>
       <div className="stat-icon" data-tone={tone} aria-hidden="true">
-        {icon}
+        {typeof icon === 'string' ? <GlyphIcon glyph={icon} size={24} /> : icon}
       </div>
       <div>
         <div className="stat-value">{value}</div>

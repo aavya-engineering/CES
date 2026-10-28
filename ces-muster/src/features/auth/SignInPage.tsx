@@ -20,36 +20,57 @@
 //  - Email + password → POST /auth/login (musterAuth.ts); "Keep me signed in";
 //    show/hide password; honest errors (wrong credentials, too many attempts,
 //    disabled account, API not reachable).
-//  - Single sign-on / Sign in with Microsoft: look as drawn, not available yet
-//    (no identity provider chosen, PRD OQ-12). Pressing them says so.
-//  - Forgot password: same panel layout as wireframe 2, but it says plainly
-//    that no email is sent — CES has no email service.
-//  - "Continue without signing in" (offline-first, DW#5) sits below the card.
+//  - S1.9 (demo feedback 2026-10-27): Single sign-on, "Sign in with Microsoft"
+//    and "Continue offline" are removed from the page (no identity provider is
+//    chosen, PRD OQ-12). Offline mode stays available to developers and tests
+//    through ?offline=1 (offline-first, DW#5).
+//  - "Keep me signed in": the session survives closing the browser (until the
+//    token expires) and the email is remembered on this device. Every session
+//    ends after 30 minutes without activity (useIdleSignOut, NIST 3.1.11).
+//  - Forgot password (decision D3): POST /auth/forgot-password sends a
+//    single-use 30-minute link; #/reset-password?token=… sets a new password.
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
-import { signInToMuster } from '@/shared/api/musterAuth';
+import { requestPasswordReset, resetPassword, signInToMuster } from '@/shared/api/musterAuth';
+import { resetTokenFromHash } from './resetLink';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  BuildingIcon,
   CesShield,
   EyeIcon,
   EyeOffIcon,
   InfoIcon,
   LockIcon,
   MailIcon,
-  MicrosoftLogo,
   MoonIcon,
   SunIcon,
 } from './icons';
 import './signIn.css';
 
-type Method = 'password' | 'sso';
+let offlineParamUsed = false;
+const REMEMBER_EMAIL_KEY = 'ces-remember-email';
+function readRememberedEmail(): string {
+  try {
+    return localStorage.getItem(REMEMBER_EMAIL_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+function writeRememberedEmail(email: string | null): void {
+  try {
+    if (email) localStorage.setItem(REMEMBER_EMAIL_KEY, email);
+    else localStorage.removeItem(REMEMBER_EMAIL_KEY);
+  } catch {
+    /* storage blocked */
+  }
+}
 
 export interface SignInPageProps {
   onSignedIn: () => void;
   onWorkOffline: () => void;
   /** Kept for compatibility; the page now has its own Light/Dark Mode menu. */
   themeToggle?: ReactNode;
+  /** A message shown above the form, e.g. "signed out after 30 minutes without activity". */
+  notice?: string | null;
   /** Replace the sign-in form with another panel (change password after a temporary one). */
   panel?: ReactNode;
   panelTitle?: string;
@@ -99,17 +120,27 @@ function CardBrand() {
   );
 }
 
-export default function SignInPage({ onSignedIn, onWorkOffline, panel, panelTitle, onCancelPanel }: SignInPageProps) {
+export default function SignInPage({ onSignedIn, onWorkOffline, notice, panel, panelTitle, onCancelPanel }: SignInPageProps) {
   const ids = useId();
-  const [method, setMethod] = useState<Method>('password');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(readRememberedEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(() => readRememberedEmail() !== '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [forgot, setForgot] = useState(false);
-  const [msNote, setMsNote] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(() => resetTokenFromHash());
+  const [done, setDone] = useState<string | null>(null);
+
+  // Developers and tests can still work offline (DW#5) with ?offline=1 — once
+  // per page load, so "Sign in" from the offline header still reaches this page.
+  useEffect(() => {
+    if (offlineParamUsed || typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).get('offline') === '1') {
+      offlineParamUsed = true;
+      onWorkOffline();
+    }
+  }, [onWorkOffline]);
 
   // The CUI designation banner (ces-ui.css body::before) is hidden on this page
   // only, to match the wireframe: no CUI is shown before sign-in. It returns
@@ -131,7 +162,10 @@ export default function SignInPage({ onSignedIn, onWorkOffline, panel, panelTitl
     try {
       const outcome = await signInToMuster(email.trim(), password, { remember });
       setPassword('');
-      if (outcome.ok) onSignedIn();
+      if (outcome.ok) {
+        writeRememberedEmail(remember ? email.trim() : null);
+        onSignedIn();
+      }
       else setError(capitalise(outcome.message) + '.');
     } finally {
       setBusy(false);
@@ -178,66 +212,35 @@ export default function SignInPage({ onSignedIn, onWorkOffline, panel, panelTitl
                 </button>
               )}
             </>
+          ) : resetToken ? (
+            <ResetPanel
+              token={resetToken}
+              onDone={(msg) => {
+                setResetToken(null);
+                setDone(msg);
+                try {
+                  window.history.replaceState(null, '', window.location.pathname);
+                } catch {
+                  /* ignore */
+                }
+              }}
+            />
           ) : forgot ? (
-            <div data-testid="signin-forgot-panel">
-              <h2 className="signin-title">Forgot your password?</h2>
-              <p className="signin-intro" data-testid="signin-reset-help">
-                Muster has no self-service password reset yet, so no email is sent. Ask your platform administrator to
-                reset it from <strong>Platform → Users</strong>. You will get a temporary password and choose a new
-                one at your next sign-in.
-              </p>
-              <button type="button" className="signin-submit" onClick={() => setForgot(false)} data-testid="signin-back">
-                <span>Back to Sign In</span>
-                <ArrowLeftIcon />
-              </button>
-              <div className="signin-notice" role="note">
-                <InfoIcon />
-                <div>
-                  <strong>Secure password reset</strong>
-                  <p>
-                    A reset link by email needs an email service and a verified address for every user. That is an
-                    open decision for Blue Heron Defense.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ForgotPanel initialEmail={email} onBack={() => setForgot(false)} />
           ) : (
             <>
               <h2 className="signin-title">Welcome Back</h2>
               <p className="signin-intro">Sign in to access your engagements, manage compliance and maintain evidence.</p>
 
-              <div className="signin-methods" role="tablist" aria-label="Sign-in method">
-                <button
-                  type="button"
-                  role="tab"
-                  id={`${ids}-tab-password`}
-                  aria-selected={method === 'password'}
-                  aria-controls={`${ids}-panel-password`}
-                  className={method === 'password' ? 'is-active' : undefined}
-                  data-testid="signin-method-password"
-                  onClick={() => setMethod('password')}
-                >
-                  <MailIcon size={20} /> Email &amp; Password
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  id={`${ids}-tab-sso`}
-                  aria-selected={method === 'sso'}
-                  aria-controls={`${ids}-panel-sso`}
-                  className={method === 'sso' ? 'is-active' : undefined}
-                  data-testid="signin-method-sso"
-                  onClick={() => setMethod('sso')}
-                >
-                  <BuildingIcon size={20} /> Single Sign-On (SSO)
-                </button>
-              </div>
-
-              {method === 'password' ? (
+              {(notice || done) && (
+                <p className="signin-status" role="status" data-testid="signin-status">
+                  {done ?? notice}
+                </p>
+              )}
+              {(
                 <form
                   id={`${ids}-panel-password`}
-                  role="tabpanel"
-                  aria-labelledby={`${ids}-tab-password`}
+                  aria-label="Sign in with email and password"
                   className="signin-form"
                   onSubmit={submit}
                   noValidate
@@ -306,38 +309,6 @@ export default function SignInPage({ onSignedIn, onWorkOffline, panel, panelTitl
                     <ArrowRightIcon />
                   </button>
                 </form>
-              ) : (
-                <div id={`${ids}-panel-sso`} role="tabpanel" aria-labelledby={`${ids}-tab-sso`} className="signin-form" data-testid="signin-sso-panel">
-                  <p className="signin-note">
-                    Single sign-on is not set up for CES yet. It depends on which identity provider Blue Heron Defense
-                    chooses. Use your email and password for now.
-                  </p>
-                  <button type="button" className="signin-submit" onClick={() => setMethod('password')}>
-                    <span>Use Email &amp; Password</span>
-                    <ArrowRightIcon />
-                  </button>
-                </div>
-              )}
-
-              <div className="signin-divider" aria-hidden="true">
-                <span>OR</span>
-              </div>
-
-              <button
-                type="button"
-                className="signin-microsoft"
-                aria-disabled="true"
-                aria-describedby={msNote ? `${ids}-ms-note` : undefined}
-                onClick={() => setMsNote(true)}
-                data-testid="signin-microsoft"
-              >
-                <MicrosoftLogo /> Sign in with Microsoft
-              </button>
-              {msNote && (
-                <p id={`${ids}-ms-note`} className="signin-note" role="status" data-testid="signin-microsoft-note">
-                  Sign in with Microsoft is not available yet — it waits for the identity-provider decision. Use your
-                  email and password.
-                </p>
               )}
 
               <div className="signin-notice" role="note" data-testid="signin-notice">
@@ -354,12 +325,127 @@ export default function SignInPage({ onSignedIn, onWorkOffline, panel, panelTitl
           )}
         </div>
 
-        {!panel && (
-          <button type="button" className="signin-offline" onClick={onWorkOffline} data-testid="signin-work-offline">
-            Continue offline without signing in
-          </button>
-        )}
       </section>
+    </div>
+  );
+}
+
+function ForgotPanel({ initialEmail, onBack }: { initialEmail: string; onBack: () => void }) {
+  const ids = useId();
+  const [email, setEmail] = useState(initialEmail);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [sent, setSent] = useState<string | null>(null);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setError('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter your work email address.');
+      return;
+    }
+    setBusy(true);
+    const r = await requestPasswordReset(email.trim());
+    setBusy(false);
+    if (r.ok) setSent(r.message);
+    else setError(r.message);
+  };
+  return (
+    <div data-testid="signin-forgot-panel">
+      <h2 className="signin-title">Forgot your password?</h2>
+      <p className="signin-intro">Enter your work email address and we&apos;ll send you a link to reset your password.</p>
+      {sent ? (
+        <p className="signin-status" role="status" data-testid="signin-reset-sent">
+          {sent} The link works once, for 30 minutes.
+        </p>
+      ) : (
+        <form className="signin-form" onSubmit={submit} noValidate data-testid="signin-forgot-form">
+          <label htmlFor={`${ids}-femail`}>Email address</label>
+          <div className="signin-field">
+            <MailIcon className="signin-field-icon" />
+            <input
+              id={`${ids}-femail`}
+              type="email"
+              autoComplete="username"
+              placeholder="name@yourorganization.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              data-testid="signin-forgot-email"
+              {...(error ? { 'aria-invalid': true, 'aria-describedby': `${ids}-ferr` } : {})}
+            />
+          </div>
+          {error && (
+            <p id={`${ids}-ferr`} className="signin-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="signin-submit" disabled={busy} data-testid="signin-forgot-submit">
+            <span>{busy ? 'Sending…' : 'Send Reset Link'}</span>
+            <ArrowRightIcon />
+          </button>
+        </form>
+      )}
+      <button type="button" className="signin-back" onClick={onBack} data-testid="signin-back">
+        <ArrowLeftIcon /> Back to Sign In
+      </button>
+      <div className="signin-notice" role="note">
+        <InfoIcon />
+        <div>
+          <strong>Secure password reset</strong>
+          <p>If an account exists for this email, you&apos;ll receive instructions to reset your password.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPanel({ token, onDone }: { token: string; onDone: (message: string) => void }) {
+  const ids = useId();
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setError('');
+    if (pw.length < 12) return setError('Use at least 12 characters.');
+    if (pw !== pw2) return setError('The two passwords do not match.');
+    setBusy(true);
+    const r = await resetPassword(token, pw);
+    setBusy(false);
+    if (r.ok) onDone(r.message);
+    else setError(r.message);
+  };
+  return (
+    <div data-testid="signin-reset-panel">
+      <h2 className="signin-title">Choose a new password</h2>
+      <p className="signin-intro">Use at least 12 characters, and do not include your email name.</p>
+      <form className="signin-form" onSubmit={submit} noValidate>
+        <label htmlFor={`${ids}-pw1`}>New password</label>
+        <div className="signin-field">
+          <LockIcon className="signin-field-icon" />
+          <input id={`${ids}-pw1`} type={show ? 'text' : 'password'} autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} data-testid="reset-password" />
+          <button type="button" className="signin-reveal" aria-pressed={show} aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow((v) => !v)}>
+            {show ? <EyeIcon /> : <EyeOffIcon />}
+          </button>
+        </div>
+        <label htmlFor={`${ids}-pw2`}>Confirm new password</label>
+        <div className="signin-field">
+          <LockIcon className="signin-field-icon" />
+          <input id={`${ids}-pw2`} type={show ? 'text' : 'password'} autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} data-testid="reset-password-confirm" />
+        </div>
+        {error && (
+          <p className="signin-error" role="alert" data-testid="reset-error">
+            {error}
+          </p>
+        )}
+        <button type="submit" className="signin-submit" disabled={busy} data-testid="reset-submit">
+          <span>{busy ? 'Saving…' : 'Set New Password'}</span>
+          <ArrowRightIcon />
+        </button>
+      </form>
     </div>
   );
 }

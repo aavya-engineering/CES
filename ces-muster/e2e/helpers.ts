@@ -11,13 +11,13 @@
 import { type Page } from '@playwright/test';
 
 /**
- * UI-01: open Muster and pass the sign-in page with "Work offline", the path
+ * UI-01: open Muster and pass the sign-in page in offline mode (?offline=1), the path
  * every pre-UI-01 spec assumed. Resolves when the Situation (Profile) tab shows.
  * Specs that test sign-in itself use e2e/sign-in.spec.ts instead.
  */
 export async function openApp(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByTestId('signin-work-offline').click();
+  // S1.9: the offline link is gone from the sign-in page; ?offline=1 still works (DW#5).
+  await page.goto('/?offline=1');
   await page.getByTestId('begin-interview').waitFor({ state: 'visible', timeout: 10000 });
 }
 
