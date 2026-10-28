@@ -5,7 +5,7 @@
 
 FROM node:20-bookworm-slim AS build
 RUN apt-get update \
- && apt-get install -y --no-install-recommends postgresql-client openssl ca-certificates \
+ && apt-get install -y --no-install-recommends postgresql-client openssl ca-certificates python3 make g++ \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
