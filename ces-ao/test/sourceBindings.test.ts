@@ -22,14 +22,6 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// tenant-stacksim is a sibling repo, not part of this checkout in the aavya
-// mono repo (WORKSPACE.md). Load it at run time and skip when absent (2026-10-29).
-import * as fsSync from 'node:fs';
-const STACKSIM_CONFIG = path.resolve(__dirname, '..', '..', 'tenant-stacksim', 'src', 'config', 'SimTenantConfig.ts');
-const HAS_STACKSIM = fsSync.existsSync(STACKSIM_CONFIG);
-const describeWithStacksim = HAS_STACKSIM ? describe : describe.skip;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let buildSimTenantConfig: (...args: any[]) => any;
 import { mapAoParametersToVariables, UnboundSourceError } from '../src/execution/ParameterMapper.js';
 import { SOURCE_BINDINGS, resolveSource, BUILTIN_ROLE_TEMPLATE_IDS } from '../src/execution/SourceBindings.js';
 import { loadTenantConfigBySlug, resetTenantRegistryForTests } from '../src/tenant/aoTenants.js';
@@ -37,6 +29,13 @@ import registry from '../src/registry/ao-commands.registry.json' assert { type: 
 import type { AoCommand } from '../src/types/AoCommand.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// tenant-stacksim is a sibling repo, not part of this checkout in the aavya
+// mono repo (WORKSPACE.md). Load it at run time and skip when absent (2026-10-29).
+const STACKSIM_CONFIG = path.resolve(__dirname, '..', '..', 'tenant-stacksim', 'src', 'config', 'SimTenantConfig.ts');
+const HAS_STACKSIM = fs.existsSync(STACKSIM_CONFIG);
+const describeWithStacksim = HAS_STACKSIM ? describe : describe.skip;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let buildSimTenantConfig: (...args: any[]) => any;
 const COMMANDS = registry as unknown as AoCommand[];
 const SOURCED = COMMANDS.filter((c) => c.parameters.some((p) => p.source));
 const REQ_PATH = path.resolve(__dirname, '..', 'docs', 'requirements', 'REQ-tenant-stacksim-ao-source-keys.md');
