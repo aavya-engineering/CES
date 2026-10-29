@@ -30,7 +30,7 @@ process.env.CES_PIPELINE_ROOT = tmpRoot;
 
 import { StamperEngine } from '../../src/core/StamperEngine';
 import { StamperConfig } from '../../src/config/StamperConfig';
-import { startStacksim, applyEnv, type StacksimHarness } from '../helpers/stacksimHarness';
+import { startStacksim, applyEnv, type StacksimHarness, describeWithStacksim } from '../helpers/stacksimHarness';
 
 const REGISTRY = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'registry', 'cmmc-l2-commands.registry.json'), 'utf-8'));
 const entry = (id: string) => {
@@ -60,7 +60,7 @@ const task = (id: string, priority: string, subIds: string[], dependsOn: string[
 const AMC = '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations';
 const COVERED = ['Fido2', 'MicrosoftAuthenticator', 'x509Certificate'];
 
-describe('W4-ST3 run-level rollback on stacksim', () => {
+describeWithStacksim('W4-ST3 run-level rollback on stacksim', () => {
   let sim: StacksimHarness;
   let restoreEnv: () => void;
   let planPath: string;

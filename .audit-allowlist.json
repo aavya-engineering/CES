@@ -1,0 +1,14 @@
+{
+  "_comment": "Accepted production advisories (CI gate: scripts/audit-gate.mjs). Every entry needs advisory, package, reason, owner, expires. An expired entry fails CI.",
+  "entries": [
+    {
+      "advisory": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "severity": "high",
+      "reason": "Memory exhaustion on oversized constrained collections. Fix is zod 4 (breaking API) across 46 files in ces-shared, ces-stamper, ces-eo, ces-ec and muster-api — scheduled as a Sprint 3 story. Exposure is bounded: muster-api parses JSON bodies with express.json() at the 100 kb default (25 mb only on the authenticated /api/plan push), and the other packages validate local files, not network input.",
+      "owner": "vaibhav.pathak@aavya.com",
+      "added": "2026-10-29",
+      "expires": "2026-11-30"
+    }
+  ]
+}

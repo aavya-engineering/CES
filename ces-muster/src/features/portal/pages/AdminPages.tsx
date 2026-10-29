@@ -244,7 +244,7 @@ function UserPanel({
       <dl className="kv">
         <dt>Organisation</dt>
         <dd>{user.organization ?? '—'}</dd>
-        <dt>Last sign-in</dt>
+        <dt>Last Sign-in</dt>
         <dd>{fmt(user.last_login_at)}</dd>
         <dt>Created</dt>
         <dd>{fmt(user.created_at)}</dd>
@@ -389,7 +389,7 @@ export function UsersPage({ selfId }: { selfId: string | undefined }) {
                   <th scope="col">Organisation</th>
                   <th scope="col">Role</th>
                   <th scope="col">Status</th>
-                  <th scope="col">Last sign-in</th>
+                  <th scope="col">Last Sign-in</th>
                 </tr>
               </thead>
               <tbody>
@@ -565,7 +565,7 @@ export function AuditPage() {
     <div className="pg" data-testid="page-audit">
       <PageHeader
         icon="≣"
-        title="Audit log"
+        title="Audit Log"
         lede="Sign-ins and every user, role and password change. Append-only: the database refuses edits and deletions."
         actions={
           <button type="button" className="btn btn-secondary" onClick={load}>
@@ -673,7 +673,7 @@ export function ChangePasswordForm({ required, email, onDone }: { required: bool
 export function ChangePasswordPage() {
   return (
     <div className="pg" data-testid="page-change-password">
-      <PageHeader icon="⚿" title="Change password" />
+      <PageHeader icon="⚿" title="Change Password" />
       <div className="card card-pad" style={{ maxWidth: 520 }}>
         <ChangePasswordForm required={false} onDone={() => undefined} />
       </div>

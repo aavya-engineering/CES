@@ -129,7 +129,7 @@ export default function CatalogPage() {
         </label>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-link filter-clear"
           onClick={() => {
             setQ('');
             setDomain('');
@@ -402,7 +402,7 @@ function ArchetypeDrawer({ view, domains, onClose, onSaved }: { view: ItemView<A
       </label>
       <label className="form-row">
         Description *
-        <textarea className="input" rows={3} value={d.description} onChange={(e) => set('description', e.target.value)} data-testid="archetype-description" />
+        <textarea maxLength={2000} className="input" rows={3} value={d.description} onChange={(e) => set('description', e.target.value)} data-testid="archetype-description" />
       </label>
       <fieldset className="form-row radio-row">
         <legend>Assessor Methods *</legend>
@@ -420,11 +420,11 @@ function ArchetypeDrawer({ view, domains, onClose, onSaved }: { view: ItemView<A
       <LinesInput label="Acceptable Evidence Forms" value={d.acceptable_forms} onChange={(v) => set('acceptable_forms', v)} testId="archetype-forms" placeholder="Network diagram (Visio, PDF)" />
       <label className="form-row">
         Collection Guidance
-        <textarea className="input" rows={3} value={d.collection_notes} onChange={(e) => set('collection_notes', e.target.value)} />
+        <textarea maxLength={2000} className="input" rows={3} value={d.collection_notes} onChange={(e) => set('collection_notes', e.target.value)} />
       </label>
       <label className="form-row">
         Retention Guidance (Template)
-        <textarea className="input" rows={2} value={d.retention_notes_template} onChange={(e) => set('retention_notes_template', e.target.value)} />
+        <textarea maxLength={2000} className="input" rows={2} value={d.retention_notes_template} onChange={(e) => set('retention_notes_template', e.target.value)} />
       </label>
       {error && (
         <p className="note" data-tone="bad" role="alert" data-testid="archetype-error">

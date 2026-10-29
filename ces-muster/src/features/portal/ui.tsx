@@ -29,7 +29,7 @@ export function PageHeader({
       <div className="pg-head-icon" aria-hidden="true">
         {typeof icon === 'string' ? <GlyphIcon glyph={icon} size={32} /> : icon}
       </div>
-      <div>
+      <div className="pg-head-text">
         <h1 className="pg-title">{title}</h1>
         {lede && <p className="pg-lede">{lede}</p>}
       </div>
@@ -153,7 +153,11 @@ export function SortTh<K extends string>({
     <th scope="col" className={className} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
       <button type="button" className="th-sort" onClick={() => onSort(col)} data-testid={`sort-${col}`}>
         {label}
-        <span aria-hidden="true" className="th-sort-ind">{on ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}</span>
+        {on && (
+          <span aria-hidden="true" className="th-sort-ind">
+            {sort.dir === 'asc' ? '↑' : '↓'}
+          </span>
+        )}
       </button>
     </th>
   );

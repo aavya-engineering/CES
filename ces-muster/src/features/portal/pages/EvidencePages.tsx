@@ -112,7 +112,7 @@ export function EvidenceCatalogPage() {
               </select>
             </label>
             <label>
-              Assessor method
+              Assessor Method
               <select className="select" value={method} onChange={(e) => setMethod(e.target.value)}>
                 <option value="">All methods</option>
                 <option value="examine">Examine</option>
@@ -130,7 +130,7 @@ export function EvidenceCatalogPage() {
                       <th scope="col">Code</th>
                       <th scope="col">Name</th>
                       <th scope="col">Domain</th>
-                      <th scope="col">Assessor methods</th>
+                      <th scope="col">Assessor Methods</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -202,7 +202,16 @@ export function EvidenceCatalogPage() {
 
 export function EvidenceMappingPage() {
   const s = useLoad<EvidenceMatrix>(loadEvidenceMatrix);
-  const byId = useMemo(() => new Map(REQUIREMENTS.map((r) => [r.control_id, r])), []);
+  // UX sweep 2026-10-29: the vendored matrix writes some ids with the wrong
+  // level (AC.L2-3.1.1 for the L1 requirement 3.1.1). Resolve by NIST reference
+  // when the exact id is unknown instead of showing "text not found".
+  const byId = useMemo(() => {
+    const m = new Map(REQUIREMENTS.map((r) => [r.control_id, r]));
+    const byRef = new Map(REQUIREMENTS.map((r) => [r.nist_ref, r]));
+    return {
+      get: (id: string) => m.get(id) ?? byRef.get(id.replace(/^[A-Z]+\.L[12]-/, '')),
+    };
+  }, []);
   return (
     <div className="pg" data-testid="page-mapping">
       <PageHeader
@@ -242,7 +251,7 @@ export function EvidenceMappingPage() {
                 </div>
               </div>
               <dl className="kv">
-                <dt>Assessor methods</dt>
+                <dt>Assessor Methods</dt>
                 <dd>{m.assessor_methods.map((x) => METHOD_LABEL[x] ?? x).join(', ')}</dd>
               </dl>
               <div className="table-wrap" style={{ marginTop: 12 }}>
@@ -251,7 +260,7 @@ export function EvidenceMappingPage() {
                     <tr>
                       <th scope="col">Archetype</th>
                       <th scope="col">Strength</th>
-                      <th scope="col">What it looks like</th>
+                      <th scope="col">What It Looks Like</th>
                     </tr>
                   </thead>
                   <tbody>

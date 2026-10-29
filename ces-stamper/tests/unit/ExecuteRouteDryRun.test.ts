@@ -37,7 +37,7 @@ import { createExecuteRouter } from '../../src/server/routes/execute.routes';
 import { PlanTranslator } from '../../src/translators/PlanTranslator';
 import { ManifestReader } from '../../src/translators/ManifestReader';
 import { DEFAULT_SIM_TENANT_SLUG } from '../../src/tenant/stamperTenants';
-import { startStacksim, applyEnv, type StacksimHarness } from '../helpers/stacksimHarness';
+import { startStacksim, applyEnv, type StacksimHarness, describeWithStacksim } from '../helpers/stacksimHarness';
 
 const MUSTER_FIXTURES = path.resolve(ROOT, '..', 'ces-muster', 'src', 'features', 'plan', '__fixtures__');
 const REGISTRY = path.join(ROOT, 'src', 'registry', 'cmmc-l2-commands.registry.json');
@@ -79,7 +79,7 @@ function getSse(url: string, timeoutMs = 120_000): Promise<SseEvent[]> {
   });
 }
 
-describe('GET /api/execute — dry-run route test against stacksim (W4-ST1 / MS-R6)', () => {
+describeWithStacksim('GET /api/execute — dry-run route test against stacksim (W4-ST1 / MS-R6)', () => {
   let sim: StacksimHarness;
   let restoreEnv: () => void;
   let server: http.Server;

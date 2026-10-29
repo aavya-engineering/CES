@@ -83,7 +83,7 @@ export function ImportMetaDrawer({
       </label>
       <label className="form-row">
         Or paste CSV
-        <textarea className="input" rows={6} value={text} onChange={(e) => setText(e.target.value)} data-testid="req-import-text" />
+        <textarea maxLength={200000} className="input" rows={6} value={text} onChange={(e) => setText(e.target.value)} data-testid="req-import-text" />
       </label>
       {plan?.headerError && (
         <p className="note" data-tone="bad" role="alert">

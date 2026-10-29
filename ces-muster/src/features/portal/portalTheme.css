@@ -2770,3 +2770,304 @@ th[aria-sort='descending'] .th-sort-ind {
     font-size: 13.5px;
   }
 }
+
+/* ── Sprint 2 retest fixes (CES_Observation.xlsx › Retesting, 2026-10-29) ───── */
+/* #9: the title block wraps like the mockup (two lines) instead of being squeezed by the actions. */
+.pg-head-text {
+  flex: 1 1 420px;
+  min-width: 0;
+  max-width: 680px;
+}
+/* #6/#8: stat cards — mockup proportions (icon tile left, value/label stacked, generous padding). */
+.stats-6 .stat {
+  gap: 14px;
+  padding: 18px 20px;
+  align-items: center;
+  border-radius: 12px;
+}
+.stats-6 .stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+/* #16/#17: "Showing…" left, page buttons centred, Rows per page right, flush under the table. */
+.pager-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--co-border);
+}
+.pager-row .pager {
+  display: contents;
+}
+.pager-row .pager > [data-testid='pager-summary'] {
+  justify-self: start;
+}
+.pager-row .pager-btns {
+  justify-self: center;
+}
+.pager-row .rows-per-page {
+  justify-self: end;
+  padding: 0;
+}
+@media (max-width: 760px) {
+  .pager-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+/* #14: secondary (outlined) split button — caret keeps the outline, not the primary's white divider. */
+.split-btn-secondary .split-btn-caret {
+  border-left: 1px solid var(--co-border) !important;
+}
+/* #15: sort arrow only on the sorted column; hint on hover. */
+.th-sort:hover .th-sort-ind,
+.th-sort:focus-visible .th-sort-ind {
+  opacity: 1;
+}
+/* Sheet1 #16/#30/#43/#47: "Clear Filters" reads as a control, not plain text. */
+.btn-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Sheet1 Home/Portfolio (2026-10-29) ─────────────────────────────────────── */
+/* #8/#9: an all-zero bar chart says so instead of showing coloured slivers. */
+.vbars {
+  position: relative;
+}
+.vbars-empty .vbar-value {
+  color: var(--co-text-muted);
+}
+.vbars-note {
+  position: absolute;
+  top: 40%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--co-text-muted);
+}
+/* #10: Quick Links fill their card as a 2×2 grid like the mockup. */
+.quick-links {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+/* #12: short card content sits at the top; the card keeps the row height. */
+.dash-card > .readiness-list,
+.dash-card > .quick-links {
+  align-content: start;
+}
+/* #1 (KPI cards): never clip the sub-line or the bar. */
+.kpi {
+  overflow: visible;
+  align-items: flex-start;
+}
+.kpi .stat-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 110 Requirements / SPRS stat cards: single-line labels like the mockup (6 across at 1536). */
+.stats-5 .stat-label,
+.stats-6 .stat-label {
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+.stats-5 .stat-sub,
+.stats-6 .stat-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11.5px;
+}
+.stats-6 .stat {
+  gap: 12px;
+  padding: 16px 14px;
+  min-width: 0;
+}
+.stats-6 .stat-icon {
+  width: 40px;
+  height: 40px;
+}
+.stats-6 .stat-value {
+  font-size: 22px;
+}
+/* SPRS: ids never wrap; long requirement text is one line with a tooltip. */
+.tbl td.nowrap {
+  white-space: nowrap;
+}
+/* SPRS / Objectives filter card: dropdowns in one row with "Clear Filters" at the right (mockup m15). */
+.filter-grid-inline {
+  align-items: end;
+}
+.filter-grid-inline .filter-clear {
+  justify-self: end;
+  align-self: center;
+  margin-top: 18px;
+}
+
+/* ── Form-control sizing (2026-10-29, review feedback): one height for every
+   control, text areas bounded. Buttons were 36px next to 40px inputs; text
+   areas could be dragged to any size. ─────────────────────────────────────── */
+.portal .btn,
+.pg .btn {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+.portal .btn-primary,
+.portal .btn-secondary,
+.portal .btn-soft {
+  min-width: 96px;
+}
+.portal .btn-sm,
+.pg .btn-sm {
+  height: 32px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 0 12px;
+}
+.btn-icon,
+.split-btn-caret {
+  min-width: 0;
+}
+.split-btn-caret {
+  width: 40px;
+}
+.input,
+.select {
+  height: 40px;
+  min-height: 40px;
+}
+textarea.input {
+  height: auto;
+  min-height: 88px;
+  max-height: 240px;
+  resize: vertical;
+  line-height: 1.45;
+  padding: 10px 12px;
+}
+/* The CSV paste box may grow further (whole file pasted). */
+textarea[data-testid='req-import-text'] {
+  max-height: 420px;
+}
+.form-row .hint {
+  font-size: 12px;
+  color: var(--co-text-muted);
+}
+
+/* ── Filter toolbars, app-wide (2026-10-29 UX sweep): the same shape as the
+   110 Requirements filter card — search on its own row with a magnifier,
+   labelled dropdowns below, "Clear Filters" as a link at the right. ──────── */
+.toolbar {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  padding: 16px;
+}
+.toolbar .grow {
+  grid-column: 1 / -1;
+}
+.toolbar .grow .input {
+  padding-left: 40px;
+  background: var(--co-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2355647a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")
+    no-repeat 13px center;
+}
+.toolbar .grow > span.sr-only + .input,
+.toolbar .grow {
+  font-size: 0; /* hide the "Search" caption; the field is self-describing */
+}
+.toolbar .grow .input {
+  font-size: 14px;
+}
+.toolbar > .btn.filter-clear {
+  height: 40px;
+  padding: 0 4px;
+  justify-self: end;
+  align-self: end;
+  grid-column: -2 / -1;
+}
+.toolbar > .pill {
+  align-self: end;
+  margin-bottom: 6px;
+}
+/* Pager outside a pager-row: same three-column layout (summary | pages | spacer). */
+:not(.pager-row) > .pager {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border-top: 1px solid var(--co-border);
+}
+:not(.pager-row) > .pager .pager-btns {
+  justify-self: center;
+}
+/* Pill groups (assessor methods, modules) stay on one line. */
+.tbl td:has(> .pill + .pill) {
+  white-space: nowrap;
+}
+.tbl td .pill + .pill {
+  margin-left: 4px;
+}
+.tbl td:has(> .method-tags),
+.tbl td:has(> .module-pills) {
+  white-space: nowrap;
+}
+.method-tags {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+/* Top bar never wraps: the search gives way first, the account area stays on one line. */
+.portal-topbar-right,
+.header-account {
+  flex: none;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.portal-search {
+  flex: 1 1 240px;
+  max-width: 560px;
+}
+@media (max-width: 1100px) {
+  .header-account > .pill {
+    display: none; /* "Working offline" / role pill — the Sign in / avatar button says enough */
+  }
+}
+
+/* QA 2026-10-29 #3: theme choice as a Light / Dark segmented control (top bar and account menu). */
+.portal #ces-theme-toggle.theme-segment,
+.portal-user-menu-row #ces-theme-toggle.theme-segment {
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+  padding: 2px;
+  gap: 2px;
+  background: var(--co-bg);
+  border: 1px solid var(--co-border);
+  border-radius: 999px;
+}
+.theme-segment button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--co-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.theme-segment button[aria-checked='true'] {
+  color: var(--co-primary);
+  background: var(--co-surface);
+  box-shadow: var(--co-shadow-sm);
+}

@@ -70,7 +70,8 @@ const MILESTONE: Record<string, { label: string; tone: string }> = {
 };
 const RANGES = [7, 30, 90, 365];
 const fmtDate = (iso: string) => new Date(`${iso.length === 10 ? `${iso}T00:00:00` : iso}`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-const fmtTime = (iso: string) => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+// Sheet1 #11 (2026-10-29): same format as the rest of the app — with the year.
+const fmtTime = (iso: string) => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 const pctOf = (n: number, d: number) => (d === 0 ? 0 : Math.round((n / d) * 100));
 
 const svg = (d: string) => (
@@ -117,10 +118,15 @@ function Card({ title, action, children, className }: { title: string; action?: 
 export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => void; openMuster: (v: MusterView) => void }) {
   const [days, setDays] = useState(30);
   const [state, setState] = useState<{ kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'ready'; data: PortfolioData }>({ kind: 'loading' });
+  const [busy, setBusy] = useState(false);
 
+  // Sheet1 #6 (2026-10-29): changing the range keeps the current numbers on
+  // screen (aria-busy) until the new ones arrive — no flash to zero.
   const load = useCallback(async () => {
-    setState({ kind: 'loading' });
+    setState((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }));
+    setBusy(true);
     const r = await api.get<PortfolioData>(`/portfolio?days=${days}`);
+    setBusy(false);
     if (r.ok) setState({ kind: 'ready', data: r.data });
     else setState({ kind: 'error', message: r.status === 0 ? 'muster-api is not reachable. Start it and refresh.' : r.error ?? `muster-api returned ${r.status}` });
   }, [days]);
@@ -167,7 +173,7 @@ export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => 
         </p>
       )}
 
-      <div className="stats stats-5" aria-busy={state.kind === 'loading'}>
+      <div className="stats stats-5" aria-busy={state.kind === 'loading' || busy}>
         <Kpi testId="kpi-tenants" icon={ICON.building} tone="info" value={t?.organisations ?? 0} label="Total Tenants" sub={<><span className="delta">↑{t?.organisations_new ?? 0}</span> {vs}</>} />
         <Kpi testId="kpi-engagements" icon={ICON.folder} tone="info" value={t?.engagements ?? 0} label="Total Engagements" sub={<><span className="delta">↑{t?.engagements_new ?? 0}</span> {vs}</>} />
         <Kpi testId="kpi-on-track" icon={ICON.shield} tone="good" value={t?.on_track ?? 0} label="On Track" sub={`${pctOf(t?.on_track ?? 0, t?.engagements ?? 0)}% of total`} bar={{ pct: pctOf(t?.on_track ?? 0, t?.engagements ?? 0), color: HEALTH.on_track.color }} />

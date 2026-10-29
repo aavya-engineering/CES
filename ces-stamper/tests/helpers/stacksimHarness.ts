@@ -28,6 +28,11 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 export const STACKSIM_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'tenant-stacksim');
 
 const dist = (p: string) => pathToFileURL(path.join(STACKSIM_ROOT, 'dist', 'src', p)).href;
+/** True when the sibling ces-stacksim repo is present AND built. In the aavya mono
+ * repo it is not vendored (WORKSPACE.md), so the dry-run / rollback suites skip
+ * instead of failing on a missing module (2026-10-29). */
+export const STACKSIM_AVAILABLE = fs.existsSync(path.join(STACKSIM_ROOT, 'dist', 'src', 'cli', 'commands', 'serve.js'));
+export const describeWithStacksim: typeof describe = STACKSIM_AVAILABLE ? describe : describe.skip;
 
 export interface SimStore {
   read(collection: string, id: string): Promise<Record<string, any> | undefined>;

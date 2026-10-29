@@ -4,7 +4,7 @@
 // Any other use, copying, disclosure, or reuse, in whole or in part, is prohibited.
 // Changes made to this file for Blue Heron Defense LLC are made on its behalf; it claims all rights in them.
 // Submitting a change to this repository means you accept TERMS.md.
-// Removing or altering this notice is prohibited (17 U.S.C. 1202). Ref: BHD-CES-MUSTER-2026A
+// Removing or altering this notice is prohibited (17 U.S.C. 1202). Ref: BHD-CES-MONO-2026A
 // See LICENSE and TERMS.md.
 
 // G4 — example/proof stub stack provider.

@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy to deploy/users.seed.json (git-ignored). Each user gets a random one-time password written to deploy/output/users-<timestamp>.txt and must change it at first sign-in. Existing e-mails are skipped. Roles: platform_admin | bhd_operator | prime | sub | assessor_read_only.",
+  "users": [
+    { "email": "msutton@blueherondefense.com", "display_name": "Mark Sutton", "role": "platform_admin", "tenant": "Blue Heron Defense" },
+    { "email": "vaibhav.pathak@aavya.com", "display_name": "Vaibhav Pathak", "role": "platform_admin", "tenant": "Blue Heron Defense" },
+    { "email": "sunny.kumrawat@aavya.com", "display_name": "Sunny Kumrawat", "role": "bhd_operator", "tenant": "Blue Heron Defense" }
+  ]
+}

@@ -37,5 +37,12 @@ if [ "$USERS" = "0" ] && [ -n "${INITIAL_ADMIN_EMAIL:-}" ]; then
   echo "[ces] its one-time password is in deploy/output/initial-admin.txt on the server"
 fi
 
+# Sprint 2 (USR-01): named accounts from deploy/users.seed.json (mounted read-only
+# by docker-compose). Idempotent; one-time passwords go to deploy/output/users-*.txt.
+if [ -f /app/deploy/users.seed.json ]; then
+  echo "[ces] seeding named users from deploy/users.seed.json (existing e-mails are skipped)..."
+  npx tsx scripts/seed-users.ts --file /app/deploy/users.seed.json --out /output || echo "[ces] WARNING: user seed failed; continuing"
+fi
+
 echo "[ces] muster-api starting on port 4000"
 exec npx tsx src/server.ts

@@ -31,12 +31,21 @@ jobs:
       - name: Install (clean, from lockfile)
         run: npm ci
 
+      # ces-tenant is linked as file:../ces-tenant by stamper/eo/ao/muster-api but
+      # is not a workspace, so `npm ci` neither installs nor builds it. Without
+      # dist/ the stamper build fails on "Cannot find module 'ces-tenant'"
+      # (same order the Dockerfile uses). 2026-10-29.
+      - name: Build ces-tenant (linked dependency)
+        run: cd ces-tenant && npm ci && npm run build
+
       # Supply-chain gate (G-ENG-3): fail the build on a HIGH/CRITICAL production
       # vulnerability. This is the recurrence guard for G-ENG-2 (the multer HIGH):
       # a future high-severity prod dep cannot ship unnoticed. `high` level lets the
       # deferred, non-applicable uuid MODERATE through (EO uses uuid.v4 only).
-      - name: Dependency audit (prod, high+)
-        run: npm audit --omit=dev --audit-level=high
+      # The gate reads .audit-allowlist.json: an accepted advisory needs a reason,
+      # an owner and an expiry date, and fails the build again once it expires.
+      - name: Dependency audit (prod, high+, allowlisted exceptions expire)
+        run: node scripts/audit-gate.mjs --level high
 
       # `npm test` runs the root contract: pretest builds ces-shared + ces-stamper,
       # then test:shared/stamper/eo/ao/fe (mixed vitest + jest). The eo suite

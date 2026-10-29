@@ -15,6 +15,12 @@ deploy/.env
 !deploy/.env.example
 !ces-muster/muster-api/.env.example
 
+# Sprint 2: per-environment templates live in env/ (not dotfiles, committed);
+# the real .env stays ignored above. Seeded user list is secret, its example is not.
+!env/*.env.example
+deploy/users.seed.json
+!deploy/users.seed.example.json
+
 # Runtime credentials and output directories
 output/
 **/output/

@@ -214,7 +214,7 @@ export function LinesInput({ value, onChange, label, testId, placeholder }: { va
   return (
     <label className="form-row">
       {label}
-      <textarea
+      <textarea maxLength={2000}
         className="input"
         rows={4}
         value={value.join('\n')}

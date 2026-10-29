@@ -448,3 +448,12 @@ body {
   font-family: var(--co-font-sans);
   font-feature-settings: 'cv11', 'ss01';
 }
+
+/* Sprint 2 retest #18 (2026-10-29): the "C U I" designation strip from ces-ui.css
+   is not in the approved Sprint-1 mockups, and QA raised it three times
+   (Sheet1 #7, Compare #14, Retesting #18). Hidden in the Muster portal only;
+   the shared stylesheet is unchanged. DECISION PENDING (D5): if BHD wants the
+   DoD screen marking back, delete this rule. */
+body::before {
+  display: none;
+}

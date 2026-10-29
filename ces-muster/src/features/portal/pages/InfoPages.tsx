@@ -68,7 +68,7 @@ export function SharedOverviewPage({ go }: { go: (r: RouteId) => void }) {
     <div className="pg" data-testid="page-shared-overview">
       <PageHeader
         icon="◈"
-        title="CES-Shared overview"
+        title="CES-Shared Overview"
         lede={
           viewer.signedIn
             ? 'Summary of reference data and configuration managed under CES-Shared. Requirements and SPRS weights are locked; evidence, mappings and rules change through drafts that a second administrator publishes.'
@@ -154,7 +154,7 @@ export function ContractsInfoPage() {
     <div className="pg" data-testid="page-contracts">
       <PageHeader
         icon="{ }"
-        title="Contracts & golden files"
+        title="Golden Files"
         lede="The data contracts modules exchange. They are code (zod schemas) with tests and semantic versions, not records edited in a screen (PRD SH-FR-01…03)."
       />
       <p className="note" style={{ marginBottom: 14 }}>
@@ -169,8 +169,8 @@ export function ContractsInfoPage() {
               <tr>
                 <th scope="col">Contract</th>
                 <th scope="col">Version</th>
-                <th scope="col">Produced by</th>
-                <th scope="col">Read by</th>
+                <th scope="col">Produced By</th>
+                <th scope="col">Read By</th>
                 <th scope="col">Source</th>
               </tr>
             </thead>
@@ -306,7 +306,7 @@ export function NotBuiltPage({ route }: { route: RouteId }) {
       <PageHeader icon="…" title={info.title} lede="Not built yet." />
       <div className="card card-pad">
         <p>{info.why}</p>
-        <h2 className="card-title">What it needs</h2>
+        <h2 className="card-title">What It Needs</h2>
         <ul>
           {info.needs.map((n) => (
             <li key={n}>{n}</li>

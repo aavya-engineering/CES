@@ -127,7 +127,7 @@ export function HomePage({
       <div className="grid-2">
         <section className="card">
           <div className="card-pad" style={{ paddingBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <h2 className="card-title">Recent engagements</h2>
+            <h2 className="card-title">Recent Engagements</h2>
             <button type="button" className="row-btn" onClick={() => go('engagements/all')}>
               View all
             </button>
@@ -191,7 +191,7 @@ export function EngagementsPage({ viewer, openMuster }: { viewer: Viewer; openMu
     <div className="pg" data-testid="page-engagements">
       <PageHeader
         icon="▤"
-        title="All engagements"
+        title="All Engagements"
         lede="Compliance engagements: the organisations being assessed and where each interview stands."
         actions={
           <button type="button" className="btn btn-primary" onClick={() => openMuster('assessment')} data-testid="engagements-create">
@@ -201,7 +201,7 @@ export function EngagementsPage({ viewer, openMuster }: { viewer: Viewer; openMu
       />
       <section className="card" style={{ marginBottom: 16 }}>
         <div className="card-pad" style={{ paddingBottom: 0 }}>
-          <h2 className="card-title">On this device</h2>
+          <h2 className="card-title">On This Device</h2>
         </div>
         {rows ? <LocalTable rows={rows} openMuster={openMuster} /> : <Empty>Loading…</Empty>}
       </section>

@@ -25,8 +25,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
 
 const committedGolden = (name: string): string => {
-  const r = spawnSync('git', ['-C', path.resolve(ROOT, '..', 'ces-muster'), 'show', `main:src/features/plan/__fixtures__/${name}`], { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
-  if (r.status !== 0) throw new Error(`git show ces-muster main:${name} failed: ${r.stderr}`);
+  // The golden is read from git (HEAD), not the working tree, so an uncommitted
+  // edit to a fixture cannot make this suite pass. ces-muster may be its own
+  // repo (branch main/master) or a folder of the aavya mono repo, so resolve the
+  // path prefix instead of hard-coding a branch (2026-10-29).
+  const musterDir = path.resolve(ROOT, '..', 'ces-muster');
+  const prefix = spawnSync('git', ['-C', musterDir, 'rev-parse', '--show-prefix'], { encoding: 'utf-8' });
+  if (prefix.status !== 0) throw new Error(`git rev-parse in ces-muster failed: ${prefix.stderr}`);
+  const rel = `${String(prefix.stdout).trim()}src/features/plan/__fixtures__/${name}`;
+  const r = spawnSync('git', ['-C', musterDir, 'show', `HEAD:${rel}`], { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+  if (r.status !== 0) throw new Error(`git show HEAD:${rel} failed: ${r.stderr}`);
   return r.stdout;
 };
 

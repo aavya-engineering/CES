@@ -84,10 +84,10 @@ export default function ObjectivesPage() {
       <div className="card" style={{ marginBottom: 14 }}>
         <div role="tablist" aria-label="Objective views" className="tabs">
           <button type="button" role="tab" aria-selected={tab === 'objectives'} onClick={() => setTab('objectives')} data-testid="obj-tab-objectives">
-            All objectives
+            All Objectives
           </button>
           <button type="button" role="tab" aria-selected={tab === 'requirements'} onClick={() => setTab('requirements')} data-testid="obj-tab-requirements">
-            By requirement
+            By Requirement
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function ObjectivesPage() {
           </select>
         </label>
         <label>
-          CMMC level
+          CMMC Level
           <select className="select" value={level} onChange={(e) => setLevel(e.target.value)} data-testid="obj-level">
             <option value="">Level 1 and 2</option>
             <option value="L1">Level 1</option>
@@ -128,8 +128,8 @@ export default function ObjectivesPage() {
             {req} ×
           </button>
         )}
-        <button type="button" className="btn btn-ghost" onClick={clear}>
-          Clear filters
+        <button type="button" className="btn btn-link filter-clear" onClick={clear}>
+          Clear Filters
         </button>
       </div>
 
@@ -140,7 +140,7 @@ export default function ObjectivesPage() {
               <thead>
                 <tr>
                   <th scope="col">Objective</th>
-                  <th scope="col">Determination statement</th>
+                  <th scope="col">Determination Statement</th>
                   <th scope="col">Requirement</th>
                   <th scope="col">Level</th>
                   <th scope="col">Methods</th>
@@ -150,7 +150,11 @@ export default function ObjectivesPage() {
                 {paged.slice.map((o) => (
                   <tr key={o.objectiveId}>
                     <td style={{ whiteSpace: 'nowrap' }}>{o.objectiveId}</td>
-                    <td>{o.description}</td>
+                    <td>
+                      <span className="clamp-1" title={o.description}>
+                        {o.description}
+                      </span>
+                    </td>
                     <td>
                       <span className="pill">{o.requirement.family}</span> {o.requirement.nist_ref}
                     </td>
@@ -179,7 +183,7 @@ export default function ObjectivesPage() {
               <thead>
                 <tr>
                   <th scope="col">Requirement</th>
-                  <th scope="col">Requirement text</th>
+                  <th scope="col">Requirement Text</th>
                   <th scope="col" className="num">
                     Objectives
                   </th>

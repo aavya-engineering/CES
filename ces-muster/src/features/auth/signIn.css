@@ -602,3 +602,94 @@ body.ces-signin::before {
   display: flex;
   flex-direction: column;
 }
+
+/* ── Sprint 2 retest fixes (CES_Observation.xlsx › Retesting #1–#4, 2026-10-29) ──
+   #1/#4 the card sat too far from the artwork: the side column now keeps the
+   mockup's ~45px margins instead of centring a 500px card in whatever is left.
+   #2 checkbox 22px → 18px (mockup). #3 "Back to Sign In" centred under a rule. */
+@media (min-width: 901px) {
+  .signin-side {
+    padding: 72px clamp(28px, 6%, 56px) 20px;
+  }
+  .signin-card {
+    max-width: 580px;
+  }
+}
+.signin-check input {
+  width: 18px;
+  height: 18px;
+}
+.signin-back {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--si-border);
+}
+
+/* ── Compare #1/#2 (2026-10-29): the artwork column is 58% of the width on every
+   screen, as in the mockup, and the image covers the full height (cropped, never
+   letter-boxed). The earlier height-based cap made it 44% on 16:9 laptops. */
+@media (min-width: 901px) {
+  .signin-page {
+    grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+  }
+}
+/* ── Sheet1 #2/#3/#5: theme menu — same look in light and dark, options always legible ── */
+.signin-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.signin-theme-btn > svg:last-child {
+  color: #6b7a90;
+}
+.signin-theme-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 170px;
+  padding: 6px;
+  background: var(--si-card);
+  border: 1px solid var(--si-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 29, 61, 0.14);
+}
+.signin-theme-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--si-text);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.signin-theme-menu button:hover,
+.signin-theme-menu button:focus-visible {
+  background: var(--si-tab-active-bg);
+  outline: none;
+}
+.signin-theme-menu button[aria-checked='true'] {
+  color: var(--si-blue);
+  font-weight: 600;
+}
+[data-theme='dark'] .signin-theme-menu button[aria-checked='true'] {
+  color: #8fb4ff;
+}

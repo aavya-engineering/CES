@@ -29,13 +29,14 @@
 //    ends after 30 minutes without activity (useIdleSignOut, NIST 3.1.11).
 //  - Forgot password (decision D3): POST /auth/forgot-password sends a
 //    single-use 30-minute link; #/reset-password?token=… sets a new password.
-import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { requestPasswordReset, resetPassword, signInToMuster } from '@/shared/api/musterAuth';
 import { resetTokenFromHash } from './resetLink';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CesShield,
+  ChevronIcon,
   EyeIcon,
   EyeOffIcon,
   InfoIcon,
@@ -92,19 +93,45 @@ function ThemeMenu() {
     }
     setTheme(next);
   };
+  // Sheet1 #2/#3/#5 (2026-10-29): a real menu instead of a native <select> — the
+  // native option list took the page's dark colours (the "Light Mode" option
+  // vanished in dark mode) and clicking the icon did nothing.
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+  const pick = (next: 'light' | 'dark') => {
+    apply(next);
+    setOpen(false);
+  };
   return (
-    <label className="signin-theme-select">
-      {theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
-      <select
-        aria-label="Colour theme"
-        value={theme}
-        onChange={(e) => apply(e.target.value as 'light' | 'dark')}
-        data-testid="signin-theme"
-      >
-        <option value="light">Light Mode</option>
-        <option value="dark">Dark Mode</option>
-      </select>
-    </label>
+    <div className="signin-theme-select" ref={box}>
+      <button type="button" className="signin-theme-btn" aria-haspopup="menu" aria-expanded={open} aria-label="Colour theme" onClick={() => setOpen((v) => !v)} data-testid="signin-theme">
+        {theme === 'dark' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
+        <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div className="signin-theme-menu" role="menu">
+          <button type="button" role="menuitemradio" aria-checked={theme === 'light'} onClick={() => pick('light')} data-testid="signin-theme-light">
+            <SunIcon size={18} /> Light Mode
+          </button>
+          <button type="button" role="menuitemradio" aria-checked={theme === 'dark'} onClick={() => pick('dark')} data-testid="signin-theme-dark">
+            <MoonIcon size={18} /> Dark Mode
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
