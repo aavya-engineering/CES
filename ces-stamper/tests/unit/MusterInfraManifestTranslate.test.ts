@@ -91,7 +91,8 @@ function getSse(url: string): Promise<any[]> {
   });
 }
 
-describe('W4-ST2 Muster plan + Infra Manifest -> translate -> stacksim dry run', () => {
+// The sim tenant record itself comes from tenant-stacksim (SimTenantConfig), so the whole suite needs the sibling repo.
+describeWithStacksim('W4-ST2 Muster plan + Infra Manifest -> translate -> stacksim dry run', () => {
   const tenantRoot = path.join(tmpRoot, 'tenant-registry');
   const inDir = path.join(tmpRoot, 'muster-push');
   const outPath = path.join(tmpRoot, 'executable-plan.json');
@@ -168,7 +169,7 @@ describe('W4-ST2 Muster plan + Infra Manifest -> translate -> stacksim dry run',
     expect(unresolvedVars(warnings, UNRESOLVED_VARIABLE_PREFIX)).toEqual([]);
   });
 
-  describeWithStacksim('stacksim dry run of the translated plan', () => {
+  describe('stacksim dry run of the translated plan', () => {
     let sim: StacksimHarness;
     let restoreEnv: () => void;
     let server: http.Server;
