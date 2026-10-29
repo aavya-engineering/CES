@@ -84,7 +84,7 @@ describe('isStacksimModeActive predicate', () => {
   it('(a) true for a ces-tester-style injected env', () => {
     const env: Record<string, string> = {
       STACKSIM_SERVER_URL: 'http://127.0.0.1:4390',
-      PSModulePath: `${psmodulesDir};C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
+      PSModulePath: `${psmodulesDir}${path.delimiter}C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
     };
     expect(isStacksimModeActive(env)).toBe(true);
   });
@@ -92,14 +92,14 @@ describe('isStacksimModeActive predicate', () => {
   it('(a) true for localhost variant', () => {
     const env: Record<string, string> = {
       STACKSIM_SERVER_URL: 'http://localhost:4390',
-      PSModulePath: `${psmodulesDir};C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
+      PSModulePath: `${psmodulesDir}${path.delimiter}C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
     };
     expect(isStacksimModeActive(env)).toBe(true);
   });
 
   it('(b) false when STACKSIM_SERVER_URL is absent', () => {
     const env: Record<string, string> = {
-      PSModulePath: `${psmodulesDir};C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
+      PSModulePath: `${psmodulesDir}${path.delimiter}C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
     };
     expect(isStacksimModeActive(env)).toBe(false);
   });
@@ -107,7 +107,7 @@ describe('isStacksimModeActive predicate', () => {
   it('(b) false when STACKSIM_SERVER_URL is non-loopback', () => {
     const env: Record<string, string> = {
       STACKSIM_SERVER_URL: 'https://graph.microsoft.us',
-      PSModulePath: `${psmodulesDir};C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
+      PSModulePath: `${psmodulesDir}${path.delimiter}C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\Modules`,
     };
     expect(isStacksimModeActive(env)).toBe(false);
   });
