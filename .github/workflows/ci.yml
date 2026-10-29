@@ -35,8 +35,10 @@ jobs:
       # vulnerability. This is the recurrence guard for G-ENG-2 (the multer HIGH):
       # a future high-severity prod dep cannot ship unnoticed. `high` level lets the
       # deferred, non-applicable uuid MODERATE through (EO uses uuid.v4 only).
-      - name: Dependency audit (prod, high+)
-        run: npm audit --omit=dev --audit-level=high
+      # The gate reads .audit-allowlist.json: an accepted advisory needs a reason,
+      # an owner and an expiry date, and fails the build again once it expires.
+      - name: Dependency audit (prod, high+, allowlisted exceptions expire)
+        run: node scripts/audit-gate.mjs --level high
 
       # `npm test` runs the root contract: pretest builds ces-shared + ces-stamper,
       # then test:shared/stamper/eo/ao/fe (mixed vitest + jest). The eo suite
