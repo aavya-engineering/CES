@@ -36,6 +36,9 @@ import { createUsersRouter, createAuditRouter, type UsersDb } from './routes/use
 import { platformAdminFence } from './middleware/platformAdminFence.js';
 import { createCesSharedRouter } from './routes/cesShared.js';
 import type { SharedDb } from './cesShared/service.js';
+import { logger } from './lib/logger.js';
+import { requestLog } from './middleware/requestLog.js';
+import { createHealthRouter } from './routes/health.js';
 
 /** Body limit for the plan push (MP + TM in one JSON body). */
 export const PLAN_BODY_LIMIT = '25mb';
@@ -91,6 +94,11 @@ export function createApp(opts: AppOptions = {}) {
   // FX-MU1: the Plan tab calls muster-api from the browser (Vite dev 5173 /
   // preview 4173), so a localhost-only CORS allowlist answers the preflight
   // that Authorization + JSON triggers. Sim only: no non-localhost default.
+  // Sprint 2 LOG-02 / OPS-01: request id + one log line per request, then the
+  // unauthenticated liveness/readiness probes (before every /api fence).
+  app.use(requestLog(logger));
+  app.use(createHealthRouter(db));
+
   app.use(localCors());
 
   // MS-R5 / FX-MU1: plan push — writes artifacts to Stamper's plans folder.
@@ -149,9 +157,11 @@ export function createApp(opts: AppOptions = {}) {
   });
 
   // Error handler
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    (req.log ?? logger).error({ err }, 'unhandled error');
+    // The request id lets support match a user's report to the log line
+    // without exposing the stack.
+    res.status(500).json({ error: 'Internal server error', requestId: req.id });
   });
 
   return app;

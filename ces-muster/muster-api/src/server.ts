@@ -12,6 +12,7 @@ import { app } from './app.js';
 import { createScheduler } from './services/schedulerService.js';
 import { db } from './lib/prisma.js';
 import { assertSafeDbRole } from './lib/dbRoleGuard.js';
+import { logger } from './lib/logger.js';
 
 const PORT = parseInt(process.env.PORT ?? '4000', 10);
 
@@ -20,14 +21,14 @@ const PORT = parseInt(process.env.PORT ?? '4000', 10);
 async function main(): Promise<void> {
   try {
     const dbRole = await assertSafeDbRole(db);
-    console.log(`[db] connected as "${dbRole}" (no superuser, no BYPASSRLS)`);
+    logger.info({ dbRole }, 'database connected (no superuser, no BYPASSRLS)');
   } catch (e) {
-    console.error(e instanceof Error ? e.message : String(e));
+    logger.fatal({ err: e }, 'database role check failed; refusing to start');
     process.exit(1);
   }
 
   app.listen(PORT, () => {
-    console.log(`muster-api listening on port ${PORT}`);
+    logger.info({ port: PORT, env: process.env.CES_ENV ?? process.env.NODE_ENV ?? 'development', apiDocs: process.env.API_DOCS === '1' }, 'muster-api listening');
 
     // G-MUSTER-PL-1 H3: optional self-driving annuity scheduler for ONE configured
     // operator tenant. Off unless SCHEDULER_TENANT_ID is set (the cross-tenant
@@ -37,9 +38,7 @@ async function main(): Promise<void> {
     if (schedulerTenantId) {
       const intervalMs = parseInt(process.env.SCHEDULER_INTERVAL_MS ?? '3600000', 10);
       createScheduler({ tenantId: schedulerTenantId, intervalMs }).start();
-      console.log(
-        `[scheduler] started for tenant ${schedulerTenantId}, every ${intervalMs}ms`
-      );
+      logger.info({ tenantId: schedulerTenantId, intervalMs }, 'scheduler started');
     }
   });
 }

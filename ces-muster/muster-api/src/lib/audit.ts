@@ -10,6 +10,7 @@
 // audit.ts — RBAC-01: write one row to the append-only audit_events table
 // (migration 009). Never stores a password, hash or token.
 import type { JwtPayload } from './jwt.js';
+import { logger } from './logger.js';
 
 export interface AuditInput {
   action: string;
@@ -43,6 +44,6 @@ export async function audit(db: AuditDb, input: AuditInput, opts: { strict?: boo
     await db.auditEvent.create({ data });
   } catch (err) {
     if (opts.strict) throw err;
-    console.error('audit write failed', input.action, err instanceof Error ? err.message : err);
+    logger.error({ err, action: input.action }, 'audit write failed');
   }
 }

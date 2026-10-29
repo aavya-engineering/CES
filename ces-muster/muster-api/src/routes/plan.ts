@@ -9,6 +9,7 @@
 
 // plan.ts — MS-R5 push + MS-R9 results ingest + FX-MU2 directive progress.
 import { Router } from 'express';
+import { logger } from '../lib/logger.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { bearerAuth, requireRole } from '../middleware/auth.js';
@@ -188,7 +189,7 @@ export function createPlanRouter() {
       // claimed and nothing is written for it.
       const registry = lookupRegisteredTenant(tenant_slug);
       if (registry.status === 'invalid') {
-        console.error(`[plan/push] tenant registry record for "${tenant_slug}" is invalid: ${registry.reason}`);
+        (req.log ?? logger).error({ tenantSlug: tenant_slug, reason: registry.reason }, 'plan/push: tenant registry record is invalid');
         res.status(500).json(TENANT_REGISTRY_INVALID);
         return;
       }

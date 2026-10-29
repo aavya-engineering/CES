@@ -26,6 +26,7 @@
 // — no engine is reimplemented here.
 
 import { withTenant } from '../lib/prisma.js';
+import { logger } from '../lib/logger.js';
 import { createNudgeService } from './nudgeService.js';
 import { createReassessmentService } from './reassessmentService.js';
 
@@ -56,7 +57,7 @@ export interface Scheduler {
 export function createScheduler(opts: SchedulerOptions): Scheduler {
   const nowFn = opts.nowFn ?? (() => new Date());
   const onError =
-    opts.onError ?? ((err: unknown) => console.error('[scheduler] tick failed:', err));
+    opts.onError ?? ((err: unknown) => logger.error({ err }, 'scheduler tick failed'));
   let timer: ReturnType<typeof setInterval> | undefined;
 
   async function runOnce(): Promise<void> {

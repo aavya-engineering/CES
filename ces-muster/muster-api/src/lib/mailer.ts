@@ -14,6 +14,7 @@
 //                             MUSTER_DEV_MAIL_LOG=1 (developer / review laptop only)
 //   unset otherwise         → not sent; the API logs that no mail transport is set
 // The message body is never written to the audit log.
+import { logger } from './logger.js';
 import nodemailer from 'nodemailer';
 
 export interface MailMessage {
@@ -36,10 +37,10 @@ export function createMailer(env: NodeJS.ProcessEnv = process.env): Mailer {
   const devLog = env.MUSTER_DEV_MAIL_LOG === '1' && env.NODE_ENV !== 'production';
   return async (m) => {
     if (devLog) {
-      console.log(`[mail:dev] to=${m.to} subject="${m.subject}"\n${m.text}`);
+      logger.info({ to: m.to, subject: m.subject, text: m.text }, 'mail (dev log, not sent)');
       return 'logged';
     }
-    console.warn('[mail] no mail transport configured (MUSTER_SMTP_URL); message not sent:', m.subject);
+    logger.warn({ to: m.to, subject: m.subject }, 'no mail transport configured (MUSTER_SMTP_URL); message not sent');
     return 'not_configured';
   };
 }
