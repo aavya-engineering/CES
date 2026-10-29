@@ -39,6 +39,7 @@ import type { SharedDb } from './cesShared/service.js';
 import { logger } from './lib/logger.js';
 import { requestLog } from './middleware/requestLog.js';
 import { createHealthRouter } from './routes/health.js';
+import { createApiDocsRouter } from './routes/apiDocs.js';
 
 /** Body limit for the plan push (MP + TM in one JSON body). */
 export const PLAN_BODY_LIMIT = '25mb';
@@ -98,6 +99,8 @@ export function createApp(opts: AppOptions = {}) {
   // unauthenticated liveness/readiness probes (before every /api fence).
   app.use(requestLog(logger));
   app.use(createHealthRouter(db));
+  // Sprint 2 DOC-01: Swagger UI + OpenAPI JSON, only when API_DOCS=1 (off in production).
+  app.use(createApiDocsRouter());
 
   app.use(localCors());
 
