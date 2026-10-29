@@ -37,14 +37,14 @@ export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typ
         <input
           className="input"
           type="search"
-          placeholder="Requirement ID, NIST reference or text"
+          placeholder="Search by requirement ID, title or control family…"
           value={f.q}
           onChange={(e) => f.setQ(e.target.value)}
           data-testid="req-search"
         />
       </label>
       <label>
-        Family
+        Control Family
         <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family">
           <option value="">All families</option>
           {FAMILIES.map((fam) => (
@@ -74,8 +74,8 @@ export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typ
           </select>
         </label>
       )}
-      <button type="button" className="btn btn-ghost" onClick={f.clear}>
-        Clear filters
+      <button type="button" className="btn btn-link" onClick={f.clear}>
+        Clear Filters
       </button>
     </div>
   );
@@ -189,9 +189,10 @@ function ObjectiveList({ controlId }: { controlId: string }) {
 }
 
 type ReqCol = 'id' | 'title' | 'family' | 'type' | 'priority' | 'weight';
-type HideableCol = 'family' | 'type' | 'priority' | 'modules' | 'weight';
+type HideableCol = 'family' | 'securityFamily' | 'type' | 'priority' | 'modules' | 'weight';
 const HIDEABLE: { col: HideableCol; label: string }[] = [
   { col: 'family', label: 'Control Family' },
+  { col: 'securityFamily', label: 'Security Family' },
   { col: 'type', label: 'Type' },
   { col: 'priority', label: 'Priority' },
   { col: 'modules', label: 'Used In Modules' },
@@ -256,6 +257,50 @@ function customRow(d: CustomRequirement): RequirementRow {
     level: 'L2',
     poam_prohibited: false,
   };
+}
+
+/** Retesting #14 (2026-10-29): "Export ▾" split button as in the mockup — CSV now, template in the menu. */
+function ExportMenu({ label, onExport, onTemplate }: { label: string; onExport: () => void; onTemplate?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  return (
+    <div className="split-btn split-btn-secondary" ref={box}>
+      <button type="button" className="btn btn-secondary" onClick={onExport} data-testid="req-export">
+        <Download size={16} aria-hidden="true" /> {label}
+      </button>
+      <button type="button" className="btn btn-secondary split-btn-caret" aria-label="More export options" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-export-menu">
+        <ChevronDown size={18} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="split-menu" role="menu">
+          <button type="button" role="menuitem" onClick={pick(onExport)}>
+            <Download size={16} aria-hidden="true" /> Export as CSV
+          </button>
+          {onTemplate && (
+            <button type="button" role="menuitem" onClick={pick(onTemplate)}>
+              <Download size={16} aria-hidden="true" /> Download CSV template
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** S1.9: the "Import / Update" split button — create, bulk import, template. */
@@ -370,7 +415,7 @@ export default function RequirementsPage() {
   });
   const paged = usePaged(sorted, rowsPerPage);
   const pick = useSelection(rows.map((row) => row.control_id));
-  const [hidden, setHidden] = useState<Set<HideableCol>>(new Set());
+  const [hidden, setHidden] = useState<Set<HideableCol>>(() => new Set<HideableCol>(['type', 'weight']));
   const show = (c: HideableCol) => !hidden.has(c);
   const exportRows = pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted;
   const withPriority = allRows.filter((r) => metaOf(r.control_id)?.priority).length;
@@ -406,7 +451,7 @@ export default function RequirementsPage() {
   return (
     <div className="pg" data-testid="page-requirements">
       <PageHeader
-        icon="▤"
+        icon={<FileText size={30} aria-hidden="true" />}
         title="110 Requirements"
         lede="CMMC Level 2 (NIST SP 800-171 Rev. 2) control requirements used across all CES modules. This reference data is used for readiness assessment, scoring and evidence validation."
         actions={
@@ -430,12 +475,12 @@ export default function RequirementsPage() {
         }
       />
       <div className="stats stats-6">
-        <Stat icon={<FileText size={24} />} value={REQUIREMENTS.length} label="Total Requirements" sub={customViews.length ? `+${customViews.length} organisation-defined` : 'NIST SP 800-171 Rev. 2'} testId="stat-req-total" />
-        <Stat icon={<ShieldCheck size={24} />} value={FAMILIES.length} label="Security Families" sub="Control families" tone="good" />
-        <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" sub={`${REQUIREMENTS.filter((r) => r.cmmc_level === 2).length} at Level 2`} tone="muster" />
-        <Stat icon={<Tag size={24} />} value={viewer.signedIn ? withPriority : '—'} label="Priority Set" sub={viewer.signedIn ? 'High / Medium / Low' : 'Sign in to see metadata'} tone="warn" testId="stat-req-priority" />
+        <Stat icon={<FileText size={24} />} value={REQUIREMENTS.length} label="Total Requirements" sub={customViews.length ? `+${customViews.length} organisation-defined` : undefined} testId="stat-req-total" />
+        <Stat icon={<ShieldCheck size={24} />} value={FAMILIES.length} label="Security Families" tone="good" />
+        <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" tone="muster" />
+        <Stat icon={<Tag size={24} />} value={3} label="Priority Levels" sub={viewer.signedIn ? `High / Medium / Low · ${withPriority} set` : 'High / Medium / Low'} tone="warn" testId="stat-req-priority" />
         <Stat icon={<Database size={24} />} value="Rev. 2" label="Source Version" sub="NIST SP 800-171" />
-        <Stat icon={viewer.canEdit ? <Pencil size={24} /> : <CalendarDays size={24} />} value={viewer.canEdit ? drafts : fmtStamp(lastUpdated).split(',')[0]} label={viewer.canEdit ? 'Drafts to publish' : 'Last Updated'} sub={viewer.canEdit ? 'Waiting for a second admin' : 'Reference Data'} testId="stat-req-drafts" />
+        <Stat icon={<CalendarDays size={24} />} value={fmtStamp(lastUpdated).split(',')[0]} label="Last Updated" sub={viewer.canEdit && drafts ? `${drafts} draft${drafts === 1 ? '' : 's'} to publish` : 'Reference Data'} testId="stat-req-drafts" />
       </div>
 
       <div className="card filter-card" role="search">
@@ -521,9 +566,7 @@ export default function RequirementsPage() {
               {rows.length} requirement{rows.length === 1 ? '' : 's'}
             </strong>
             <span className="card-bar-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => exportRequirementsCsv(exportRows, metaOf)} data-testid="req-export">
-                <Download size={16} aria-hidden="true" /> {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
-              </button>
+              <ExportMenu label={pick.some ? `Export ${pick.sel.size} selected` : 'Export'} onExport={() => exportRequirementsCsv(exportRows, metaOf)} onTemplate={viewer.canEdit ? downloadRequirementTemplate : undefined} />
               <ColumnChooser hidden={hidden} setHidden={setHidden} />
             </span>
           </div>
@@ -537,6 +580,7 @@ export default function RequirementsPage() {
                   <SortTh label="Req ID" col="id" sort={sort} onSort={onSort} />
                   <SortTh label="Requirement Title" col="title" sort={sort} onSort={onSort} />
                   {show('family') && <SortTh label="Control Family" col="family" sort={sort} onSort={onSort} />}
+                  {show('securityFamily') && <th scope="col">Security Family</th>}
                   {show('type') && <SortTh label="Type" col="type" sort={sort} onSort={onSort} />}
                   {show('priority') && <SortTh label="Priority" col="priority" sort={sort} onSort={onSort} />}
                   {show('modules') && <th scope="col">Used In Modules</th>}
@@ -574,6 +618,7 @@ export default function RequirementsPage() {
                           {r.family} - {r.family_name}
                         </td>
                       )}
+                      {show('securityFamily') && <td style={{ whiteSpace: 'nowrap' }}>{r.family_name}</td>}
                       {show('type') && <td>{custom ? <span className="pill" data-tone="info">Custom</span> : typeOf(r)}</td>}
                       {show('priority') && <td><PriorityPill meta={m} /></td>}
                       {show('modules') && <td>{viewer.signedIn ? <ModulePills meta={m} /> : '—'}</td>}

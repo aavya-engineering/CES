@@ -74,17 +74,30 @@ describe('S1.4 standard grid on 110 Requirements', () => {
     act(() => root.render(<RequirementsPage />));
     expect(ids()).toHaveLength(10);
 
+    // Retesting #13 (2026-10-29): the mockup's columns are the default — Type and
+    // Weight are off until chosen in Columns; Security Family is on.
+    const headers = () => [...host.querySelectorAll('[data-testid="req-table"] th')].map((t) => t.textContent);
+    expect(headers()).toContain('Security Family');
+    expect(headers()).not.toContain('Weight');
+    expect(host.querySelector('[data-testid="sort-weight"]')).toBeNull();
+    click(host.querySelector('[data-testid="req-columns"]'));
+    click(host.querySelector('[data-testid="col-toggle-weight"]'));
+    click(host.querySelector('[data-testid="col-toggle-type"]'));
+    expect(headers()).toContain('Type');
+
     click(host.querySelector('[data-testid="sort-weight"]'));
     click(host.querySelector('[data-testid="sort-weight"]'));
     expect(host.querySelector('th[aria-sort="descending"]')).not.toBeNull();
+    // Retesting #15: the arrow is shown on the sorted column only.
+    expect(host.querySelectorAll('.th-sort-ind')).toHaveLength(1);
     expect(host.querySelector('[data-testid="req-table"] tbody tr td.num .pill')?.textContent).toBe('5');
 
     click(host.querySelector('input[aria-label="Select all requirements"]'));
     expect(host.querySelector('[data-testid="req-export"]')?.textContent).toContain('Export 110 selected');
 
-    click(host.querySelector('[data-testid="req-columns"]'));
+    // the Columns menu is still open from above
     click(host.querySelector('[data-testid="col-toggle-type"]'));
-    expect([...host.querySelectorAll('[data-testid="req-table"] th')].map((t) => t.textContent)).not.toContain('Type↕');
+    expect(headers()).not.toContain('Type');
 
     const sel = host.querySelector('[data-testid="rows-per-page"]') as HTMLSelectElement;
     act(() => {

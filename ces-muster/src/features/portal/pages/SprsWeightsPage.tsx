@@ -15,6 +15,7 @@
 // "Add Requirement Weight" form are not built: weights are set by the DoD
 // methodology and kept in one canonical ces-shared file (doc 14 M3, M4).
 import { useState } from 'react';
+import { BarChart3, ChevronDown, Download } from 'lucide-react';
 import {
   PARTIAL_CREDIT,
   POAM_PROHIBITED,
@@ -60,18 +61,27 @@ export default function SprsWeightsPage() {
   return (
     <div className="pg" data-testid="page-sprs">
       <PageHeader
-        icon="Σ"
+        icon={<BarChart3 size={30} aria-hidden="true" />}
         title="SPRS Weight Table"
-        lede={
-          <>
-            Points deducted from {SPRS_META.starting_score} for each requirement that is not met (DoD Assessment
-            Methodology v{SPRS_META.version}). Read-only: weights come from the methodology, not from CES users.
-          </>
-        }
+        lede={`SPRS weights used for scoring and assessment of CMMC Level 2 (NIST SP 800-171 Rev. 2) requirements — ${SPRS_META.starting_score} points minus the weight of each unmet requirement.`}
         actions={
-          <div className="pg-meta">
-            <strong>{SPRS_META.source}</strong>
-            ces-shared sprs-weights.json, generated {SPRS_META.generated_on}
+          <div className="pg-head-buttons">
+            <div className="source-box">
+              <strong>NIST SP 800-171 Rev. 2</strong>
+              <span>Source Standard</span>
+            </div>
+            <div className="pg-meta" data-testid="sprs-last-updated">
+              Last updated
+              <strong>{SPRS_META.generated_on}</strong>
+            </div>
+            <div className="split-btn">
+              <button type="button" className="btn btn-primary" onClick={() => exportRequirementsCsv(sorted, metaOf)} data-testid="sprs-actions">
+                <Download size={16} aria-hidden="true" /> Actions
+              </button>
+              <button type="button" className="btn btn-primary split-btn-caret" aria-label="Export options" onClick={() => exportRequirementsCsv(sorted, metaOf)}>
+                <ChevronDown size={18} aria-hidden="true" />
+              </button>
+            </div>
           </div>
         }
       />
@@ -92,10 +102,10 @@ export default function SprsWeightsPage() {
       <div className="card" style={{ marginBottom: 14 }}>
         <div role="tablist" aria-label="SPRS views" className="tabs">
           <button type="button" role="tab" aria-selected={tab === 'requirements'} onClick={() => setTab('requirements')} data-testid="sprs-tab-requirements">
-            Requirements view
+            Requirements View
           </button>
           <button type="button" role="tab" aria-selected={tab === 'families'} onClick={() => setTab('families')} data-testid="sprs-tab-families">
-            Control family summary
+            Control Family Summary
           </button>
           <button type="button" role="tab" aria-selected={tab === 'methodology'} onClick={() => setTab('methodology')} data-testid="sprs-tab-methodology">
             Methodology
@@ -118,7 +128,7 @@ export default function SprsWeightsPage() {
                     onClick={() => exportRequirementsCsv(pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted, metaOf)}
                     data-testid="sprs-export"
                   >
-                    ⭳ {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
+                    <Download size={16} aria-hidden="true" /> {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
                   </button>
                 </span>
               </div>
@@ -129,9 +139,9 @@ export default function SprsWeightsPage() {
                       <th scope="col" className="col-check">
                         <SelectBox checked={pick.all} indeterminate={pick.some} onChange={pick.toggleAll} label="Select all requirements" />
                       </th>
-                      <SortTh label="Requirement ID" col="id" sort={sort} onSort={onSort} />
-                      <SortTh label="Requirement" col="title" sort={sort} onSort={onSort} />
-                      <SortTh label="Family" col="family" sort={sort} onSort={onSort} />
+                      <SortTh label="Req ID" col="id" sort={sort} onSort={onSort} />
+                      <SortTh label="Requirement Title" col="title" sort={sort} onSort={onSort} />
+                      <SortTh label="Control Family" col="family" sort={sort} onSort={onSort} />
                       <SortTh label="Weight" col="weight" sort={sort} onSort={onSort} className="num" />
                       <th scope="col">POA&amp;M allowed</th>
                       {viewer.signedIn && <th scope="col">Priority</th>}
@@ -272,7 +282,7 @@ function Methodology() {
   return (
     <div className="grid-2" data-testid="sprs-methodology">
       <section className="card card-pad" aria-label="Scoring rules">
-        <h2 className="sub">Scoring rules</h2>
+        <h2 className="sub">Scoring Rules</h2>
         <dl className="kv">
           <dt>Methodology</dt>
           <dd>{SPRS_META.source}</dd>
@@ -297,7 +307,7 @@ function Methodology() {
         </dl>
       </section>
       <section className="card card-pad" aria-label="Exceptions to the standard weights">
-        <h2 className="sub">Partial credit</h2>
+        <h2 className="sub">Partial Credit</h2>
         <div className="table-wrap">
           <table className="tbl" data-testid="sprs-partial">
             <thead>

@@ -2770,3 +2770,65 @@ th[aria-sort='descending'] .th-sort-ind {
     font-size: 13.5px;
   }
 }
+
+/* ── Sprint 2 retest fixes (CES_Observation.xlsx › Retesting, 2026-10-29) ───── */
+/* #9: the title block wraps like the mockup (two lines) instead of being squeezed by the actions. */
+.pg-head-text {
+  flex: 1 1 420px;
+  min-width: 0;
+  max-width: 680px;
+}
+/* #6/#8: stat cards — mockup proportions (icon tile left, value/label stacked, generous padding). */
+.stats-6 .stat {
+  gap: 14px;
+  padding: 18px 20px;
+  align-items: center;
+  border-radius: 12px;
+}
+.stats-6 .stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+/* #16/#17: "Showing…" left, page buttons centred, Rows per page right, flush under the table. */
+.pager-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--co-border);
+}
+.pager-row .pager {
+  display: contents;
+}
+.pager-row .pager > [data-testid='pager-summary'] {
+  justify-self: start;
+}
+.pager-row .pager-btns {
+  justify-self: center;
+}
+.pager-row .rows-per-page {
+  justify-self: end;
+  padding: 0;
+}
+@media (max-width: 760px) {
+  .pager-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+/* #14: secondary (outlined) split button — caret keeps the outline, not the primary's white divider. */
+.split-btn-secondary .split-btn-caret {
+  border-left: 1px solid var(--co-border) !important;
+}
+/* #15: sort arrow only on the sorted column; hint on hover. */
+.th-sort:hover .th-sort-ind,
+.th-sort:focus-visible .th-sort-ind {
+  opacity: 1;
+}
+/* Sheet1 #16/#30/#43/#47: "Clear Filters" reads as a control, not plain text. */
+.btn-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
