@@ -242,7 +242,7 @@ export default function SprsWeightsPage() {
                   <th scope="col" className="num">5-point</th>
                   <th scope="col" className="num">3-point</th>
                   <th scope="col" className="num">1-point</th>
-                  <th scope="col" className="num">Largest deduction</th>
+                  <th scope="col" className="num">Largest Deduction</th>
                   <th scope="col" style={{ width: '22%' }}>
                     Share of {total}
                   </th>
@@ -328,7 +328,7 @@ function Methodology() {
               <tr>
                 <th scope="col">Requirement</th>
                 <th scope="col" className="num">Full</th>
-                <th scope="col" className="num">Partly met</th>
+                <th scope="col" className="num">Partly Met</th>
                 <th scope="col">When</th>
               </tr>
             </thead>

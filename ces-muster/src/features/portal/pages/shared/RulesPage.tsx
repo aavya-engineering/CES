@@ -150,7 +150,7 @@ export default function RulesPage() {
         </label>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-link filter-clear"
           onClick={() => {
             setQ('');
             setType('');
@@ -461,7 +461,7 @@ function RuleWizard({ view, archetypes, onCancel, onSaved }: { view: ItemView<Ru
                 </label>
                 <label className="form-row span-all">
                   Description *
-                  <textarea className="input" rows={3} value={d.description} onChange={(e) => set('description', e.target.value)} data-testid="rule-description" />
+                  <textarea maxLength={2000} className="input" rows={3} value={d.description} onChange={(e) => set('description', e.target.value)} data-testid="rule-description" />
                 </label>
                 <label className="form-row">
                   Rule Category

@@ -164,7 +164,7 @@ export default function MappingPage() {
         </label>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-link filter-clear"
           onClick={() => {
             setQ('');
             setLevel('');
@@ -515,7 +515,7 @@ function MappingDrawer({
       </fieldset>
       <label className="form-row">
         Rationale
-        <textarea className="input" rows={3} value={d.rationale} onChange={(e) => set('rationale', e.target.value)} placeholder="Explain how this evidence supports the requirement." data-testid="mapping-rationale" />
+        <textarea maxLength={2000} className="input" rows={3} value={d.rationale} onChange={(e) => set('rationale', e.target.value)} placeholder="Explain how this evidence supports the requirement." data-testid="mapping-rationale" />
       </label>
       <label className="form-row">
         Truth Tag
