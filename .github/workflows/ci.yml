@@ -35,7 +35,7 @@ jobs:
       # is not a workspace, so `npm ci` neither installs nor builds it. Without
       # dist/ the stamper build fails on "Cannot find module 'ces-tenant'"
       # (same order the Dockerfile uses). 2026-10-29.
-      - name: Build ces-tenant (file: dependency)
+      - name: Build ces-tenant (linked dependency)
         run: cd ces-tenant && npm ci && npm run build
 
       # Supply-chain gate (G-ENG-3): fail the build on a HIGH/CRITICAL production
