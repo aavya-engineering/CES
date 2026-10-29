@@ -44,6 +44,12 @@ services:
       INITIAL_TENANT_NAME: ${INITIAL_TENANT_NAME:-Blue Heron Defense}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       MUSTER_TRUST_PROXY: "1"
+      # Sprint 2: environment-aware logging and API docs (docs/ENVIRONMENTS.md)
+      CES_ENV: ${CES_ENV:-production}
+      NODE_ENV: ${NODE_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      API_DOCS: ${API_DOCS:-0}
     volumes:
       - ./output:/output
       - pipeline:/data/pipeline
