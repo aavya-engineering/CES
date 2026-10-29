@@ -66,13 +66,15 @@ export function Donut({ segments, center, centerLabel, testId }: { segments: Seg
 /** Vertical bars on one axis, value printed above each bar. */
 export function Bars({ bars, label, testId }: { bars: { label: string; value: number; color?: string }[]; label: string; testId?: string }) {
   const max = Math.max(1, ...bars.map((b) => b.value));
+  const empty = bars.every((b) => b.value === 0);
   return (
-    <div className="vbars" role="img" aria-label={`${label}: ${bars.map((b) => `${b.label} ${b.value}`).join(', ')}`} data-testid={testId}>
+    <div className={`vbars${empty ? ' vbars-empty' : ''}`} role="img" aria-label={`${label}: ${bars.map((b) => `${b.label} ${b.value}`).join(', ')}`} data-testid={testId}>
+      {empty && <span className="vbars-note">No engagements yet</span>}
       {bars.map((b) => (
         <div key={b.label} className="vbar" title={`${b.label}: ${b.value}`}>
           <span className="vbar-value">{b.value}</span>
           <span className="vbar-track">
-            <span className="vbar-fill" style={{ height: `${(b.value / max) * 100}%`, background: b.color ?? 'var(--chart-seq)' }} />
+            <span className="vbar-fill" style={{ height: `${(b.value / max) * 100}%`, background: b.color ?? 'var(--chart-seq)', opacity: b.value === 0 ? 0 : 1 }} />
           </span>
           <span className="vbar-label">{b.label}</span>
         </div>

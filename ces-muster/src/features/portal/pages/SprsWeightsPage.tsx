@@ -15,7 +15,7 @@
 // "Add Requirement Weight" form are not built: weights are set by the DoD
 // methodology and kept in one canonical ces-shared file (doc 14 M3, M4).
 import { useState } from 'react';
-import { BarChart3, ChevronDown, Download } from 'lucide-react';
+import { BarChart3, ChevronDown, Download, Gauge, Hash, MinusCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
 import {
   PARTIAL_CREDIT,
   POAM_PROHIBITED,
@@ -37,6 +37,12 @@ import { useSharedViewer } from '../governedState';
 import { RowActions, Toast } from '../governed';
 
 type SprsCol = 'id' | 'title' | 'family' | 'weight';
+
+/** Sheet1 #11-style date format (with year) for the "Last updated" stamp. */
+const fmtGenerated = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+};
 
 export default function SprsWeightsPage() {
   const [tab, setTab] = useState<'requirements' | 'families' | 'methodology'>('requirements');
@@ -72,7 +78,7 @@ export default function SprsWeightsPage() {
             </div>
             <div className="pg-meta" data-testid="sprs-last-updated">
               Last updated
-              <strong>{SPRS_META.generated_on}</strong>
+              <strong>{fmtGenerated(SPRS_META.generated_on)}</strong>
             </div>
             <div className="split-btn">
               <button type="button" className="btn btn-primary" onClick={() => exportRequirementsCsv(sorted, metaOf)} data-testid="sprs-actions">
@@ -85,16 +91,16 @@ export default function SprsWeightsPage() {
           </div>
         }
       />
-      <div className="stats">
-        <Stat icon="5" value={counts[5]} label="Requirements worth 5 points" tone="bad" testId="stat-w5" />
-        <Stat icon="3" value={counts[3]} label="Requirements worth 3 points" tone="warn" testId="stat-w3" />
-        <Stat icon="1" value={counts[1]} label="Requirements worth 1 point" testId="stat-w1" />
-        <Stat icon="0" value={counts[0]} label="Not scored" sub="SSP (3.12.4) — a prerequisite" testId="stat-w0" />
+      <div className="stats stats-5">
+        <Stat icon={<ShieldAlert size={22} />} value={counts[5]} label="5-point requirements" sub="Deducted when not met" tone="bad" testId="stat-w5" />
+        <Stat icon={<ShieldCheck size={22} />} value={counts[3]} label="3-point requirements" sub="Deducted when not met" tone="warn" testId="stat-w3" />
+        <Stat icon={<Hash size={22} />} value={counts[1]} label="1-point requirements" sub="Deducted when not met" testId="stat-w1" />
+        <Stat icon={<MinusCircle size={22} />} value={counts[0]} label="Not scored" sub="SSP (3.12.4) — a prerequisite" testId="stat-w0" />
         <Stat
-          icon="↓"
+          icon={<Gauge size={22} />}
           value={total}
           label="Largest possible deduction"
-          sub={`${SPRS_META.starting_score} − ${total} = ${SPRS_META.starting_score - total} (floor)`}
+          sub={`Lowest score ${SPRS_META.starting_score - total} if nothing is met`}
           testId="stat-total-deduction"
         />
       </div>
@@ -141,6 +147,7 @@ export default function SprsWeightsPage() {
                       </th>
                       <SortTh label="Req ID" col="id" sort={sort} onSort={onSort} />
                       <SortTh label="Requirement Title" col="title" sort={sort} onSort={onSort} />
+                      <th scope="col">Security Family</th>
                       <SortTh label="Control Family" col="family" sort={sort} onSort={onSort} />
                       <SortTh label="Weight" col="weight" sort={sort} onSort={onSort} className="num" />
                       <th scope="col">POA&amp;M allowed</th>
@@ -155,13 +162,20 @@ export default function SprsWeightsPage() {
                         <td className="col-check">
                           <SelectBox checked={pick.sel.has(r.control_id)} onChange={(on) => pick.toggle(r.control_id, on)} label={`Select ${r.control_id}`} />
                         </td>
-                        <td>
+                        <td className="nowrap">
                           <button type="button" className="row-btn" onClick={() => setSelected(r)}>
                             {r.control_id}
                           </button>
                         </td>
-                        <td>{r.practice}</td>
-                        <td>{r.family}</td>
+                        <td>
+                          <span className="clamp-1" title={r.practice}>
+                            {r.practice}
+                          </span>
+                        </td>
+                        <td className="nowrap">{r.family_name}</td>
+                        <td className="nowrap">
+                          {r.family} - {r.family_name}
+                        </td>
                         <td className="num">
                           <span className="pill" data-tone={weightTone(r.weight)}>
                             {r.unscored ? '0 · not scored' : r.weight}

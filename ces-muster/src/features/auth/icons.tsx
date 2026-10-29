@@ -117,3 +117,12 @@ export const MicrosoftLogo = ({ size = 20 }: P) => (
     <rect x="10.6" y="10.6" width="9.4" height="9.4" fill="#ffb900" />
   </svg>
 );
+
+/** Sheet1 #2 (2026-10-29): caret for the theme menu button. */
+export function ChevronIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}

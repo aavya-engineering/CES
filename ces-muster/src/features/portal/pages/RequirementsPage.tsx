@@ -30,53 +30,72 @@ import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, Fil
 import type { CustomRequirement, ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
 
 export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typeof useRequirementFilter>; showWeight?: boolean }) {
+  // Retesting #19/#20, Sheet1 #29/#30 (2026-10-29): the same filter card as the
+  // 110 Requirements page — big search on top, labelled dropdowns below,
+  // "Clear Filters" as a link on the right (mockup m15).
   return (
-    <div className="card toolbar" role="search">
-      <label className="grow">
-        Search
-        <input
-          className="input"
-          type="search"
-          placeholder="Search by requirement ID, title or control family…"
-          value={f.q}
-          onChange={(e) => f.setQ(e.target.value)}
-          data-testid="req-search"
-        />
-      </label>
-      <label>
-        Control Family
-        <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family">
-          <option value="">All families</option>
-          {FAMILIES.map((fam) => (
-            <option key={fam.abbreviation} value={fam.abbreviation}>
-              {fam.abbreviation} — {fam.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        CMMC level
-        <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
-          <option value="">Level 1 and 2</option>
-          <option value="1">Level 1</option>
-          <option value="2">Level 2</option>
-        </select>
-      </label>
-      {showWeight && (
+    <div className="card filter-card" role="search">
+      <div className="filter-top">
+        <label className="search-input search-input-lg">
+          <span className="sr-only">Search requirements</span>
+          <Search size={20} aria-hidden="true" />
+          <input
+            className="input"
+            type="search"
+            placeholder="Search by requirement ID, title or control family…"
+            value={f.q}
+            onChange={(e) => f.setQ(e.target.value)}
+            data-testid="req-search"
+          />
+        </label>
+      </div>
+      <div className="filter-grid filter-grid-inline">
         <label>
-          SPRS weight
-          <select className="select" value={f.weight} onChange={(e) => f.setWeight(e.target.value)} data-testid="req-weight">
-            <option value="">All weights</option>
-            <option value="5">5 points</option>
-            <option value="3">3 points</option>
-            <option value="1">1 point</option>
-            <option value="0">0 (not scored)</option>
+          Security Family
+          <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family">
+            <option value="">All</option>
+            {FAMILIES.map((fam) => (
+              <option key={fam.abbreviation} value={fam.abbreviation}>
+                {fam.name}
+              </option>
+            ))}
           </select>
         </label>
-      )}
-      <button type="button" className="btn btn-link" onClick={f.clear}>
-        Clear Filters
-      </button>
+        <label>
+          Control Family
+          <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-family-code">
+            <option value="">All</option>
+            {FAMILIES.map((fam) => (
+              <option key={fam.abbreviation} value={fam.abbreviation}>
+                {fam.abbreviation} - {fam.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          CMMC Level
+          <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
+            <option value="">All</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+          </select>
+        </label>
+        {showWeight && (
+          <label>
+            Weight Range
+            <select className="select" value={f.weight} onChange={(e) => f.setWeight(e.target.value)} data-testid="req-weight">
+              <option value="">All</option>
+              <option value="5">5 points</option>
+              <option value="3">3 points</option>
+              <option value="1">1 point</option>
+              <option value="0">Not scored</option>
+            </select>
+          </label>
+        )}
+        <button type="button" className="btn btn-link filter-clear" onClick={f.clear}>
+          Clear Filters
+        </button>
+      </div>
     </div>
   );
 }
@@ -480,7 +499,7 @@ export default function RequirementsPage() {
         <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" tone="muster" />
         <Stat icon={<Tag size={24} />} value={3} label="Priority Levels" sub={viewer.signedIn ? `High / Medium / Low · ${withPriority} set` : 'High / Medium / Low'} tone="warn" testId="stat-req-priority" />
         <Stat icon={<Database size={24} />} value="Rev. 2" label="Source Version" sub="NIST SP 800-171" />
-        <Stat icon={<CalendarDays size={24} />} value={fmtStamp(lastUpdated).split(',')[0]} label="Last Updated" sub={viewer.canEdit && drafts ? `${drafts} draft${drafts === 1 ? '' : 's'} to publish` : 'Reference Data'} testId="stat-req-drafts" />
+        <Stat icon={<CalendarDays size={24} />} value={fmtStamp(lastUpdated).split(',').slice(0, 2).join(',')} label="Last Updated" sub={viewer.canEdit && drafts ? `${drafts} draft${drafts === 1 ? '' : 's'} to publish` : 'Reference Data'} testId="stat-req-drafts" />
       </div>
 
       <div className="card filter-card" role="search">
