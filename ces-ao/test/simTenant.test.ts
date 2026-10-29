@@ -154,8 +154,19 @@ describe('G-TENANT-M5 — AO kind:\'sim\' support via ces-tenant', () => {
   });
 
   it('REFUSES stacksim mode for a slug that resolves to a live registry record (A9 guard)', async () => {
-    // AO's one-time seed migrates <ces-ao>/plan-data/dev/dev.json into the
-    // temp registry root as kind:'live' on first registry use.
+    // A kind:'live' record in the temp registry root. (Earlier this relied on
+    // AO's one-time seed of <ces-ao>/plan-data/dev/dev.json — a git-ignored
+    // local file that does not exist in CI or in the mono repo; 2026-10-29.)
+    const liveRecord = {
+      client: { slug: 'dev', name: 'Client dev' },
+      tenant: { tenant_id: 'tid-dev', domain: 'dev.onmicrosoft.us' },
+      auth: { app_id: 'app-dev', cert_path: 'certs/dev.pfx', cert_thumbprint: 'THUMB-DEV' },
+      endpoints: { graph: 'https://graph.microsoft.us', login: 'https://login.microsoftonline.us' },
+      kind: 'live',
+    };
+    fs.mkdirSync(path.join(tenantRoot, 'live'), { recursive: true });
+    fs.writeFileSync(path.join(tenantRoot, 'live', 'dev.json'), JSON.stringify(liveRecord, null, 2));
+    resetTenantRegistryForTests();
     const live = await getTenantRegistry().get('dev');
     expect(live?.kind).toBe('live');
 
