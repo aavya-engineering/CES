@@ -52,6 +52,8 @@ services:
       API_DOCS: ${API_DOCS:-0}
     volumes:
       - ./output:/output
+      # Sprint 2: optional named-user seed (deploy/users.seed.json → see deploy/users.seed.example.json)
+      - ./deploy:/app/deploy:ro
       - pipeline:/data/pipeline
       - tenants:/data/tenants
     depends_on:

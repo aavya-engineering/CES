@@ -17,7 +17,8 @@
     "seed:rls": "tsx scripts/seed-rls-fixtures.ts",
     "mu": "tsx src/cli/bin.ts",
     "seed:ces-shared": "tsx scripts/seed-ces-shared.ts",
-    "seed:demo-portfolio": "tsx scripts/seed-demo-portfolio.ts"
+    "seed:demo-portfolio": "tsx scripts/seed-demo-portfolio.ts",
+    "seed:users": "tsx scripts/seed-users.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
