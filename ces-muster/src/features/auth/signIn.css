@@ -602,3 +602,27 @@ body.ces-signin::before {
   display: flex;
   flex-direction: column;
 }
+
+/* ── Sprint 2 retest fixes (CES_Observation.xlsx › Retesting #1–#4, 2026-10-29) ──
+   #1/#4 the card sat too far from the artwork: the side column now keeps the
+   mockup's ~45px margins instead of centring a 500px card in whatever is left.
+   #2 checkbox 22px → 18px (mockup). #3 "Back to Sign In" centred under a rule. */
+@media (min-width: 901px) {
+  .signin-side {
+    padding: 72px clamp(28px, 6%, 56px) 20px;
+  }
+  .signin-card {
+    max-width: 580px;
+  }
+}
+.signin-check input {
+  width: 18px;
+  height: 18px;
+}
+.signin-back {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--si-border);
+}
