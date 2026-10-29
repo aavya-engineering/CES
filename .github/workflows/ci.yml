@@ -31,6 +31,13 @@ jobs:
       - name: Install (clean, from lockfile)
         run: npm ci
 
+      # ces-tenant is linked as file:../ces-tenant by stamper/eo/ao/muster-api but
+      # is not a workspace, so `npm ci` neither installs nor builds it. Without
+      # dist/ the stamper build fails on "Cannot find module 'ces-tenant'"
+      # (same order the Dockerfile uses). 2026-10-29.
+      - name: Build ces-tenant (file: dependency)
+        run: cd ces-tenant && npm ci && npm run build
+
       # Supply-chain gate (G-ENG-3): fail the build on a HIGH/CRITICAL production
       # vulnerability. This is the recurrence guard for G-ENG-2 (the multer HIGH):
       # a future high-severity prod dep cannot ship unnoticed. `high` level lets the
