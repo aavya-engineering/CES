@@ -16,7 +16,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@azure/identity": "^4.13.0",
+    "@azure/identity": "^4.14.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@microsoft/microsoft-graph-types": "^2.43.1",
     "@simplewebauthn/server": "^14.0.3",
