@@ -1,68 +1,54 @@
-# CES — Sprint 2 status (2026-10-29)
+# CES — Sprint 2 status (2026-10-29, end of day)
 
-**Branch:** `sprint2-vaibhav-fixes` · 7 commits on top of `main` @ `64e522e` · **not pushed** (push is yours)
-**Plan:** `docs/SPRINT2-PLAN.md` · **How to review:** `git log --oneline 64e522e..HEAD`, then `git show <sha>`
+**PRs open on `aavya-engineering/CES` (base `master`):**
+- **#1** `sprint2-vaibhav-fixes` — 12 commits — Sprint 2 (env, logging, users, OpenAPI, conventions, QA fixes rounds 1–3)
+- **#2** `chore/dependency-audit` — 1 commit — runtime critical/high advisories cleared
 
-## Commits
+Merge #1 first, then #2. Reviewer: repo maintainer (last pusher on `master`: neeleshvaishnavdevops).
+Plan: `docs/SPRINT2-PLAN.md` · Conventions: `docs/CONVENTIONS.md` · Environments: `docs/ENVIRONMENTS.md`
 
-| # | Commit | Phase | Files |
+## PR #1 — commits
+
+| # | Commit | What |
+|---|---|---|
+| 1 | `04c7ff4 chore(env)` | `env/{development,staging,production,muster-api.development}.env.example`, `docs/ENVIRONMENTS.md`, compose passes CES_ENV/LOG_*/API_DOCS |
+| 2 | `512a1d0 feat(api)` | pino logger (redaction), `X-Request-Id`, `/healthz` `/readyz`, 6 console sites replaced, 6 tests |
+| 3 | `cda8fab feat(api)` | named users from `deploy/users.seed.json` (msutton, vaibhav.pathak, sunny.kumrawat), one-time passwords, idempotent, 3 tests |
+| 4 | `9b9be95 feat(api)` | OpenAPI 3 + Swagger UI at `/api-docs` (API_DOCS=1; off in prod), 5 tests |
+| 5 | `ada0caf docs/feat` | `docs/CONVENTIONS.md`, `validate()` middleware (422 envelope), 3 tests |
+| 6 | `d9c2800 fix(ui)` | Login / Forgot: card margins, checkbox, centred "Back to Sign In" |
+| 7 | `8517f7c fix(ui)` | 110 Requirements + SPRS aligned to m03/m15 mockups; CUI strip hidden (D5) |
+| 8 | `7eaee76 docs` | first status doc |
+| 9 | `5ba3a1d chore(shared)` | vendored ces-shared copies re-synced (fixes 2 pre-existing failing tests) |
+| 10 | `a689cc6 fix(ui)` | browser-verified pass: login hero 58%, theme menu, SPRS filter card, Home/Portfolio code fixes |
+| 11 | `9fc56c4 fix(ui)` | UX sweep: bounded textareas + maxLength, 40px controls, app-wide filter toolbars, Title Case, Mapping text fallback, top bar nowrap |
+| 12 | `5191bf4 fix(ui)` | QA round 3: landing page after sign-in, export disabled w/o selection, CSV = table columns/visible only, Light/Dark segmented control, one-line objective rows |
+
+## Verification
+- Mac: `muster-api` full suite green (after `npx prisma generate` + root `npm ci` for ces-stamper), `ces-muster` suite green, `vite build` OK.
+- `npm run lint` in ces-muster reports 50 **pre-existing** warnings, all in `muster-api/` (`any` in live.* tests, `_kid/_use/_alg`) — `--max-warnings 0` makes it red; fix = scope eslint to the SPA or clean those files (Sprint 3, 30 min).
+- Visual check done in the Claude browser at 1536px (effective) for Login, Forgot, 110 Requirements, SPRS, Overview, Objectives, Catalog, Mapping, Golden Files, dark mode. **Home/Portfolio dashboard not yet seen running** (needs muster-api up) — verify on staging.
+
+## Observation sheet — status after rounds 1–3
+
+| Tab | Fixed | By decision / partial | Needs API or screenshot |
 |---|---|---|---|
-| 1 | `04c7ff4 chore(env)` | 1 Environments | `env/{development,staging,production,muster-api.development}.env.example`, `docs/ENVIRONMENTS.md`, `.gitignore`, `docker-compose.yml` |
-| 2 | `512a1d0 feat(api) logging` | 2 Logging | `src/lib/logger.ts`, `src/middleware/requestLog.ts`, `src/routes/health.ts`, 6 console sites, `tests/logging.test.ts` |
-| 3 | `cda8fab feat(api) seed users` | 3 Users | `src/lib/seedUsers.ts`, `scripts/seed-users.ts`, `deploy/users.seed.example.json`, entrypoint + compose, `tests/seedUsers.test.ts` |
-| 4 | `9b9be95 feat(api) openapi` | 4 Swagger | `src/lib/openapi.ts`, `src/routes/apiDocs.ts`, `tests/openapi.test.ts` |
-| 5 | `ada0caf docs + validate` | 5 Conventions | `docs/CONVENTIONS.md`, `src/middleware/validate.ts`, `tests/validate.test.ts` |
-| 6 | `d9c2800 fix(ui) sign-in` | 6 A/B | `signIn.css` |
-| 7 | `8517f7c fix(ui) 110 Req + SPRS` | 6 C–F | `RequirementsPage.tsx`, `SprsWeightsPage.tsx`, `ui.tsx`, `portalTheme.css`, `muster.css`, `shellAndGrid.test.tsx` |
+| Retesting (21) | 16 | #10 Create Requirement (D3), #12 Assessment Status (no data — TBD), #20 DoD weights kept | #11 (prnt.sc) |
+| Sheet1 (48) | Home #1–#3,#5–#12 (code); 110 Req #13–#19,#21,#22,#23; SPRS #26–#33,#36–#39; AO #40–#48 | #14 Priority card wording, #17/#33 "—" = not set (by decision), #20 Import/Update split by design, #24/#25 CRUD items need signed-in retest | Home visuals |
+| Compare (20) | Login #1,#2,#4,#7,#9,#14 | fonts/icons #5/#6/#8 (same families; pixel diff) | #15–#20 sidebar/icon screenshots |
+| QA round 3 (6) | all 6 | — | — |
 
-## Verification (run in the sandbox on your Mac's checkout)
+QA still owes: the `prnt.sc` screenshots as a zip (several items cannot be judged without them).
 
-| Check | Result |
-|---|---|
-| `muster-api`: `tsc --noEmit` | only the 2 errors that already exist on `main` (`auth.ts:180`, `discoveryEnvelope.ts:21` missing `ajv`) |
-| `muster-api`: new tests (logging 6, seedUsers 3, openapi 5, validate 3) | **17/17 pass** |
-| `muster-api`: full suite | 468 pass; 21 files fail only with `@prisma/client did not initialize` — the sandbox cannot download Prisma engines (`binaries.prisma.sh` 403). **Run on your Mac:** `cd ces-muster/muster-api && npx prisma generate && npx vitest run` |
-| `ces-muster`: `tsc --noEmit` | only the 1 error that already exists on `main` (`s110Fixes.test.tsx:60`) |
-| `ces-muster`: portal + auth tests | **80/80 pass** |
-| `ces-muster`: full suite | 4 pre-existing failures on `main` too (vendored-parity, fixture freshness) — unrelated |
-| `ces-muster`: `eslint` on touched files | clean |
-| `ces-muster`: `vite build` | OK |
-| Visual check of the UI fixes against the mockups | **not done here** (no browser in the sandbox) — `cd ces-muster && npm run dev`, open Login, Forgot password, 110 Requirements, SPRS |
+## PR #2 — dependencies (SI.L1-3.14.1)
+Cleared (lock-file only, semver-compatible except nodemailer): proxy-addr 2.0.8 (IP spoofing — we run `trust proxy`), body-parser 1.20.9, **nodemailer 7→10.3.1** (SMTP command injection; API unchanged), js-yaml 4.3.2, nanoid, postcss, source-map-js, brace-expansion, browserslist, fast-uri.
+Left for Sprint 3 (breaking): **zod 3→4** (memory DoS; mitigated by 100 kb JSON limit — touches every route schema), **vitest 1→5 / vite 5→7** (dev-only: test UI server RCE/path traversal). GitHub's "433" counts every workspace (ces-stamper/eo/ao/planner not yet audited) — run `npm audit` per package there too; `npm audit` at the root crashes (`edgesOut`, npm bug with `file:` links).
 
-## Retesting tab — item by item
+## Decisions open (ask Mark)
+D1 role for sunny.kumrawat (seed says `bhd_operator`) · D2 msutton as first prod admin (yes in template) · **D3** Create Requirement stays visible · D4 Swagger off in prod · **D5** CUI purple strip removed (DoD screen marking — one CSS rule to restore) · D6 Export disabled until selection (QA ask; mockup has it always on)
 
-| # | Page | Status | Where |
-|---|---|---|---|
-| 1, 4 | Login / Forgot | Fixed — card margins match mockup | `signIn.css` |
-| 2 | Login | Fixed — checkbox 18px | `signIn.css` |
-| 3 | Forgot | Fixed — "Back to Sign In" centred under a rule | `signIn.css` |
-| 5 | 110 Req | Fixed — FileText icon tile | `RequirementsPage.tsx` |
-| 6, 8 | 110 Req | Fixed — card proportions | `portalTheme.css` |
-| 7 | 110 Req | Fixed — extra sub-texts removed from cards | `RequirementsPage.tsx` |
-| 9 | 110 Req | Fixed — lede wraps in two lines | `portalTheme.css .pg-head-text` |
-| 10 | 110 Req | **Won't fix (D3)** — "Create Requirement" kept per 2026-10-27 CRUD decision; confirm with Mark |
-| 11 | 110 Req | **Needs the screenshot** — the prnt.sc link is not reachable from here; likely the Create caret (D3) |
-| 12 | 110 Req | Partial — mockup's "Security Family" exists as a column; "Assessment Status" has no data at reference level → **TBD** |
-| 13 | 110 Req | Fixed — Security Family column; Type/Weight off by default |
-| 14 | 110 Req | Fixed — Export ▾ split button |
-| 15 | 110 Req | Fixed — arrow only on the sorted column |
-| 16, 17 | 110 Req | Fixed — pager flush under table, pages centred |
-| 18 | SPRS (global) | Fixed — CUI strip hidden in Muster (**D5**: it is a DoD screen marking; BHD may want it back — one CSS rule) |
-| 19 | SPRS | Fixed — placeholder matches mockup |
-| 20 | SPRS | Partial — layout/labels match; DoD 5/3/1 weights kept (doc 14 M3/M4), not the mockup's 0.05 fractions |
-| 21 | SPRS | Fixed — Source Standard box, Last updated, Actions ▾ |
+## Sprint 3 candidates
+1. zod 4 + vitest 5 upgrades · 2. eslint scope / warning cleanup · 3. Overview page to mockup img04 (charts, recent updates) · 4. Evaluation Rules (BHD to confirm feature) · 5. Assessment Status column (needs engagement-level data model) · 6. Compare-tab icon/font pixel pass with QA screenshots · 7. Home/Portfolio visual retest on staging
 
-## What was NOT needed (already in the code)
-Prisma ORM, JWT auth, bcrypt hashing, zod validation, vitest suites, the 110 requirements (CSV matches
-`cmmc-l2-controls.reference.json` 110/110), e-mail replacement (no `msutton@`/`@aavya` strings existed —
-accounts are *created* by the new seed instead).
-
-## Decisions still open
-D1 role for `sunny.kumrawat@aavya.com` (seed example says `bhd_operator`) · D2 `msutton@…` as first admin
-(prod template says yes) · D3 Create Requirement visible (kept) · D4 Swagger in prod (off) · D5 CUI strip (hidden).
-
-## Next
-1. On the Mac: `npx prisma generate` + full test run; `npm run dev` and eyeball the 4 pages.
-2. `git push -u origin sprint2-vaibhav-fixes`, open the PR to `main` (checklist in `docs/CONVENTIONS.md §4`).
-3. Staging: `cp env/staging.env.example .env`, fill secrets, `cp deploy/users.seed.example.json deploy/users.seed.json`, `sudo ./deploy.sh`; check `/healthz`, `/readyz`, `/api-docs`, `deploy/output/users-*.txt`.
-4. Sheet1 (48) and "Compare from given reference" (20) observations next.
+## Next (tomorrow)
+1. Get #1 reviewed/merged, then #2. 2. Staging deploy (`env/staging.env.example`, users seed) → QA retest with the new build id. 3. Mark: D1/D3/D5/D6. 4. QA: screenshot zip.
