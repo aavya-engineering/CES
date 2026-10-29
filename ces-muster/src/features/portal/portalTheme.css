@@ -3036,3 +3036,38 @@ textarea[data-testid='req-import-text'] {
     display: none; /* "Working offline" / role pill — the Sign in / avatar button says enough */
   }
 }
+
+/* QA 2026-10-29 #3: theme choice as a Light / Dark segmented control (top bar and account menu). */
+.portal #ces-theme-toggle.theme-segment,
+.portal-user-menu-row #ces-theme-toggle.theme-segment {
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+  padding: 2px;
+  gap: 2px;
+  background: var(--co-bg);
+  border: 1px solid var(--co-border);
+  border-radius: 999px;
+}
+.theme-segment button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--co-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.theme-segment button[aria-checked='true'] {
+  color: var(--co-primary);
+  background: var(--co-surface);
+  box-shadow: var(--co-shadow-sm);
+}

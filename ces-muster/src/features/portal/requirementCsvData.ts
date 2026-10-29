@@ -20,6 +20,68 @@ import { nistOf } from './requirementMetaData';
 
 const MODULES: ModuleId[] = ['muster', 'stamper', 'adminops', 'evidenceops'];
 export const CSV_HEADER = ['control_id', 'nist_ref', 'family', 'level', 'type', 'sprs_weight', 'priority', 'modules', 'implementation_guidance', 'practice'];
+
+/** QA 2026-10-29 #4/#5: the table export uses the column names the user sees and
+ * only the columns that are visible. Keys match the 110 Requirements grid. */
+export type ExportColumn = 'id' | 'title' | 'family' | 'securityFamily' | 'type' | 'priority' | 'modules' | 'weight';
+export const EXPORT_COLUMNS: { key: ExportColumn; label: string }[] = [
+  { key: 'id', label: 'Req ID' },
+  { key: 'title', label: 'Requirement Title' },
+  { key: 'family', label: 'Control Family' },
+  { key: 'securityFamily', label: 'Security Family' },
+  { key: 'type', label: 'Type' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'modules', label: 'Used In Modules' },
+  { key: 'weight', label: 'Weight' },
+];
+/** Table header → import key, so a view export can be re-imported unchanged. */
+const HEADER_ALIASES: Record<string, string> = {
+  'req id': 'control_id',
+  'requirement id': 'control_id',
+  'requirement title': 'practice',
+  'control family': 'family',
+  'used in modules': 'modules',
+  weight: 'sprs_weight',
+  'sprs weight': 'sprs_weight',
+  'implementation guidance': 'implementation_guidance',
+  'assessment criteria': 'assessment_criteria',
+};
+const PRIORITY_LABEL: Record<string, string> = { high: 'High', medium: 'Medium', low: 'Low' };
+const MODULE_LABEL: Record<string, string> = { muster: 'Muster', stamper: 'Stamper', adminops: 'AdminOps', evidenceops: 'EvidenceOps' };
+
+export function requirementsViewCsv(rows: readonly RequirementRow[], metaOf: (id: string) => RequirementMeta | null, columns: readonly ExportColumn[]): string {
+  const cols = EXPORT_COLUMNS.filter((c) => columns.includes(c.key));
+  const lines = [cols.map((c) => c.label).map(cell).join(',')];
+  for (const r of rows) {
+    const m = metaOf(r.control_id);
+    const value: Record<ExportColumn, unknown> = {
+      id: r.control_id,
+      title: r.practice,
+      family: `${r.family} - ${r.family_name}`,
+      securityFamily: r.family_name,
+      type: nistOf(r.nist_ref)?.requirement_type ?? '',
+      priority: m?.priority ? PRIORITY_LABEL[m.priority] ?? m.priority : '',
+      modules: (m?.modules ?? []).map((x) => MODULE_LABEL[x] ?? x).join('; '),
+      weight: r.weight,
+    };
+    lines.push(cols.map((c) => cell(value[c.key])).join(','));
+  }
+  return lines.join('\r\n') + '\r\n';
+}
+
+export function exportRequirementsView(rows: readonly RequirementRow[], metaOf: (id: string) => RequirementMeta | null, columns: readonly ExportColumn[]) {
+  download(requirementsViewCsv(rows, metaOf, columns), `ces-110-requirements-${new Date().toISOString().slice(0, 10)}.csv`);
+}
+
+function download(text: string, name: string) {
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 /** S1.9: columns of the bulk-import template. */
 export const TEMPLATE_HEADER = ['control_id', 'title', 'family', 'priority', 'description', 'source_standard', 'source_section', 'modules', 'implementation_guidance', 'assessment_criteria', 'status', 'effective_date'];
 const CUSTOM_ID = /^[A-Z][A-Z0-9.-]{1,29}$/;
@@ -89,7 +151,7 @@ export function planImport(
 ): { lines: ImportLine[]; headerError: string | null } {
   const rows = parseCsv(text.replace(/^\uFEFF/, ''));
   if (!rows.length) return { lines: [], headerError: 'The file is empty.' };
-  const head = rows[0].map((h) => h.trim().toLowerCase());
+  const head = rows[0].map((h) => h.trim().toLowerCase()).map((h) => HEADER_ALIASES[h] ?? h);
   const col = (n: string) => head.indexOf(n);
   if (col('control_id') < 0) return { lines: [], headerError: 'The first row must name the columns and include control_id.' };
   const seen = new Set<string>();

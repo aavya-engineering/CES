@@ -24,7 +24,7 @@ import { effectivePriority, metaFor, nistOf, useRequirementMeta, MODULE_LABEL, P
 import { shownData, useGovernedList, useSharedViewer } from '../governedState';
 import { DeleteItemDialog, RowActions, StatusPill, Toast } from '../governed';
 import { ImportMetaDrawer } from '../requirementCsv';
-import { downloadRequirementTemplate, exportRequirementsCsv } from '../requirementCsvData';
+import { downloadRequirementTemplate, exportRequirementsView, type ExportColumn } from '../requirementCsvData';
 import RequirementFormPage, { type RequirementFormMode } from './RequirementFormPage';
 import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, FileText, Network, Pencil, Plus, Search, ShieldCheck, Tag, Upload } from 'lucide-react';
 import type { CustomRequirement, ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
@@ -279,7 +279,7 @@ function customRow(d: CustomRequirement): RequirementRow {
 }
 
 /** Retesting #14 (2026-10-29): "Export ▾" split button as in the mockup — CSV now, template in the menu. */
-function ExportMenu({ label, onExport, onTemplate }: { label: string; onExport: () => void; onTemplate?: () => void }) {
+function ExportMenu({ label, onExport, onExportAll, onTemplate, disabled }: { label: string; onExport: () => void; onExportAll: () => void; onTemplate?: () => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -300,7 +300,7 @@ function ExportMenu({ label, onExport, onTemplate }: { label: string; onExport: 
   };
   return (
     <div className="split-btn split-btn-secondary" ref={box}>
-      <button type="button" className="btn btn-secondary" onClick={onExport} data-testid="req-export">
+      <button type="button" className="btn btn-secondary" onClick={onExport} disabled={disabled} title={disabled ? 'Select requirements to export, or use the menu to export all' : undefined} data-testid="req-export">
         <Download size={16} aria-hidden="true" /> {label}
       </button>
       <button type="button" className="btn btn-secondary split-btn-caret" aria-label="More export options" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-export-menu">
@@ -308,8 +308,8 @@ function ExportMenu({ label, onExport, onTemplate }: { label: string; onExport: 
       </button>
       {open && (
         <div className="split-menu" role="menu">
-          <button type="button" role="menuitem" onClick={pick(onExport)}>
-            <Download size={16} aria-hidden="true" /> Export as CSV
+          <button type="button" role="menuitem" onClick={pick(onExportAll)} data-testid="req-export-all">
+            <Download size={16} aria-hidden="true" /> Export all (visible columns)
           </button>
           {onTemplate && (
             <button type="button" role="menuitem" onClick={pick(onTemplate)}>
@@ -437,6 +437,10 @@ export default function RequirementsPage() {
   const [hidden, setHidden] = useState<Set<HideableCol>>(() => new Set<HideableCol>(['type', 'weight']));
   const show = (c: HideableCol) => !hidden.has(c);
   const exportRows = pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted;
+  // QA 2026-10-29 #5: the CSV carries exactly the columns shown in the table, in table order.
+  const exportCols: ExportColumn[] = (['id', 'title', 'family', 'securityFamily', 'type', 'priority', 'modules', 'weight'] as const).filter(
+    (c) => c === 'id' || c === 'title' || show(c as HideableCol)
+  );
   const withPriority = allRows.filter((r) => metaOf(r.control_id)?.priority).length;
   const drafts = [...meta.byId.values(), ...customViews].filter((v) => v.draft).length;
   const stamps = [...meta.byId.values(), ...customViews]
@@ -585,7 +589,13 @@ export default function RequirementsPage() {
               {rows.length} requirement{rows.length === 1 ? '' : 's'}
             </strong>
             <span className="card-bar-actions">
-              <ExportMenu label={pick.some ? `Export ${pick.sel.size} selected` : 'Export'} onExport={() => exportRequirementsCsv(exportRows, metaOf)} onTemplate={viewer.canEdit ? downloadRequirementTemplate : undefined} />
+              <ExportMenu
+                label={pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
+                disabled={!pick.some}
+                onExport={() => exportRequirementsView(exportRows, metaOf, exportCols)}
+                onExportAll={() => exportRequirementsView(sorted, metaOf, exportCols)}
+                onTemplate={viewer.canEdit ? downloadRequirementTemplate : undefined}
+              />
               <ColumnChooser hidden={hidden} setHidden={setHidden} />
             </span>
           </div>

@@ -14,7 +14,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { parseCsv, planImport, requirementsCsv } from '../requirementCsvData';
+import { parseCsv, planImport, requirementsCsv, requirementsViewCsv } from '../requirementCsvData';
 import { REQUIREMENTS } from '../referenceData';
 import { SharedViewerContext, statusOf } from '../governedState';
 import { DeleteItemDialog, GovernanceBar } from '../governed';
@@ -51,6 +51,21 @@ describe('CSV', () => {
     expect(rows[1][7]).toBe('muster;adminops');
     expect(rows[1][8]).toBe('Use "MFA", always');
     expect(rows[1][9]).toBe(REQUIREMENTS[0].practice);
+  });
+
+  it('QA #4/#5: the table export uses the table column names, only the visible columns, and re-imports', () => {
+    const meta = () => ({ control_id: 'x', priority: 'high' as const, modules: ['muster' as const], implementation_guidance: '' });
+    const csv = requirementsViewCsv(REQUIREMENTS.slice(0, 2), meta, ['id', 'title', 'family', 'priority', 'modules']);
+    const rows = parseCsv(csv);
+    expect(rows[0]).toEqual(['Req ID', 'Requirement Title', 'Control Family', 'Priority', 'Used In Modules']);
+    expect(rows[1][0]).toBe(REQUIREMENTS[0].control_id);
+    expect(rows[1][2]).toBe(`${REQUIREMENTS[0].family} - ${REQUIREMENTS[0].family_name}`);
+    expect(rows[1][3]).toBe('High');
+    expect(rows[1][4]).toBe('Muster');
+    // the same file goes back through the importer (headers are aliased)
+    const plan = planImport(csv, new Set(REQUIREMENTS.map((r) => r.control_id)), new Map());
+    expect(plan.headerError).toBeNull();
+    expect(plan.lines.map((l) => l.status)).toEqual(['change', 'change']);
   });
 
   it('import plan: changes, unchanged rows and errors; locked columns are ignored', () => {

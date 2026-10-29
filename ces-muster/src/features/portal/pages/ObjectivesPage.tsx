@@ -150,7 +150,11 @@ export default function ObjectivesPage() {
                 {paged.slice.map((o) => (
                   <tr key={o.objectiveId}>
                     <td style={{ whiteSpace: 'nowrap' }}>{o.objectiveId}</td>
-                    <td>{o.description}</td>
+                    <td>
+                      <span className="clamp-1" title={o.description}>
+                        {o.description}
+                      </span>
+                    </td>
                     <td>
                       <span className="pill">{o.requirement.family}</span> {o.requirement.nist_ref}
                     </td>

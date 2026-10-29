@@ -8,6 +8,7 @@
 // See LICENSE and TERMS.md.
 
 import { useState, useEffect, useCallback } from 'react';
+import { MoonIcon, SunIcon } from '@/features/auth/icons';
 import { TimingProvider } from '@/features/timer/TimingContext';
 import TimerBar from '@/features/timer/TimerBar';
 import AssessmentPage from '@/features/assessment/AssessmentPage';
@@ -88,8 +89,7 @@ function ThemeToggle() {
       : 'light'
   );
 
-  const toggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
+  const apply = (next: 'light' | 'dark') => {
     if (next === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
@@ -99,15 +99,17 @@ function ThemeToggle() {
     setTheme(next);
   };
 
+  // QA 2026-10-29 #3: a visible Light / Dark choice (same words as the sign-in
+  // page) instead of a lone icon that silently flipped the theme.
   return (
-    <button
-      id="ces-theme-toggle"
-      onClick={toggle}
-      aria-label="Toggle light/dark theme"
-      title="Toggle light/dark theme"
-    >
-      {theme === 'dark' ? '☀' : '☾'}
-    </button>
+    <div id="ces-theme-toggle" className="theme-segment" role="radiogroup" aria-label="Colour theme">
+      <button type="button" role="radio" aria-checked={theme === 'light'} onClick={() => apply('light')} data-testid="theme-light">
+        <SunIcon size={15} /> Light
+      </button>
+      <button type="button" role="radio" aria-checked={theme === 'dark'} onClick={() => apply('dark')} data-testid="theme-dark">
+        <MoonIcon size={15} /> Dark
+      </button>
+    </div>
   );
 }
 
@@ -342,6 +344,9 @@ export default function App() {
         onSignedIn={() => {
           writeOfflineChoice(false);
           setSignOutNotice(null);
+          // QA 2026-10-29 #1: after sign-in the landing page is Home (decision),
+          // not whatever hash the previous session left behind.
+          setRoute('home');
           setAccount(currentAccount());
         }}
         onWorkOffline={() => {
@@ -383,6 +388,8 @@ export default function App() {
     // shared hosting (docs/sign-in.md, decision L3).
     writeOfflineChoice(false);
     clearMusterToken();
+    setRoute('home');
+    if (window.location.hash) window.history.replaceState(null, '', window.location.pathname);
     setAccount({ kind: 'signed-out' });
   };
 
