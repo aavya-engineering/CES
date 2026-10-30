@@ -233,6 +233,8 @@ export interface RowAction {
   onSelect: () => void;
   tone?: 'danger';
   testId?: string;
+  /** Shown greyed out with this reason as a tooltip (QA 2026-10-30: say why, don't hide). */
+  disabledReason?: string;
 }
 
 /**
@@ -304,7 +306,11 @@ export function RowActions({ label, actions, testId }: { label: string; actions:
               role="menuitem"
               data-tone={a.tone}
               data-testid={a.testId}
+              disabled={!!a.disabledReason}
+              aria-disabled={!!a.disabledReason || undefined}
+              title={a.disabledReason}
               onClick={() => {
+                if (a.disabledReason) return;
                 setOpen(false);
                 a.onSelect();
               }}
@@ -376,6 +382,48 @@ export function ConfirmDialog({
  * deleted; anything published is retired (soft delete): it leaves use, and its
  * versions and change log stay for audit (PRD SH-FR-05, NIST 3.3.1).
  */
+/** QA 2026-10-30: delete several organisation-defined requirements at once (NIST rows are skipped). */
+export function BulkDeleteDialog({
+  views,
+  skipped,
+  onCancel,
+  onDone,
+}: {
+  views: ItemView<unknown>[];
+  skipped: number;
+  onCancel: () => void;
+  onDone: (message: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async () => {
+    setBusy(true);
+    setError(null);
+    let ok = 0;
+    for (const v of views) {
+      const r = v.published ? await sharedApi.retire('custom_requirement', v.key) : await sharedApi.discardDraft('custom_requirement', v.key);
+      if (r.ok) ok++;
+      else {
+        setError(`${v.key}: ${r.message} (${ok} of ${views.length} deleted)`);
+        setBusy(false);
+        return;
+      }
+    }
+    onDone(`${ok} requirement${ok === 1 ? '' : 's'} deleted.${skipped ? ` ${skipped} NIST requirement${skipped === 1 ? ' was' : 's were'} skipped (locked).` : ''}`);
+  };
+  return (
+    <ConfirmDialog title={`Delete ${views.length} requirement${views.length === 1 ? '' : 's'}?`} confirmLabel="Delete" busy={busy} error={error} onConfirm={run} onCancel={onCancel}>
+      <p>Organisation-defined requirements will be removed from use (published ones are retired and keep their history).</p>
+      {skipped > 0 && <p className="hint">{skipped} selected NIST SP 800-171 requirement{skipped === 1 ? ' is' : 's are'} part of the locked 110 and will be skipped.</p>}
+      <ul className="hint" style={{ margin: '8px 0 0', paddingLeft: 18, maxHeight: 160, overflow: 'auto' }}>
+        {views.map((v) => (
+          <li key={v.key}>{v.key}</li>
+        ))}
+      </ul>
+    </ConfirmDialog>
+  );
+}
+
 export function DeleteItemDialog({
   kind,
   view,

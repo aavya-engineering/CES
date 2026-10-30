@@ -84,7 +84,7 @@ export function navFor(viewer: Viewer): NavSection[] {
 
   // A platform administrator has no customer data (BHD role review PB-01): no
   // engagements or modules. S1.8 (doc 28 D-1): Home / Portfolio shows them counts only.
-  sections.push({ id: 'home', label: 'Home / Portfolio', icon: 'home', route: 'home', items: [] });
+  sections.push({ id: 'home', label: 'Home', icon: 'home', route: 'home', items: [] });
 
   sections.push({
     id: 'shared',
@@ -186,7 +186,7 @@ export function defaultRoute(viewer: Viewer): RouteId {
 }
 
 export const ROUTE_TITLES: Record<RouteId, string[]> = {
-  home: ['Home / Portfolio'],
+  home: ['Home'],
   'shared/overview': ['CES-Shared', 'Overview'],
   'shared/requirements': ['CES-Shared', 'Reference Data', '110 Requirements'],
   'shared/sprs': ['CES-Shared', 'Reference Data', 'SPRS Weight Table'],

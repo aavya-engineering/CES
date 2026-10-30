@@ -3071,3 +3071,86 @@ textarea[data-testid='req-import-text'] {
   background: var(--co-surface);
   box-shadow: var(--co-shadow-sm);
 }
+
+/* ── Responsive scale (QA 2026-10-30): the mockups are 1536 px wide; on a
+   1440/1280 laptop (or a zoomed browser) everything read too large and the
+   six stat cards overflowed their row. Base 14 px, compact type below 1440,
+   cards wrap by width, labels never spill out of a card. ───────────────── */
+.portal {
+  font-size: 14px;
+}
+.pg-title {
+  font-size: clamp(22px, 1.6vw + 6px, 28px);
+}
+.pg-lede {
+  font-size: 13.5px;
+}
+.stat-value {
+  font-size: clamp(20px, 1.2vw + 6px, 26px);
+}
+.stats,
+.stats-4,
+.stats-5,
+.stats-6 {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+@media (min-width: 1400px) {
+  .stats-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .stats-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.stat {
+  min-width: 0;
+  overflow: hidden;
+}
+.stat > :not(.stat-icon) {
+  min-width: 0;
+}
+.stat-label,
+.stat-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Page header: actions drop under the title on narrow widths instead of squeezing it. */
+.pg-head-actions {
+  flex: 0 1 auto;
+}
+@media (max-width: 1280px) {
+  .pg-head-text { flex-basis: 100%; max-width: none; }
+  .pg-head-actions { flex-basis: 100%; }
+  .pg-head-buttons { flex-wrap: wrap; }
+}
+/* Filter grids: 3 → 2 → 1 columns. */
+@media (max-width: 1100px) {
+  .filter-grid, .filter-grid-inline, .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .filter-grid, .filter-grid-inline, .toolbar { grid-template-columns: minmax(0, 1fr); }
+  .pager-row { grid-template-columns: 1fr; justify-items: center; }
+}
+/* Forms: the 6-column field grid becomes 1 column and the side panel drops
+   below the form on narrow widths; the sticky footer stays reachable. */
+@media (max-width: 1100px) {
+  .req-form, .split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .form-grid > .form-field,
+  .form-grid > .span-2,
+  .form-grid > .span-15 { grid-column: span 6; }
+}
+/* Tables never push the page wider than the viewport. */
+.table-wrap { max-width: 100%; }
+.tbl { table-layout: auto; width: 100%; }
+/* Controls: 14 px text, same 40 px height. */
+.input, .select, .btn { font-size: 14px; }
+.btn-sm { font-size: 13px; }
+/* Row menu: a disabled item stays visible with its reason in the tooltip. */
+.row-menu [role='menuitem']:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

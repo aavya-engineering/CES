@@ -173,7 +173,17 @@ export default function RequirementFormPage({ form, options, onBack, onSaved }: 
     setTried(true);
     setErrors(e);
     setApiError(null);
-    if (Object.keys(e).length) return;
+    if (Object.keys(e).length) {
+      // QA 2026-10-30: the page did not move to the problem, so a long form
+      // looked as if "Create" did nothing. Scroll to the first invalid field
+      // and focus it (the error text is announced through aria-describedby).
+      requestAnimationFrame(() => {
+        const first = document.querySelector<HTMLElement>('[data-testid="req-form"] [aria-invalid="true"]');
+        first?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        first?.focus({ preventScroll: true });
+      });
+      return;
+    }
     const extra = { assessment_criteria: criteria, related, dependent, references, status, effective_date: effective || null };
     setBusy(true);
     let r;
@@ -236,7 +246,7 @@ export default function RequirementFormPage({ form, options, onBack, onSaved }: 
         </div>
       </header>
 
-      <form className="req-form" onSubmit={submit} noValidate>
+      <form className="req-form" onSubmit={submit} noValidate data-testid="req-form">
         <section className="card form-main" aria-label="Requirement details">
           <h2 className="form-main-title">Requirement Details</h2>
           <div className="form-grid">

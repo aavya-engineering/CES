@@ -22,11 +22,11 @@ import { OBJECTIVES } from '../objectivesData';
 import { ModulePills, PriorityPill } from '../requirementMeta';
 import { effectivePriority, metaFor, nistOf, useRequirementMeta, MODULE_LABEL, PRIORITY_LABEL } from '../requirementMetaData';
 import { shownData, useGovernedList, useSharedViewer } from '../governedState';
-import { DeleteItemDialog, RowActions, StatusPill, Toast } from '../governed';
+import { BulkDeleteDialog, DeleteItemDialog, RowActions, StatusPill, Toast } from '../governed';
 import { ImportMetaDrawer } from '../requirementCsv';
 import { downloadRequirementTemplate, exportRequirementsView, type ExportColumn } from '../requirementCsvData';
 import RequirementFormPage, { type RequirementFormMode } from './RequirementFormPage';
-import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, FileText, Network, Pencil, Plus, Search, ShieldCheck, Tag, Upload } from 'lucide-react';
+import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, FileText, Network, Pencil, Plus, Search, ShieldCheck, Tag, Trash2, Upload } from 'lucide-react';
 import type { CustomRequirement, ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
 
 export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typeof useRequirementFilter>; showWeight?: boolean }) {
@@ -390,6 +390,7 @@ export default function RequirementsPage() {
   const [importing, setImporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<{ kind: 'requirement_meta' | 'custom_requirement'; view: ItemView<unknown>; name: string } | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const isCustom = (id: string) => customById.has(id);
   const metaOf = (id: string): RequirementMeta | null => {
     const c = customById.get(id);
@@ -437,6 +438,7 @@ export default function RequirementsPage() {
   const [hidden, setHidden] = useState<Set<HideableCol>>(() => new Set<HideableCol>(['type', 'weight']));
   const show = (c: HideableCol) => !hidden.has(c);
   const exportRows = pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted;
+  const selectedCustom = [...pick.sel].map((id) => customById.get(id)).filter((x): x is ItemView<CustomRequirement> => !!x);
   // QA 2026-10-29 #5: the CSV carries exactly the columns shown in the table, in table order.
   const exportCols: ExportColumn[] = (['id', 'title', 'family', 'securityFamily', 'type', 'priority', 'modules', 'weight'] as const).filter(
     (c) => c === 'id' || c === 'title' || show(c as HideableCol)
@@ -589,6 +591,18 @@ export default function RequirementsPage() {
               {rows.length} requirement{rows.length === 1 ? '' : 's'}
             </strong>
             <span className="card-bar-actions">
+              {viewer.canEdit && pick.some && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-danger-text"
+                  onClick={() => setBulkDeleting(true)}
+                  title={selectedCustom.length ? `Delete ${selectedCustom.length} organisation-defined requirement${selectedCustom.length === 1 ? '' : 's'}` : 'Only organisation-defined requirements can be deleted; none selected'}
+                  disabled={!selectedCustom.length}
+                  data-testid="req-delete-selected"
+                >
+                  <Trash2 size={16} aria-hidden="true" /> Delete {selectedCustom.length ? `${selectedCustom.length} selected` : 'selected'}
+                </button>
+              )}
               <ExportMenu
                 label={pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
                 disabled={!pick.some}
@@ -674,9 +688,11 @@ export default function RequirementsPage() {
                               { label: 'Edit', onSelect: () => edit(r), testId: `req-edit-${r.control_id}` },
                               ...(custom
                                 ? [{ label: 'Delete', tone: 'danger' as const, onSelect: () => setDeleting({ kind: 'custom_requirement', view: custom, name: `${r.control_id} ${r.practice}` }), testId: `req-delete-${r.control_id}` }]
-                                : v
-                                  ? [{ label: 'Clear metadata', tone: 'danger' as const, onSelect: () => setDeleting({ kind: 'requirement_meta', view: v, name: `${r.control_id} metadata` }), testId: `req-delete-${r.control_id}` }]
-                                  : []),
+                                : [
+                                    ...(v ? [{ label: 'Clear metadata', tone: 'danger' as const, onSelect: () => setDeleting({ kind: 'requirement_meta', view: v, name: `${r.control_id} metadata` }), testId: `req-clear-${r.control_id}` }] : []),
+                                    // Decision D2 (2026-10-27): the NIST 110 are locked. Show Delete greyed out with the reason instead of hiding it.
+                                    { label: 'Delete', tone: 'danger' as const, onSelect: () => {}, disabledReason: 'NIST SP 800-171 requirement — part of the locked 110, cannot be deleted. Only organisation-defined requirements can be.', testId: `req-delete-${r.control_id}` },
+                                  ]),
                             ]}
                           />
                         </td>
@@ -707,6 +723,18 @@ export default function RequirementsPage() {
         )}
       </div>
       {importing && <ImportMetaDrawer existing={meta.byId} customExisting={customById} onClose={() => setImporting(false)} onDone={done} />}
+      {bulkDeleting && (
+        <BulkDeleteDialog
+          views={selectedCustom}
+          skipped={pick.sel.size - selectedCustom.length}
+          onCancel={() => setBulkDeleting(false)}
+          onDone={(msg) => {
+            setBulkDeleting(false);
+            pick.clear?.();
+            done(msg);
+          }}
+        />
+      )}
       {deleting && (
         <DeleteItemDialog
           kind={deleting.kind}

@@ -143,7 +143,7 @@ export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => 
     <div className="pg" data-testid="page-portfolio">
       <header className="pg-head dash-head">
         <div>
-          <h1 className="pg-title">Home / Portfolio</h1>
+          <h1 className="pg-title">Home</h1>
           <p className="pg-lede">Overview of tenants, engagements and compliance status across CES.</p>
         </div>
         <div className="dash-head-tools">
