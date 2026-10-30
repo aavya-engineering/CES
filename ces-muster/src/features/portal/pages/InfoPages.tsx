@@ -349,7 +349,7 @@ export function HelpPage({ role, go }: { role: string | null; go: (r: RouteId) =
       : [
           {
             q: 'See your engagements',
-            a: 'Home / Portfolio shows status, milestones and recent activity; Engagements → All Engagements lists them all.',
+            a: 'Home shows status, milestones and recent activity; Engagements → All Engagements lists them all.',
             to: 'home' as RouteId,
             label: 'Open Home',
           },

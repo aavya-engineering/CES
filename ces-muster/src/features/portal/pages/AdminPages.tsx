@@ -97,7 +97,17 @@ function AddUserDrawer({
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email.trim()) return setError('Enter an email address.');
+    // UX sweep 2026-10-30: own validation (noValidate) so the message is the
+    // same inline note as every other form, and the field gets focus.
+    const focusEmail = () => document.querySelector<HTMLInputElement>('[data-testid="add-user-email"]')?.focus();
+    if (!email.trim()) {
+      focusEmail();
+      return setError('Enter an email address.');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      focusEmail();
+      return setError('Enter a valid email address, e.g. name@organisation.com.');
+    }
     if (orgMode === 'existing' && !orgId) return setError('Choose an organisation.');
     if (orgMode === 'new' && !orgName.trim()) return setError('Enter the new organisation name.');
     setBusy(true);
@@ -115,7 +125,7 @@ function AddUserDrawer({
   return (
     <>
       <div className="drawer-backdrop" onClick={onClose} />
-      <form className="drawer" role="dialog" aria-modal="true" aria-labelledby="add-user-title" onSubmit={submit} data-testid="add-user-drawer">
+      <form className="drawer" role="dialog" aria-modal="true" aria-labelledby="add-user-title" onSubmit={submit} noValidate data-testid="add-user-drawer">
         <div className="drawer-head">
           <h2 id="add-user-title">Add user</h2>
           <button type="button" className="icon-x" onClick={onClose} aria-label="Close">
@@ -466,7 +476,7 @@ export function RolesPage() {
     <div className="pg" data-testid="page-roles">
       <PageHeader
         icon="⚖"
-        title="Roles & permissions"
+        title="Roles & Permissions"
         lede="What each role may do. This list is served by muster-api and checked by a test against the routes that enforce it."
       />
       {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
@@ -552,6 +562,16 @@ const ACTION_LABEL: Record<string, string> = {
   'user.password_changed': 'Password changed',
 };
 
+/** UX sweep 2026-10-30: audit details as "key: value" text, not raw JSON. */
+function describeDetail(detail: Record<string, unknown> | null | undefined): string {
+  if (!detail) return '';
+  const LABEL: Record<string, string> = { email: 'email', role: 'role', display_name: 'name', disabled: 'disabled', name: 'organisation', reason: 'reason', ip: 'from', client: 'client' };
+  return Object.entries(detail)
+    .filter(([, v]) => v !== null && v !== undefined && v !== '')
+    .map(([k, v]) => `${LABEL[k] ?? k.replace(/_/g, ' ')}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
+    .join(' · ');
+}
+
 export function AuditPage() {
   const [events, setEvents] = useState<AuditEvent[] | null>(null);
   const [error, setError] = useState('');
@@ -581,7 +601,7 @@ export function AuditPage() {
               <tr>
                 <th scope="col">Time</th>
                 <th scope="col">Event</th>
-                <th scope="col">By (role)</th>
+                <th scope="col">By</th>
                 <th scope="col">Details</th>
               </tr>
             </thead>
@@ -595,9 +615,7 @@ export function AuditPage() {
                     </span>
                   </td>
                   <td>{e.actor_role ? roleLabel(e.actor_role) : '—'}</td>
-                  <td>
-                    <code className="pg-meta">{e.detail ? JSON.stringify(e.detail) : ''}</code>
-                  </td>
+                  <td className="audit-detail">{describeDetail(e.detail)}</td>
                 </tr>
               ))}
             </tbody>
@@ -638,18 +656,18 @@ export function ChangePasswordForm({ required, email, onDone }: { required: bool
   };
 
   return (
-    <form className="signin-form" onSubmit={submit} noValidate data-testid="change-password-form">
+    <form className="signin-form portal-form" onSubmit={submit} noValidate data-testid="change-password-form">
       {required && (
         <p className="note" style={{ marginBottom: 14 }}>
           {email ? `${email}: ` : ''}you signed in with a temporary password. Choose your own password to continue.
         </p>
       )}
       <label htmlFor="cp-current">Current password</label>
-      <input id="cp-current" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} data-testid="cp-current" />
+      <input id="cp-current" className="input" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} data-testid="cp-current" />
       <label htmlFor="cp-new">New password</label>
-      <input id="cp-new" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} aria-describedby="cp-rule" data-testid="cp-new" />
+      <input id="cp-new" className="input" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} aria-describedby="cp-rule" data-testid="cp-new" />
       <label htmlFor="cp-confirm">Confirm new password</label>
-      <input id="cp-confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} data-testid="cp-confirm" />
+      <input id="cp-confirm" className="input" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} data-testid="cp-confirm" />
       <p id="cp-rule" className="signin-caption" style={{ marginTop: -8, marginBottom: 12 }}>
         At least 12 characters, different from the current one, and not containing your email name.
       </p>

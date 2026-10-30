@@ -147,10 +147,10 @@ export default function SprsWeightsPage() {
                       </th>
                       <SortTh label="Req ID" col="id" sort={sort} onSort={onSort} />
                       <SortTh label="Requirement Title" col="title" sort={sort} onSort={onSort} />
-                      <th scope="col">Security Family</th>
+                      <th scope="col" className="col-secondary">Security Family</th>
                       <SortTh label="Control Family" col="family" sort={sort} onSort={onSort} />
                       <SortTh label="Weight" col="weight" sort={sort} onSort={onSort} className="num" />
-                      <th scope="col">POA&amp;M allowed</th>
+                      <th scope="col" className="col-secondary">POA&amp;M allowed</th>
                       {viewer.signedIn && <th scope="col">Priority</th>}
                       {viewer.signedIn && <th scope="col">Modules</th>}
                       {viewer.canEdit && <th scope="col">Actions</th>}
@@ -172,7 +172,7 @@ export default function SprsWeightsPage() {
                             {r.practice}
                           </span>
                         </td>
-                        <td className="nowrap">{r.family_name}</td>
+                        <td className="nowrap col-secondary">{r.family_name}</td>
                         <td className="nowrap">
                           {r.family} - {r.family_name}
                         </td>
@@ -186,7 +186,7 @@ export default function SprsWeightsPage() {
                             </div>
                           )}
                         </td>
-                        <td>{r.poam_prohibited ? 'Never' : r.poam_allowed ? 'Yes' : 'No'}</td>
+                        <td className="col-secondary">{r.poam_prohibited ? 'Never' : r.poam_allowed ? 'Yes' : 'No'}</td>
                         {viewer.signedIn && (
                           <td>
                             <PriorityPill meta={metaOf(r.control_id)} />

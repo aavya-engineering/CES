@@ -3116,11 +3116,21 @@ textarea[data-testid='req-import-text'] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.stat-value[data-long] {
+  font-size: clamp(16px, 1vw + 4px, 20px);
+}
 /* Page header: actions drop under the title on narrow widths instead of squeezing it. */
 .pg-head-actions {
   flex: 0 1 auto;
 }
-@media (max-width: 1280px) {
+/* Header: title text takes what the actions leave; actions stay on one row and
+   only wrap under the title when the row really cannot fit them. */
+.pg-head { flex-wrap: nowrap; }
+.pg-head-text { flex: 1 1 320px; }
+.pg-head-actions { flex: 0 0 auto; }
+.pg-head-buttons { flex-wrap: nowrap; align-items: center; }
+@media (max-width: 1180px) {
+  .pg-head { flex-wrap: wrap; }
   .pg-head-text { flex-basis: 100%; max-width: none; }
   .pg-head-actions { flex-basis: 100%; }
   .pg-head-buttons { flex-wrap: wrap; }
@@ -3153,4 +3163,71 @@ textarea[data-testid='req-import-text'] {
 .row-menu [role='menuitem']:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+/* Change Password (UX sweep 2026-10-30): the form reuses sign-in layout classes
+   but lives inside the portal — give it portal controls so it is themed
+   (inputs were unstyled and invisible in dark mode). */
+.portal .portal-form label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--co-text-secondary);
+}
+.portal .portal-form .input {
+  width: 100%;
+  margin-bottom: 14px;
+}
+.portal .portal-form .signin-caption {
+  font-size: 12.5px;
+  color: var(--co-text-muted);
+}
+.portal .portal-form .signin-error {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--co-violation);
+}
+.portal .portal-form .signin-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+/* Notifications popover anchors to the bell, not the page (it opened mid-page). */
+.portal-bell,
+.header-account {
+  position: relative;
+}
+.portal-bell-menu {
+  right: 0;
+  left: auto;
+  min-width: 300px;
+}
+/* Locked (read-only) fields: readable text on a grey field, with a lock cursor,
+   instead of 60 % opacity that made the NIST text hard to read on the edit form. */
+.portal .input:disabled,
+.portal .select:disabled,
+.portal textarea.input:disabled {
+  opacity: 1;
+  color: var(--co-text-secondary);
+  background: var(--co-bg);
+  border-color: var(--co-border);
+  cursor: not-allowed;
+}
+/* With a detail panel open (split), secondary columns step aside so the
+   requirement title stays readable (mockup m15 shows the same). */
+.split .col-secondary {
+  display: none;
+}
+.split .tbl td:nth-child(3) .clamp-1 {
+  max-width: 100%;
+}
+@media (max-width: 1380px) {
+  .split { grid-template-columns: minmax(0, 1fr) 320px; }
+}
+.audit-detail {
+  font-size: 13px;
+  color: var(--co-text-secondary);
+  max-width: 520px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

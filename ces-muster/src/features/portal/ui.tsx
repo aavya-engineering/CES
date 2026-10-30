@@ -59,7 +59,7 @@ export function Stat({
         {typeof icon === 'string' ? <GlyphIcon glyph={icon} size={24} /> : icon}
       </div>
       <div>
-        <div className="stat-value">{value}</div>
+        <div className="stat-value" data-long={typeof value === 'string' && value.length > 6 ? '' : undefined}>{value}</div>
         <div className="stat-label">{label}</div>
         {sub && <div className="stat-sub">{sub}</div>}
       </div>

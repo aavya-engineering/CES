@@ -52,7 +52,7 @@ export const PERMISSIONS: readonly PermissionDef[] = [
 
   { id: 'engagements.read', group: 'Engagements', label: 'View engagements and parties', roles: ['prime', 'bhd_operator', 'assessor_read_only'], enforcedAt: 'routes/engagements.ts:28' },
   { id: 'engagements.create', group: 'Engagements', label: 'Create and edit engagements, milestones and parties', roles: ['prime', 'bhd_operator'], enforcedAt: 'routes/engagements.ts (POST, PATCH, milestones), routes/parties.ts:66' },
-  { id: 'portfolio.read', group: 'Engagements', label: 'View the Home / Portfolio dashboard (platform administrator: counts only, no names)', roles: ['platform_admin', 'bhd_operator', 'prime'], enforcedAt: 'routes/portfolio.ts (PORTFOLIO_ROLES, PORTFOLIO_COUNT_ROLES)' },
+  { id: 'portfolio.read', group: 'Engagements', label: 'View the Home dashboard (platform administrator: counts only, no names)', roles: ['platform_admin', 'bhd_operator', 'prime'], enforcedAt: 'routes/portfolio.ts (PORTFOLIO_ROLES, PORTFOLIO_COUNT_ROLES)' },
 
   { id: 'interview.answer', group: 'Assessment', label: 'Answer the interview', roles: ['sub', 'prime', 'bhd_operator'], enforcedAt: 'routes/interview.ts:78, routes/sessions.ts:37' },
   { id: 'sessions.read', group: 'Assessment', label: 'Read interview sessions', roles: ['sub', 'prime', 'bhd_operator', 'assessor_read_only'], enforcedAt: 'routes/sessions.ts:69' },

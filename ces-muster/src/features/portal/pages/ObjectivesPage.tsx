@@ -197,7 +197,11 @@ export default function ObjectivesPage() {
                         {r.control_id}
                       </button>
                     </td>
-                    <td>{r.practice}</td>
+                    <td>
+                      <span className="clamp-1" title={r.practice}>
+                        {r.practice}
+                      </span>
+                    </td>
                     <td className="num">{counts.get(r.control_id)}</td>
                   </tr>
                 ))}
