@@ -3231,3 +3231,141 @@ textarea[data-testid='req-import-text'] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── QA retest round 2 (2026-11-02): Catalog / Mapping / Rules toolbars match the
+   mockup — search and dropdowns on ONE row, "Clear Filters" as blue text at the
+   right (#42 #52 #53); numeric/version cells centred (#64). ───────────────── */
+.toolbar-inline {
+  grid-template-columns: minmax(240px, 1.6fr) repeat(auto-fit, minmax(150px, 1fr)) auto;
+  align-items: end;
+}
+.toolbar-inline .grow {
+  grid-column: auto;
+}
+.toolbar-inline > .btn.filter-clear {
+  grid-column: auto;
+  margin-top: 18px;
+}
+@media (max-width: 1100px) {
+  .toolbar-inline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar-inline .grow { grid-column: 1 / -1; }
+  .toolbar-inline > .btn.filter-clear { grid-column: -2 / -1; }
+}
+.tbl th.center,
+.tbl td.center {
+  text-align: center;
+}
+.row-menu-btn svg {
+  display: block;
+}
+/* Detail panel heading (QA retest #31) + short id (#26). */
+.detail-head-titled {
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--co-border);
+}
+.detail-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--co-text);
+}
+.detail-id {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+.detail-id-short {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--co-text-muted);
+}
+.detail-lede {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+/* 110 Requirements table bar: Export ▾ and Columns at the mockup's 36 px (QA retest #14). */
+.split-btn-sm .btn { height: 36px; min-height: 36px; }
+.split-btn-sm .split-btn-caret { width: 36px; }
+.card-bar .btn-sm { height: 36px; min-height: 36px; padding: 0 14px; font-size: 13.5px; }
+/* Filter grid: five across like the mockup at desktop widths (#11/#12). */
+@media (min-width: 1280px) {
+  .filter-card .filter-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+/* Page lede wraps in two lines like the mockup (#9, #37, #49, #59). */
+.pg-head-text { max-width: 720px; }
+.pg-lede { line-height: 1.45; }
+.methodology-fold { margin-top: 14px; }
+.methodology-fold > summary { cursor: pointer; font-weight: 600; color: var(--co-primary); }
+.methodology-fold[open] > summary { margin-bottom: 12px; }
+.methodology-fold .card { box-shadow: none; border: 0; padding: 0; }
+
+/* ── QA retest round 2, 110 Requirements "too congested" (2026-11-02): spacing
+   taken from the mockup — 16 px between cards, 20 px card padding, filter card
+   20 px padding with 16 px between search / dropdowns / controls, 16 px between
+   page blocks, table rows 44 px. ─────────────────────────────────────────── */
+.pg > * + * {
+  margin-top: 16px;
+}
+.pg-head {
+  margin-bottom: 20px;
+}
+.stats,
+.stats-4,
+.stats-5,
+.stats-6 {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stats-6 .stat,
+.stats-5 .stat,
+.stats-4 .stat {
+  padding: 18px 20px;
+  gap: 14px;
+}
+.filter-card {
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.filter-top {
+  gap: 14px;
+}
+.filter-grid,
+.filter-grid-inline {
+  gap: 16px 20px;
+}
+.filter-grid label,
+.toolbar label {
+  gap: 6px;
+}
+.card-bar {
+  padding: 16px 20px;
+  gap: 12px;
+}
+.card-bar-actions {
+  gap: 10px;
+}
+.tbl th,
+.tbl td {
+  padding: 12px 14px;
+}
+.tbl th:first-child,
+.tbl td:first-child {
+  padding-left: 20px;
+}
+.tbl th:last-child,
+.tbl td:last-child {
+  padding-right: 20px;
+}
+.pager-row {
+  padding: 14px 20px;
+}
+.pg-head-buttons {
+  gap: 12px;
+}
+.source-box {
+  padding: 10px 14px;
+}

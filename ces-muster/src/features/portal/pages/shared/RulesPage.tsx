@@ -13,11 +13,12 @@
 // fixed vocabulary (BHD decision a: evaluators stay code in EvidenceOps); rules
 // authored here are not executed until EvidenceOps reads them (doc 26).
 import { takePendingSearch } from '../../searchHandoff';
+import { ChevronDown, FileText, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { sharedApi, type Archetype, type ItemView, type Rule } from '@/shared/api/sharedApi';
 import { describeFailure, matchesText, shownData, statusOf, useGovernedList, useItemDetail, useSharedViewer } from '../../governedState';
 import { DeleteItemDialog, GovernanceBar, RowActions, StatusPill, Toast, VersionHistory } from '../../governed';
-import { Empty, PageHeader, Pager, RowsPerPage, SortTh, Stat } from '../../ui';
+import { Empty, PageHeader, Pager, RowsPerPage, SortTh } from '../../ui';
 import { usePaged, useSort } from '../../paging';
 import { REQUIREMENTS } from '../../referenceData';
 
@@ -93,14 +94,19 @@ export default function RulesPage() {
   return (
     <div className="pg" data-testid="page-rules">
       <PageHeader
-        icon="⚙"
+        icon={<FileText size={30} aria-hidden="true" />}
         title="Evaluation Rules"
         lede="Define and manage rules used to evaluate evidence against CMMC requirements. Rules determine how evidence artifacts, attributes and context are assessed to produce a strength level or compliance outcome."
         actions={
           viewer.canEdit && (
-            <button type="button" className="btn btn-primary" onClick={() => setWizard({ view: null })} data-testid="rules-add">
-              ＋ Add Evaluation Rule
-            </button>
+            <span className="split-btn">
+              <button type="button" className="btn btn-primary" onClick={() => setWizard({ view: null })} data-testid="rules-add">
+                <Plus size={16} aria-hidden="true" /> Add Evaluation Rule
+              </button>
+              <button type="button" className="btn btn-primary split-btn-caret" aria-label="More options" onClick={() => setWizard({ view: null })}>
+                <ChevronDown size={18} aria-hidden="true" />
+              </button>
+            </span>
           )
         }
       />
@@ -108,16 +114,10 @@ export default function RulesPage() {
         Rule logic here is data, not code: the signals to read, the EvidenceOps evaluator and simple evidence conditions. The 107 signal-check rules come from
         control-signal-registry.json. A rule authored here is used once EvidenceOps reads the published release (decision a, BHD response to Tech Arch V1.0).
       </p>
-      <div className="stats stats-4">
-        <Stat icon="⚙" value={items.length} label="Evaluation Rules" testId="stat-rules" />
-        <Stat icon="✓" value={items.filter((v) => v.published).length} label="Published" tone="good" />
-        <Stat icon="◷" value={items.filter((v) => v.draft).length} label="Drafts" tone="warn" />
-        <Stat icon="?" value={REQUIREMENTS.length - new Set(items.flatMap((v) => v.current?.applies_to.requirements ?? [])).size} label="Requirements without a rule" sub="e.g. 3.4.4, 3.7.3, 3.7.6" tone="bad" testId="stat-rules-gap" />
-      </div>
-      <div className="card toolbar" role="search">
+      <div className="card toolbar toolbar-inline" role="search">
         <label className="grow">
           Search
-          <input className="input" type="search" placeholder="Search by rule name, code, description…" value={q} onChange={(e) => setQ(e.target.value)} data-testid="rules-search" />
+          <input className="input" type="search" placeholder="Search by rule name, code, description..." value={q} onChange={(e) => setQ(e.target.value)} data-testid="rules-search" />
         </label>
         <label>
           Rule Type
@@ -182,7 +182,7 @@ export default function RulesPage() {
                     <SortTh label="Rule Type" col="type" sort={sort} onSort={onSort} />
                     <th scope="col">Applies To</th>
                     <SortTh label="Status" col="status" sort={sort} onSort={onSort} />
-                    <SortTh label="Version" col="version" sort={sort} onSort={onSort} className="num" />
+                    <SortTh label="Version" col="version" sort={sort} onSort={onSort} className="center" />
                     <SortTh label="Updated On" col="updated" sort={sort} onSort={onSort} />
                     {viewer.canEdit && <th scope="col">Actions</th>}
                   </tr>
@@ -204,11 +204,12 @@ export default function RulesPage() {
                         <td>
                           <StatusPill view={v} />
                         </td>
-                        <td className="num">{row?.version}.0</td>
-                        <td style={{ whiteSpace: 'nowrap' }}>{row ? new Date(row.updated_at).toLocaleDateString(undefined, { dateStyle: 'short' }) : '—'}</td>
+                        <td className="center">{row?.version}.0</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{row ? new Date(row.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
                         {viewer.canEdit && (
                           <td>
                             <RowActions
+                              glyph="chevron"
                               label={v.key}
                               testId={`rules-actions-${v.key}`}
                               actions={[
