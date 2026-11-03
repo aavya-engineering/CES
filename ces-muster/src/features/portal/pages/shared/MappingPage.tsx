@@ -13,12 +13,13 @@
 // BHD P1-9). Strength, rationale and truth tag are empty in the source and are
 // filled in here as drafts that a second administrator publishes.
 import { takePendingSearch } from '../../searchHandoff';
+import { ChevronDown, FileText, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { sharedApi, type Archetype, type ItemView, type Mapping, type Method } from '@/shared/api/sharedApi';
 import { describeFailure, matchesText, shownData, statusOf, useGovernedList, useItemDetail, useSharedViewer } from '../../governedState';
 import { DeleteItemDialog, Drawer, GovernanceBar, LinesInput, RowActions, StatusPill, Toast, VersionHistory } from '../../governed';
 import { domainLabel } from '../../evidenceData';
-import { Empty, PageHeader, Pager, RowsPerPage, SortTh, Stat } from '../../ui';
+import { Empty, PageHeader, Pager, RowsPerPage, SortTh } from '../../ui';
 import { usePaged, useSort } from '../../paging';
 import { FAMILIES, REQUIREMENTS } from '../../referenceData';
 
@@ -81,7 +82,6 @@ export default function MappingPage() {
   });
   const paged = usePaged(sorted, rowsPerPage);
   const selected = items.find((v) => v.key === selectedKey) ?? null;
-  const covered = new Set(items.filter((v) => v.current).map((v) => v.current!.control_id)).size;
   const changed = (msg: string) => {
     setToast(msg);
     setEditing(null);
@@ -92,27 +92,26 @@ export default function MappingPage() {
   return (
     <div className="pg" data-testid="page-mapping">
       <PageHeader
-        icon="⇄"
+        icon={<FileText size={30} aria-hidden="true" />}
         title="Requirement-to-Evidence Mapping"
         lede="Map CMMC requirements to standard evidence archetypes. Define how each evidence type supports a requirement, including assessor methods, expected evidence strength and additional guidance."
         actions={
           viewer.canEdit && (
-            <button type="button" className="btn btn-primary" onClick={() => setEditing({ view: null })} data-testid="mapping-add">
-              ＋ Add Mapping
-            </button>
+            <span className="split-btn">
+              <button type="button" className="btn btn-primary" onClick={() => setEditing({ view: null })} data-testid="mapping-add">
+                <Plus size={16} aria-hidden="true" /> Add Mapping
+              </button>
+              <button type="button" className="btn btn-primary split-btn-caret" aria-label="More options" onClick={() => setEditing({ view: null })}>
+                <ChevronDown size={18} aria-hidden="true" />
+              </button>
+            </span>
           )
         }
       />
-      <div className="stats stats-4">
-        <Stat icon="⇄" value={items.length} label="Mappings" sub="Requirement → archetype" testId="stat-mappings" />
-        <Stat icon="▤" value={covered} label="Requirements covered" sub={`of ${REQUIREMENTS.length}`} tone="good" testId="stat-mapped" />
-        <Stat icon="!" value={items.filter((v) => shownData(v, viewer.canEdit)?.mapping_type === 'required').length} label="Required" sub="Store must-have" tone="bad" />
-        <Stat icon="◷" value={items.filter((v) => v.draft).length} label="Drafts" sub="Waiting to be published" tone="warn" />
-      </div>
-      <div className="card toolbar" role="search">
+      <div className="card toolbar toolbar-inline" role="search">
         <label className="grow">
           Search
-          <input className="input" type="search" placeholder="Search by requirement ID, requirement text or evidence name…" value={q} onChange={(e) => setQ(e.target.value)} data-testid="mapping-search" />
+          <input className="input" type="search" placeholder="Search by requirement ID, requirement text or evidence name..." value={q} onChange={(e) => setQ(e.target.value)} data-testid="mapping-search" />
         </label>
         <label>
           CMMC Level

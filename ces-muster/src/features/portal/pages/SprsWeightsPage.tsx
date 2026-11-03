@@ -15,15 +15,15 @@
 // "Add Requirement Weight" form are not built: weights are set by the DoD
 // methodology and kept in one canonical ces-shared file (doc 14 M3, M4).
 import { useState } from 'react';
-import { BarChart3, ChevronDown, Download, Gauge, Hash, MinusCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { BarChart3, ChevronDown, Download, FileText, Network, ShieldCheck, Sigma } from 'lucide-react';
 import {
   PARTIAL_CREDIT,
   POAM_PROHIBITED,
+  FAMILIES,
   REQUIREMENTS,
   SPRS_META,
   familySummaries,
   totalDeduction,
-  weightCounts,
   type RequirementRow,
 } from '../referenceData';
 import { PageHeader, Pager, Stat, Empty, RowsPerPage, SelectBox, SortTh } from '../ui';
@@ -45,8 +45,7 @@ const fmtGenerated = (iso: string) => {
 };
 
 export default function SprsWeightsPage() {
-  const [tab, setTab] = useState<'requirements' | 'families' | 'methodology'>('requirements');
-  const counts = weightCounts();
+  const [tab, setTab] = useState<'requirements' | 'families'>('requirements');
   const total = totalDeduction();
   const families = familySummaries();
   const maxFamily = Math.max(...families.map((f) => f.maxDeduction));
@@ -69,7 +68,7 @@ export default function SprsWeightsPage() {
       <PageHeader
         icon={<BarChart3 size={30} aria-hidden="true" />}
         title="SPRS Weight Table"
-        lede={`SPRS weights used for scoring and assessment of CMMC Level 2 (NIST SP 800-171 Rev. 2) requirements — ${SPRS_META.starting_score} points minus the weight of each unmet requirement.`}
+        lede="SPRS weights used for scoring and assessment of CMMC Level 2 (NIST SP 800-171 Rev. 2) requirements."
         actions={
           <div className="pg-head-buttons">
             <div className="source-box">
@@ -91,18 +90,13 @@ export default function SprsWeightsPage() {
           </div>
         }
       />
-      <div className="stats stats-5">
-        <Stat icon={<ShieldAlert size={22} />} value={counts[5]} label="5-point requirements" sub="Deducted when not met" tone="bad" testId="stat-w5" />
-        <Stat icon={<ShieldCheck size={22} />} value={counts[3]} label="3-point requirements" sub="Deducted when not met" tone="warn" testId="stat-w3" />
-        <Stat icon={<Hash size={22} />} value={counts[1]} label="1-point requirements" sub="Deducted when not met" testId="stat-w1" />
-        <Stat icon={<MinusCircle size={22} />} value={counts[0]} label="Not scored" sub="SSP (3.12.4) — a prerequisite" testId="stat-w0" />
-        <Stat
-          icon={<Gauge size={22} />}
-          value={total}
-          label="Largest possible deduction"
-          sub={`Lowest score ${SPRS_META.starting_score - total} if nothing is met`}
-          testId="stat-total-deduction"
-        />
+      {/* QA retest #23 (2026-11-02): the mockup's four cards. The DoD 5/3/1 split and
+          the floor stay on the Methodology view (doc 14 M3/M4). */}
+      <div className="stats stats-4">
+        <Stat icon={<FileText size={22} />} value={REQUIREMENTS.length} label="Requirements" sub="Total requirements with weights" testId="stat-w5" />
+        <Stat icon={<ShieldCheck size={22} />} value={FAMILIES.length} label="Security Families" sub="Families with assigned weights" tone="good" testId="stat-w3" />
+        <Stat icon={<Network size={22} />} value={FAMILIES.length} label="Control Families" sub="Control families mapped" tone="muster" testId="stat-w1" />
+        <Stat icon={<Sigma size={22} />} value={total} label="Total Weight" sub={`Sum of all requirement weights · lowest score ${SPRS_META.starting_score - total}`} testId="stat-total-deduction" />
       </div>
 
       <div className="card" style={{ marginBottom: 14 }}>
@@ -113,13 +107,9 @@ export default function SprsWeightsPage() {
           <button type="button" role="tab" aria-selected={tab === 'families'} onClick={() => setTab('families')} data-testid="sprs-tab-families">
             Control Family Summary
           </button>
-          <button type="button" role="tab" aria-selected={tab === 'methodology'} onClick={() => setTab('methodology')} data-testid="sprs-tab-methodology">
-            Methodology
-          </button>
         </div>
       </div>
 
-      {tab === 'methodology' && <Methodology />}
       {tab === 'requirements' ? (
         <>
           <RequirementFilters f={f} />
@@ -127,16 +117,6 @@ export default function SprsWeightsPage() {
             <section className="card" aria-label="Weights">
               <div className="card-bar">
                 <strong>{f.filtered.length} requirements</strong>
-                <span className="card-bar-actions">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => exportRequirementsCsv(pick.some ? sorted.filter((row) => pick.sel.has(row.control_id)) : sorted, metaOf)}
-                    data-testid="sprs-export"
-                  >
-                    <Download size={16} aria-hidden="true" /> {pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
-                  </button>
-                </span>
               </div>
               <div className="table-wrap">
                 <table className="tbl">
@@ -231,6 +211,7 @@ export default function SprsWeightsPage() {
           </div>
         </>
       ) : tab === 'families' ? (
+        <>
         <section className="card" aria-label="Control family summary" data-testid="sprs-families">
           <div className="table-wrap">
             <table className="tbl">
@@ -271,6 +252,12 @@ export default function SprsWeightsPage() {
             </table>
           </div>
         </section>
+        {/* QA retest #34 (2026-11-02): the DoD scoring rules stay available here, folded, instead of a third tab the mockup does not have. */}
+        <details className="card card-pad methodology-fold" data-testid="sprs-methodology">
+          <summary>Scoring methodology (DoD Assessment Methodology v{SPRS_META.version})</summary>
+          <Methodology />
+        </details>
+        </>
       ) : null}
       {editing && (
         <EditRequirementDrawer

@@ -100,6 +100,13 @@ export function RequirementFilters({ f, showWeight = true }: { f: ReturnType<typ
   );
 }
 
+/** QA retest #26: the mockups label rows "AC-1", "AC-2"… — the family code plus the
+ * requirement's position in its family. Shown next to the full NIST-style id. */
+export function shortId(row: { control_id: string; family: string }): string {
+  const idx = REQUIREMENTS.filter((r) => r.family === row.family).findIndex((r) => r.control_id === row.control_id);
+  return idx >= 0 ? `${row.family}-${idx + 1}` : row.family;
+}
+
 export function RequirementDetail({
   row,
   onClose,
@@ -114,18 +121,20 @@ export function RequirementDetail({
   const n = nistOf(row.nist_ref);
   return (
     <aside className="card card-pad detail" aria-label="Requirement details" data-testid="req-detail">
-      <div className="detail-head">
-        <div>
-          <span className="pill" data-tone={weightTone(row.weight)}>
-            {row.unscored ? 'Not scored' : `SPRS weight ${row.weight}`}
-          </span>
-          <h2>{row.control_id}</h2>
-        </div>
+      <div className="detail-head detail-head-titled">
+        <h3 className="detail-title">Requirement Details</h3>
         <button type="button" className="icon-x" onClick={onClose} aria-label="Close details">
           ×
         </button>
       </div>
-      <p>{row.practice}</p>
+      <h2 className="detail-id">
+        {row.control_id}
+        <span className="detail-id-short" title="Short form, as in the CES mockups">{shortId(row)}</span>
+      </h2>
+      <p className="detail-lede">{row.practice}</p>
+      <span className="pill" data-tone={weightTone(row.weight)}>
+        {row.unscored ? 'Not scored' : `Weight: ${row.weight}`}
+      </span>
       {onEdit && (
         <button type="button" className="btn btn-secondary btn-sm" onClick={onEdit} data-testid="req-detail-edit">
           ✎ Edit metadata
@@ -231,7 +240,7 @@ function ColumnChooser({ hidden, setHidden }: { hidden: Set<HideableCol>; setHid
   }, [open]);
   return (
     <span className="col-chooser" ref={box}>
-      <button type="button" className="btn btn-secondary" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-columns">
+      <button type="button" className="btn btn-secondary btn-sm" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-columns">
         <Settings size={16} aria-hidden="true" /> Columns
       </button>
       {open && (
@@ -299,7 +308,7 @@ function ExportMenu({ label, onExport, onExportAll, onTemplate, disabled }: { la
     fn();
   };
   return (
-    <div className="split-btn split-btn-secondary" ref={box}>
+    <div className="split-btn split-btn-secondary split-btn-sm" ref={box}>
       <button type="button" className="btn btn-secondary" onClick={onExport} disabled={disabled} title={disabled ? 'Select requirements to export, or use the menu to export all' : undefined} data-testid="req-export">
         <Download size={16} aria-hidden="true" /> {label}
       </button>
@@ -536,11 +545,14 @@ export default function RequirementsPage() {
               </select>
             </label>
             <label>
-              CMMC Level
-              <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
+              Security Family
+              <select className="select" value={f.family} onChange={(e) => f.setFamily(e.target.value)} data-testid="req-security-family">
                 <option value="">All</option>
-                <option value="1">Level 1</option>
-                <option value="2">Level 2</option>
+                {FAMILIES.map((fam) => (
+                  <option key={fam.abbreviation} value={fam.abbreviation}>
+                    {fam.name}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
@@ -556,12 +568,10 @@ export default function RequirementsPage() {
               </select>
             </label>
             <label>
-              Requirement Type
-              <select className="select" value={type} onChange={(e) => setType(e.target.value)} data-testid="req-type">
+              Assessment Status
+              {/* QA retest #12/#13: in the mockup. Reference data carries no per-engagement status yet (Sprint 3) — shown disabled with the reason. */}
+              <select className="select" value="" disabled title="Assessment status is recorded per engagement — not available on reference data yet" data-testid="req-assessment-status">
                 <option value="">All</option>
-                <option value="Basic">Basic</option>
-                <option value="Derived">Derived</option>
-                <option value="Custom">Organisation-defined</option>
               </select>
             </label>
             <label>
@@ -573,6 +583,23 @@ export default function RequirementsPage() {
                     {v}
                   </option>
                 ))}
+              </select>
+            </label>
+            <label>
+              CMMC Level
+              <select className="select" value={f.level} onChange={(e) => f.setLevel(e.target.value)} data-testid="req-level">
+                <option value="">All</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+              </select>
+            </label>
+            <label>
+              Requirement Type
+              <select className="select" value={type} onChange={(e) => setType(e.target.value)} data-testid="req-type">
+                <option value="">All</option>
+                <option value="Basic">Basic</option>
+                <option value="Derived">Derived</option>
+                <option value="Custom">Organisation-defined</option>
               </select>
             </label>
           </div>

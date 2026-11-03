@@ -181,16 +181,24 @@ export default function SignInPage({ onSignedIn, onWorkOffline, notice, panel, p
     e.preventDefault();
     if (busy) return;
     setError('');
-    if (!email.trim() || !password) {
+    // QA 2026-11-02: a password manager or browser autofill can set the field
+    // without firing React's onChange, leaving state empty and the submit
+    // rejected with "Enter your email address and password". Read the real
+    // field values from the form on submit; state is only the controlled copy.
+    const fd = new FormData(e.currentTarget as HTMLFormElement);
+    const emailValue = String(fd.get('email') ?? email).trim();
+    const passwordValue = String(fd.get('password') ?? password);
+    if (emailValue !== email) setEmail(emailValue);
+    if (!emailValue || !passwordValue) {
       setError('Enter your email address and password.');
       return;
     }
     setBusy(true);
     try {
-      const outcome = await signInToMuster(email.trim(), password, { remember });
+      const outcome = await signInToMuster(emailValue, passwordValue, { remember });
       setPassword('');
       if (outcome.ok) {
-        writeRememberedEmail(remember ? email.trim() : null);
+        writeRememberedEmail(remember ? emailValue : null);
         onSignedIn();
       }
       else setError(capitalise(outcome.message) + '.');
@@ -278,6 +286,7 @@ export default function SignInPage({ onSignedIn, onWorkOffline, notice, panel, p
                     <MailIcon className="signin-field-icon" />
                     <input
                       id={`${ids}-email`}
+                      name="email"
                       type="email"
                       autoComplete="username"
                       placeholder="name@yourorganization.com"
@@ -294,6 +303,7 @@ export default function SignInPage({ onSignedIn, onWorkOffline, notice, panel, p
                     <LockIcon className="signin-field-icon" />
                     <input
                       id={`${ids}-password`}
+                      name="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
                       placeholder="Enter your password"

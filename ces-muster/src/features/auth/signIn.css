@@ -693,3 +693,25 @@ body.ces-signin::before {
 [data-theme='dark'] .signin-theme-menu button[aria-checked='true'] {
   color: #8fb4ff;
 }
+
+/* ── QA retest round 2, #1 (2026-11-02): "image stretched / proportions off".
+   The artwork is 892×1024; a fixed 58 % column changes its aspect on every
+   screen and `cover` crops it. The hero column now follows the image's own
+   ratio (height × 0.871, capped at 58 %), so the picture is never stretched or
+   cropped, and the sign-in card grows into the remaining space so the gap the
+   first round complained about does not come back. ─────────────────────── */
+@media (min-width: 901px) {
+  .signin-page {
+    grid-template-columns: min(58vw, calc(100vh * 892 / 1024)) minmax(0, 1fr);
+  }
+  .signin-hero-img {
+    object-fit: cover;
+    object-position: center center;
+  }
+  .signin-side {
+    padding: 64px clamp(24px, 5vw, 72px) 20px;
+  }
+  .signin-card {
+    max-width: min(620px, 100%);
+  }
+}

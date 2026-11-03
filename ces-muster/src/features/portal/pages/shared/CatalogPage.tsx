@@ -12,6 +12,7 @@
 // from the Planner catalog); platform administrators add and edit drafts, a
 // second administrator publishes, and old versions are kept.
 import { takePendingSearch } from '../../searchHandoff';
+import { CheckCircle2, ChevronDown, Clock, Database, FileText, Plus, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { sharedApi, type Archetype, type ItemView, type Mapping, type Method } from '@/shared/api/sharedApi';
 import { DOMAIN_LABELS, domainLabel } from '../../evidenceData';
@@ -72,28 +73,33 @@ export default function CatalogPage() {
   return (
     <div className="pg" data-testid="page-catalog">
       <PageHeader
-        icon="▣"
+        icon={<FileText size={30} aria-hidden="true" />}
         title="Standard Evidence Catalog"
-        lede="A reusable catalog of standard evidence archetypes that can help demonstrate CMMC requirements: evidence types, acceptable forms, collection guidance and assessor methods. (Based on the CES Planner Evidence Archetype Catalog.)"
+        lede="A reusable catalog of standard evidence archetypes that can help demonstrate CMMC requirements. This catalog defines evidence types, acceptable forms, collection guidance and assessor methods. (Based on the CES Planner Evidence Archetype Catalog.)"
         actions={
           viewer.canEdit && (
-            <button type="button" className="btn btn-primary" onClick={() => setEditing({ view: null })} data-testid="catalog-add">
-              ＋ Add Evidence Archetype
-            </button>
+            <span className="split-btn">
+              <button type="button" className="btn btn-primary" onClick={() => setEditing({ view: null })} data-testid="catalog-add">
+                <Plus size={16} aria-hidden="true" /> Add Evidence Archetype
+              </button>
+              <button type="button" className="btn btn-primary split-btn-caret" aria-label="More options" onClick={() => setEditing({ view: null })}>
+                <ChevronDown size={18} aria-hidden="true" />
+              </button>
+            </span>
           )
         }
       />
       <div className="stats stats-5">
-        <Stat icon="▣" value={items.length} label="Evidence Archetypes" sub="Total in catalog" testId="stat-archetypes" />
-        <Stat icon="⛁" value={domains.length} label="Domains" sub="Evidence domains" />
-        <Stat icon="👥" value={METHODS.length} label="Assessor Methods" sub="Examine, Interview, Test" tone="muster" />
-        <Stat icon="✓" value={count('published')} label="Published" sub="Ready for use" tone="good" testId="stat-published" />
-        <Stat icon="◷" value={count('draft') + count('pending')} label="Draft" sub="In progress" tone="warn" testId="stat-drafts" />
+        <Stat icon={<FileText size={22} />} value={items.length} label="Evidence Archetypes" sub="Total in catalog" testId="stat-archetypes" />
+        <Stat icon={<Database size={22} />} value={domains.length} label="Domains" sub="CMMC control domains" />
+        <Stat icon={<Users size={22} />} value={METHODS.length} label="Assessor Methods" sub="Examine, Interview, Test, etc." tone="muster" />
+        <Stat icon={<CheckCircle2 size={22} />} value={count('published')} label="Published" sub="Ready for use" tone="good" testId="stat-published" />
+        <Stat icon={<Clock size={22} />} value={count('draft') + count('pending')} label="Draft" sub="In progress" tone="warn" testId="stat-drafts" />
       </div>
-      <div className="card toolbar" role="search">
+      <div className="card toolbar toolbar-inline" role="search">
         <label className="grow">
           Search
-          <input className="input" type="search" placeholder="Search by name, code, description…" value={q} onChange={(e) => setQ(e.target.value)} data-testid="catalog-search" />
+          <input className="input" type="search" placeholder="Search by name, code, description..." value={q} onChange={(e) => setQ(e.target.value)} data-testid="catalog-search" />
         </label>
         <label>
           Domain
@@ -191,6 +197,7 @@ export default function CatalogPage() {
                         {viewer.canEdit && (
                           <td>
                             <RowActions
+                              glyph="chevron"
                               label={v.key}
                               testId={`catalog-actions-${v.key}`}
                               actions={[
