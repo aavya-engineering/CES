@@ -65,7 +65,7 @@ describe('Onboard slice routes', () => {
       for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
     }
     expect(routesFor(signedIn('senior_approver')).has('plan/poam')).toBe(true); // approves POA&M, no edit
-    expect(routesFor(signedIn('evidence_reviewer')).has('plan/actions')).toBe(false);
+    expect(routesFor(signedIn('assessor_read_only')).has('plan/actions')).toBe(false);
     expect(routeTitle('plan/poam')).toEqual(['Plan', 'POA&M Planning', 'POA&M Items']);
   });
 
