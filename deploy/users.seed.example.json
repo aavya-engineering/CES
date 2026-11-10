@@ -1,8 +1,29 @@
 {
-  "_comment": "Copy to deploy/users.seed.json (git-ignored). Each user gets a random one-time password written to deploy/output/users-<timestamp>.txt and must change it at first sign-in. Existing e-mails are skipped. Roles: platform_admin | bhd_operator | org_admin | compliance_manager | it_security_admin | evidence_reviewer | senior_approver | assessor_read_only (engine roles prime | sub still accepted). Decision 2026-11-10: msutton = platform_admin; vaibhav.pathak, sunny.kumrawat = bhd_operator; Kunal's e-mail/role TBD.",
+  "_comment": "Copy to deploy/users.seed.json (git-ignored). Each user gets a random one-time password written to deploy/output/users-<timestamp>.txt and must change it at first sign-in. Existing e-mails are skipped. Roles: platform_admin | bhd_operator | org_admin | compliance_manager | it_security_admin | evidence_reviewer | senior_approver | assessor_read_only (engine roles prime | sub still accepted). Decision 2026-11-10: msutton = platform_admin; vaibhav.pathak, sunny.kumrawat = bhd_operator; kunal.khanwilkar = bhd_operator (e-mail follows the aavya.com pattern \u2014 confirm).",
   "users": [
-    { "email": "msutton@blueherondefense.com", "display_name": "Mark Sutton", "role": "platform_admin", "tenant": "Blue Heron Defense" },
-    { "email": "vaibhav.pathak@aavya.com", "display_name": "Vaibhav Pathak", "role": "bhd_operator", "tenant": "Blue Heron Defense" },
-    { "email": "sunny.kumrawat@aavya.com", "display_name": "Sunny Kumrawat", "role": "bhd_operator", "tenant": "Blue Heron Defense" }
+    {
+      "email": "msutton@blueherondefense.com",
+      "display_name": "Mark Sutton",
+      "role": "platform_admin",
+      "tenant": "Blue Heron Defense"
+    },
+    {
+      "email": "vaibhav.pathak@aavya.com",
+      "display_name": "Vaibhav Pathak",
+      "role": "bhd_operator",
+      "tenant": "Blue Heron Defense"
+    },
+    {
+      "email": "sunny.kumrawat@aavya.com",
+      "display_name": "Sunny Kumrawat",
+      "role": "bhd_operator",
+      "tenant": "Blue Heron Defense"
+    },
+    {
+      "email": "kunal.khanwilkar@aavya.com",
+      "display_name": "Kunal Khanwilkar",
+      "role": "bhd_operator",
+      "tenant": "Blue Heron Defense"
+    }
   ]
 }

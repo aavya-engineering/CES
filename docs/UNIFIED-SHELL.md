@@ -14,7 +14,7 @@ AdminOps and EvidenceOps. BHD backend stays as is (walkthrough 2026-11-04).
 | Shell | `nav.ts`, `PortalShell.tsx`, `App.tsx` | Signed-in viewers get the lifecycle sidebar filtered by role; offline keeps the Muster-only nav. Routes `lc/<section>/<group>/<item>`. |
 | Roles page | `pages/LifecycleAccessMatrix.tsx` | Section-level access table + separation-of-duty rules. |
 | Roles | Prisma `Role` enum + migration `014_platform_roles` | Adds `org_admin, compliance_manager, it_security_admin, evidence_reviewer, senior_approver`. `requireRole()` now checks `effectiveRoles()` (platform role inherits engine roles) — no route changes. |
-| Seed | `deploy/users.seed.example.json` | msutton = platform_admin; vaibhav.pathak, sunny.kumrawat = bhd_operator. Kunal: TBD. |
+| Seed | `deploy/users.seed.example.json` | msutton = platform_admin; vaibhav.pathak, sunny.kumrawat = bhd_operator. kunal.khanwilkar = bhd_operator. |
 
 ## Run
 
