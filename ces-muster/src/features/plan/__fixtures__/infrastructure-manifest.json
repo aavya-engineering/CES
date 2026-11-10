@@ -212,7 +212,7 @@
         ],
         "properties": {
           "initiative": "CMMC Level 2",
-          "scope": "/subscriptions/sub_mkeonpc0_lo73tbt",
+          "scope": "/subscriptions/sub_mkeonpc0_9fdalc3",
           "enforcement_mode": "Default"
         },
         "depends_on": []
@@ -724,7 +724,7 @@
           "AZ-DIAG-006"
         ],
         "properties": {
-          "scope": "/subscriptions/sub_mkeonpc0_lo73tbt",
+          "scope": "/subscriptions/sub_mkeonpc0_9fdalc3",
           "workspace": "golden-fixture-law-prod",
           "log_categories": [
             "Administrative",
@@ -743,7 +743,7 @@
       }
     ],
     "stamper_variable_map": {
-      "subscriptionId": "sub_mkeonpc0_lo73tbt",
+      "subscriptionId": "sub_mkeonpc0_9fdalc3",
       "resourceGroup": "golden-fixture-rg-security",
       "location": "usgovvirginia",
       "lawWorkspaceName": "golden-fixture-law-prod",
