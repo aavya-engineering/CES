@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Monitor', description: 'Sprint 6 slice: continuous monitoring of the programme — findings derived from runs, actions, POA&M, remediation, evidence, scope and tenants; ack / resolve / escalate; trend snapshots; compliance event history' },
       { name: 'Evidence', description: 'Sprint 6 slice: evidence items validated against the published CES-Shared catalogue (archetypes, mappings, EVR rule conditions), SoD review, versions, coverage and evidence requests' },
       { name: 'Remediate', description: 'Sprint 5 slice: Stamper / AdminOps run requests with the engine gates (HELD, simulator-first, DP-1 cost, DP-2 two-person), approval, simulated execution, human verification' },
       { name: 'Plan', description: 'Sprint 4 slice: remediation action items generated from gaps (priority = SPRS weight) and the POA&M register (poam_prohibited flagged)' },
@@ -203,6 +204,24 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             status: { type: 'string', enum: ['planned', 'in_progress', 'on_hold', 'closed'] },
             start_date: { type: 'string', format: 'date', nullable: true },
             target_date: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        MonitorFinding: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, key: { type: 'string', description: 'Stable dedupe key, e.g. plan.overdue:<action id>' },
+            category: { type: 'string', enum: ['score', 'control', 'remediation', 'plan', 'evidence', 'scope', 'tenant'] }, severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low', 'info'] },
+            title: { type: 'string' }, detail: { type: 'object', nullable: true }, requirement_id: { type: 'string', nullable: true }, target_type: { type: 'string', nullable: true }, target_id: { type: 'string', nullable: true },
+            status: { type: 'string', enum: ['open', 'acknowledged', 'escalated', 'resolved'] }, first_seen_at: { type: 'string', format: 'date-time' }, last_seen_at: { type: 'string', format: 'date-time' }, seen_count: { type: 'integer' },
+            acknowledged_by: { type: 'string', nullable: true }, resolved_by: { type: 'string', nullable: true }, resolution: { type: 'string', nullable: true }, escalated_to: { type: 'string', nullable: true }, notes: { type: 'string', nullable: true },
+          },
+        },
+        MonitorSnapshot: {
+          type: 'object',
+          properties: {
+            taken_at: { type: 'string', format: 'date-time' }, sprs_now: { type: 'integer', nullable: true }, met_count: { type: 'integer', nullable: true }, not_met_count: { type: 'integer', nullable: true },
+            open_actions: { type: 'integer' }, overdue_actions: { type: 'integer' }, open_poam: { type: 'integer' }, evidence_validated: { type: 'integer' }, evidence_pending: { type: 'integer' },
+            coverage_covered: { type: 'integer' }, coverage_missing: { type: 'integer' }, findings_open: { type: 'integer' }, findings_critical: { type: 'integer' }, by_family: { type: 'object', nullable: true },
           },
         },
         EvidenceItem: {
@@ -506,6 +525,14 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/engagements/{engagementId}/monitor/evaluate': { post: { tags: ['Monitor'], security: bearer, summary: 'Derive findings from the engagement records (idempotent; clears findings that disappeared), expire year-old validated evidence, take a snapshot', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object', properties: { created: { type: 'integer' }, updated: { type: 'integer' }, cleared: { type: 'integer' }, expired_evidence: { type: 'integer' }, open: { type: 'integer' }, snapshot: ref('MonitorSnapshot') } }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/summary': { get: { tags: ['Monitor'], security: bearer, summary: 'Open findings by severity / category, latest and previous snapshot', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings': { get: { tags: ['Monitor'], security: bearer, summary: 'Findings, most severe first (?status= ?category= ?severity=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('MonitorFinding') }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/ack': { post: { tags: ['Monitor'], security: bearer, summary: 'Acknowledge with notes', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['notes'], properties: { notes: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/resolve': { post: { tags: ['Monitor'], security: bearer, summary: 'Resolve with a resolution (audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['resolution'], properties: { resolution: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/escalate': { post: { tags: ['Monitor'], security: bearer, summary: 'Escalate to a named person / role', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['to'], properties: { to: { type: 'string' }, notes: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/snapshots': { get: { tags: ['Monitor'], security: bearer, summary: 'Trend snapshots, oldest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('MonitorSnapshot') }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/activity': { get: { tags: ['Monitor'], security: bearer, summary: 'Compliance event history: the tenant audit trail, newest first (?q= ?limit=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } } },
       '/api/engagements/{engagementId}/evidence/summary': { get: { tags: ['Evidence'], security: bearer, summary: 'Counts by status / source, coverage totals, pending review, expiring, open requests', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } } },
       '/api/engagements/{engagementId}/evidence/catalog': { get: { tags: ['Evidence'], security: bearer, summary: 'Published CES-Shared archetypes, requirement→archetype mappings and EVR rules', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
       '/api/engagements/{engagementId}/evidence/coverage': { get: { tags: ['Evidence'], security: bearer, summary: 'Per requirement: required archetypes covered / pending / missing', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceCoverage') }), ...common } } },

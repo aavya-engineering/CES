@@ -95,6 +95,18 @@ describe('Onboard slice routes', () => {
     expect(routeTitle('evidence/collect')).toEqual(['Collect Evidence', 'Evidence Collection', 'Upload Evidence']);
   });
 
+  it('Monitor: every workbook page opens a built screen; the CIS admin can act, the assessor cannot see it', () => {
+    const mon = LIFECYCLE_NAV.find((s) => s.key === 'monitor')!;
+    for (const g of mon.groups) {
+      const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
+      for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
+    }
+    expect(routesFor(signedIn('it_security_admin')).has('monitor/findings')).toBe(true);
+    expect(routesFor(signedIn('senior_approver')).has('monitor/overview')).toBe(true);
+    expect(routesFor(signedIn('assessor_read_only')).has('monitor/overview')).toBe(false);
+    expect(routeTitle('monitor/activity')).toEqual(['Monitor', 'Audit & Activity', 'Compliance Event History']);
+  });
+
   it('breadcrumbs name the workbook section, group and page', () => {
     expect(routeTitle('onboard/organizations')).toEqual(['Onboard', 'Organization Management', 'All Organizations']);
     expect(routeTitle('onboard/tenants')).toEqual(['Onboard', 'Tenant Management', 'All Tenants']);

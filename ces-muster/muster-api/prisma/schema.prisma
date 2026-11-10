@@ -95,6 +95,8 @@ model Tenant {
   remediation_runs   RemediationRun[]
   evidence_items     EvidenceItem[]
   evidence_requests  EvidenceRequest[]
+  monitor_findings   MonitorFinding[]
+  monitor_snapshots  MonitorSnapshot[]
 
   @@map("tenants")
 }
@@ -160,6 +162,8 @@ model Engagement {
   remediation_runs RemediationRun[]
   evidence_items   EvidenceItem[]
   evidence_requests EvidenceRequest[]
+  monitor_findings  MonitorFinding[]
+  monitor_snapshots MonitorSnapshot[]
 
   @@map("engagements")
 }
@@ -886,4 +890,86 @@ model EvidenceRequest {
 
   @@index([engagement_id, status])
   @@map("evidence_requests")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 6 slice "Monitor" (migration 020_monitor, 2026-11-10): findings
+// derived from the engagement's records and trend snapshots.
+// ---------------------------------------------------------------------------
+
+enum FindingSeverity {
+  critical
+  high
+  medium
+  low
+  info
+}
+
+enum FindingStatus {
+  open
+  acknowledged
+  escalated
+  resolved
+}
+
+model MonitorFinding {
+  id              String          @id @default(uuid())
+  tenant_id       String
+  engagement_id   String
+  key             String
+  category        String
+  severity        FindingSeverity
+  title           String
+  detail          Json?
+  requirement_id  String?
+  target_type     String?
+  target_id       String?
+  status          FindingStatus   @default(open)
+  first_seen_at   DateTime        @default(now()) @db.Timestamptz
+  last_seen_at    DateTime        @default(now()) @db.Timestamptz
+  seen_count      Int             @default(1)
+  acknowledged_by String?
+  acknowledged_at DateTime?       @db.Timestamptz
+  resolved_by     String?
+  resolved_at     DateTime?       @db.Timestamptz
+  resolution      String?
+  escalated_to    String?
+  notes           String?
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, key])
+  @@index([engagement_id, status, severity])
+  @@map("monitor_findings")
+}
+
+model MonitorSnapshot {
+  id                 String   @id @default(uuid())
+  tenant_id          String
+  engagement_id      String
+  taken_at           DateTime @default(now()) @db.Timestamptz
+  sprs_now           Int?
+  met_count          Int?
+  not_met_count      Int?
+  partial_count      Int?
+  unknown_count      Int?
+  open_actions       Int      @default(0)
+  overdue_actions    Int      @default(0)
+  open_poam          Int      @default(0)
+  evidence_validated Int      @default(0)
+  evidence_pending   Int      @default(0)
+  coverage_covered   Int      @default(0)
+  coverage_missing   Int      @default(0)
+  findings_open      Int      @default(0)
+  findings_critical  Int      @default(0)
+  by_family          Json?
+  triggered_by       String?
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@index([engagement_id, taken_at(sort: Desc)])
+  @@map("monitor_snapshots")
 }

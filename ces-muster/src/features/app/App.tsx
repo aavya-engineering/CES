@@ -50,6 +50,7 @@ import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/
 import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/pages/plan/PlanPages';
 import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
 import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
+import { MonitorActivityPage, MonitorFindingsPage, MonitorOverviewPage } from '@/features/portal/pages/monitor/MonitorPages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -482,6 +483,13 @@ export default function App() {
         return <EvidenceExplorerPage viewer={viewer} />;
       case 'evidence/collect':
         return <EvidenceCollectPage viewer={viewer} />;
+      // Sprint 6 slice "Monitor".
+      case 'monitor/overview':
+        return <MonitorOverviewPage viewer={viewer} go={go} />;
+      case 'monitor/findings':
+        return <MonitorFindingsPage viewer={viewer} />;
+      case 'monitor/activity':
+        return <MonitorActivityPage />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':
