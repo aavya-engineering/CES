@@ -51,6 +51,8 @@ export type StaticRouteId =
   | 'onboard/organizations'
   | 'onboard/tenants'
   | 'onboard/scope'
+  | 'assess/readiness'
+  | 'assess/gaps'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -226,6 +228,8 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'onboard/organizations': ['Onboard', 'Organization Management', 'All Organizations'],
   'onboard/tenants': ['Onboard', 'Tenant Management', 'All Tenants'],
   'onboard/scope': ['Onboard', 'Compliance Scope', 'Scope Definition'],
+  'assess/readiness': ['Assess', 'Readiness Assessment', 'Readiness Overview'],
+  'assess/gaps': ['Assess', 'Gap Analysis', 'Gap Summary'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

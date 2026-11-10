@@ -104,6 +104,8 @@ export function createMockDb() {
     customerTenant: makeModel(),
     scopeAsset: makeModel(),
     scopeBoundary: makeModel(),
+    assessmentRun: makeModel(),
+    assessmentResult: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the

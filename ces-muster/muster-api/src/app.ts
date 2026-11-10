@@ -16,6 +16,7 @@ import { createPortfolioRouter } from './routes/portfolio.js';
 import { createPartiesRouter, createPartyRouter } from './routes/parties.js';
 import { createContractsRouter } from './routes/contracts.js';
 import { createOrganizationsRouter, createCustomerTenantsRouter, createScopeRouter } from './routes/onboard.js';
+import { createAssessmentsRouter } from './routes/assessments.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
 import { createHilRouter } from './routes/hil.js';
@@ -136,6 +137,8 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/organizations', createOrganizationsRouter(db));
   app.use('/api/customer-tenants', createCustomerTenantsRouter(db));
   app.use('/api/engagements/:engagementId/scope', createScopeRouter(db));
+  // Sprint 3/4 slice "Assess": persisted readiness runs, gap analysis, human overrides.
+  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db));
   // Individual party read + sub self-only guard
   app.use('/api/parties', createPartyRouter(db));
   // Party actions (mergeParams picks up :id from parent path)

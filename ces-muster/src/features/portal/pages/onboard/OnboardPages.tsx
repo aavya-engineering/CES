@@ -18,6 +18,7 @@ import type { Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { engagementLabel, useEngagement } from '../useEngagement';
 import {
   CONTRACT_CLAUSES,
   SCOPE_CATEGORIES,
@@ -27,7 +28,6 @@ import {
   type ConnectionTest,
   type CustomerTenant,
   type CustomerTenantInput,
-  type EngagementRow,
   type Organization,
   type OrganizationInput,
   type ScopeAsset,
@@ -101,7 +101,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
       }
     >
       <form id="org-form" onSubmit={submit}>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <Field label="Legal name *"><input className="input" value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} data-testid="org-legal-name" /></Field>
         <Field label="Doing business as"><input className="input" value={f.dba_name ?? ''} onChange={(e) => set('dba_name', e.target.value)} /></Field>
         <div className="form-grid-2">
@@ -168,7 +168,7 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
           <input className="input" placeholder="Search name, UEI, CAGE" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
       </div>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
       {rows && shown.length === 0 && <Empty>{rows.length === 0 ? 'No organisation yet.' : 'Nothing matches.'}{writable && rows.length === 0 && <> <button type="button" className="row-btn" onClick={() => setEditing('new')}>Create the first one</button></>}</Empty>}
       {shown.length > 0 && (
         <div className="table-wrap">
@@ -242,7 +242,7 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
       }
     >
       <form id="tenant-form" onSubmit={submit}>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <Field label="Display name *"><input className="input" value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} data-testid="tenant-name" /></Field>
         <Field label="Organisation">
           <select className="select" value={f.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value || null)}>
@@ -287,7 +287,7 @@ function ConnectionPanel({ tenant, onClose }: { tenant: CustomerTenant; onClose:
   }, [tenant.id]);
   return (
     <Drawer title={`Connection status — ${tenant.display_name}`} subtitle="Prerequisite check only. Nothing is read from the tenant until the runner integration lands (Sprint 5)." onClose={onClose} testId="tenant-connection" footer={<button type="button" className="btn btn-primary" onClick={onClose}>Done</button>}>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
       {!result && !error && <p className="hint">Checking…</p>}
       {result && (
         <>
@@ -332,7 +332,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
         <Stat icon="discovery" value={tenants.rows ? rows.filter((t) => t.status === 'live_enabled').length : '—'} label="Live enabled" tone="good" />
         <Stat icon="integrity" value={tenants.rows ? rows.filter((t) => t.connection_status === 'prerequisites_complete').length : '—'} label="Prerequisites complete" />
       </div>
-      {tenants.error && <p className="form-error" role="alert">{tenants.error}</p>}
+      {tenants.error && <p className="note" data-tone="bad" role="alert">{tenants.error}</p>}
       {tenants.rows && rows.length === 0 && <Empty>No tenant registered yet.</Empty>}
       {rows.length > 0 && (
         <div className="table-wrap">
@@ -372,7 +372,6 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
 }
 
 // ====================================================================== compliance scope
-const SCOPE_ENG_KEY = 'ces.onboard.scope.engagement';
 const EMPTY_ASSET: ScopeAssetInput = { name: '', asset_type: '', category: 'cui', location: '', owner: '', external_provider: false, notes: '' };
 const CATEGORY_TONE: Record<ScopeCategory, 'good' | 'warn' | 'bad' | 'muster' | undefined> = { cui: 'bad', security_protection: 'warn', contractor_risk_managed: undefined, specialized: 'muster', out_of_scope: 'good' };
 
@@ -394,7 +393,7 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
     <Drawer title={initial ? 'Edit asset' : 'Add asset'} subtitle="Categorise per the CMMC Level 2 Scoping Guide. The category decides which requirements the asset is assessed against." onClose={onClose} testId="asset-drawer"
       footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="asset-form" className="btn btn-primary" disabled={busy} data-testid="asset-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add asset'}</button></>}>
       <form id="asset-form" onSubmit={submit}>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <Field label="Name *"><input className="input" value={f.name} onChange={(e) => set('name', e.target.value)} required data-testid="asset-name" /></Field>
         <div className="form-grid-2">
           <Field label="Asset type *" hint="e.g. file server, laptop, SharePoint site, MFA service"><input className="input" value={f.asset_type} onChange={(e) => set('asset_type', e.target.value)} required /></Field>
@@ -416,13 +415,8 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
 }
 
 export function ScopePage({ viewer }: { viewer: Viewer }) {
-  const engagements = useList(onboardApi.engagements);
-  const [eid, setEid] = useState<string>(() => { try { return localStorage.getItem(SCOPE_ENG_KEY) ?? ''; } catch { return ''; } });
-  useEffect(() => {
-    if (!eid && engagements.rows?.length) setEid(engagements.rows[0].id);
-  }, [engagements.rows, eid]);
-  useEffect(() => { try { if (eid) localStorage.setItem(SCOPE_ENG_KEY, eid); } catch { /* per-viewer convenience only */ } }, [eid]);
-
+  const engagements = useEngagement();
+  const eid = engagements.id;
   const assets = useList(useCallback(() => (eid ? onboardApi.scope.assets(eid) : Promise.resolve({ ok: true as const, data: [] as ScopeAsset[] })), [eid]), [eid]);
   const boundaries = useList(useCallback(() => (eid ? onboardApi.scope.boundaries(eid) : Promise.resolve({ ok: true as const, data: [] as ScopeBoundary[] })), [eid]), [eid]);
   const [editing, setEditing] = useState<ScopeAsset | null | 'new'>(null);
@@ -456,7 +450,6 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
     const r = await onboardApi.scope.confirmBoundary(eid, confirming.id);
     if (r.ok) { setToast(`Boundary v${r.data.version} confirmed.`); setConfirming(null); reloadAll(); } else setActionError(failureText(r));
   };
-  const engLabel = (e: EngagementRow) => e.name || e.reference_id || `${e.engagement_kind} · ${e.id.slice(0, 8)}`;
 
   return (
     <div className="pg" data-testid="page-onboard-scope">
@@ -469,9 +462,9 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
       <div className="toolbar">
         <label>
           Engagement{' '}
-          <select className="select" value={eid} onChange={(e) => setEid(e.target.value)} data-testid="scope-engagement">
+          <select className="select" value={eid} onChange={(e) => engagements.setId(e.target.value)} data-testid="scope-engagement">
             {!engagements.rows?.length && <option value="">— no engagement —</option>}
-            {(engagements.rows ?? []).map((e) => <option key={e.id} value={e.id}>{engLabel(e)}</option>)}
+            {(engagements.rows ?? []).map((e) => <option key={e.id} value={e.id}>{engagementLabel(e)}</option>)}
           </select>
         </label>
         <label>
@@ -482,7 +475,7 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
           </select>
         </label>
       </div>
-      {(engagements.error || assets.error || boundaries.error || actionError) && <p className="form-error" role="alert">{engagements.error ?? assets.error ?? boundaries.error ?? actionError}</p>}
+      {(engagements.error || assets.error || boundaries.error || actionError) && <p className="note" data-tone="bad" role="alert">{engagements.error ?? assets.error ?? boundaries.error ?? actionError}</p>}
       <div className="stats">
         <Stat icon="situation" value={assets.rows ? byCat('cui') : '—'} label="CUI assets" tone="bad" />
         <Stat icon="integrity" value={assets.rows ? byCat('security_protection') : '—'} label="Security protection" tone="warn" />

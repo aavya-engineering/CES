@@ -88,6 +88,8 @@ model Tenant {
   customer_tenants CustomerTenant[]
   scope_assets     ScopeAsset[]
   scope_boundaries ScopeBoundary[]
+  assessment_runs    AssessmentRun[]
+  assessment_results AssessmentResult[]
 
   @@map("tenants")
 }
@@ -147,6 +149,7 @@ model Engagement {
   dispositions Disposition[]
   scope_assets     ScopeAsset[]
   scope_boundaries ScopeBoundary[]
+  assessment_runs  AssessmentRun[]
 
   @@map("engagements")
 }
@@ -529,4 +532,77 @@ model ScopeBoundary {
 
   @@unique([engagement_id, version])
   @@map("scope_boundaries")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 3/4 slice "Assess" (migration 016_assessment_runs, 2026-11-10):
+// persisted readiness assessment runs and per-requirement results.
+// ---------------------------------------------------------------------------
+
+enum RequirementStatus {
+  met
+  partial
+  not_met
+  unknown
+}
+
+enum AssessmentSource {
+  readiness_result
+  delivery_artifact
+  manual
+}
+
+model AssessmentRun {
+  id                   String           @id @default(uuid())
+  tenant_id            String
+  engagement_id        String
+  source               AssessmentSource
+  schema_version       String?
+  label                String?
+  sprs_now             Int
+  sprs_after           Int?
+  met_count            Int              @default(0)
+  partial_count        Int              @default(0)
+  not_met_count        Int              @default(0)
+  unknown_count        Int              @default(0)
+  engine               Json?
+  manifest             Json?
+  generated_at         DateTime?        @db.Timestamptz
+  delivery_artifact_id String?
+  created_by           String?
+  created_at           DateTime         @default(now()) @db.Timestamptz
+
+  tenant     Tenant             @relation(fields: [tenant_id], references: [id])
+  engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  results    AssessmentResult[]
+
+  @@index([engagement_id, created_at(sort: Desc)])
+  @@map("assessment_runs")
+}
+
+model AssessmentResult {
+  id              String            @id @default(uuid())
+  tenant_id       String
+  run_id          String
+  requirement_id  String
+  family          String
+  weight          Int
+  status          RequirementStatus
+  engine_status   RequirementStatus
+  confidence      String?
+  objective_ids   String[]          @default([])
+  ran_entry_ids   String[]          @default([])
+  fixable         String?
+  fix_entry_ids   String[]          @default([])
+  override_by     String?
+  override_at     DateTime?         @db.Timestamptz
+  override_reason String?
+  notes           String?
+
+  tenant Tenant        @relation(fields: [tenant_id], references: [id])
+  run    AssessmentRun @relation(fields: [run_id], references: [id], onDelete: Cascade)
+
+  @@unique([run_id, requirement_id])
+  @@map("assessment_results")
 }

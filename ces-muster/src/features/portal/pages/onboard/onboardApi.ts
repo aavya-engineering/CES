@@ -91,8 +91,6 @@ export interface ScopeBoundary {
   created_at: string;
 }
 
-export interface EngagementRow { id: string; name?: string | null; reference_id?: string | null; engagement_kind: string; status?: string }
-
 export const onboardApi = {
   organizations: {
     list: () => api.get<Organization[]>('/api/organizations'),
@@ -108,7 +106,6 @@ export const onboardApi = {
     remove: (id: string) => api.delete<void>(`/api/customer-tenants/${id}`),
     testConnection: (id: string) => api.post<ConnectionTest>(`/api/customer-tenants/${id}/test-connection`),
   },
-  engagements: () => api.get<EngagementRow[]>('/api/engagements'),
   scope: {
     assets: (eid: string) => api.get<ScopeAsset[]>(`/api/engagements/${eid}/scope/assets`),
     addAsset: (eid: string, body: ScopeAssetInput) => api.post<ScopeAsset>(`/api/engagements/${eid}/scope/assets`, body),

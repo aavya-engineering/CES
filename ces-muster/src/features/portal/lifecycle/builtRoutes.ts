@@ -55,7 +55,18 @@ export const BUILT: Readonly<Record<string, BuiltTarget>> = {
 
   '/assess/discovery/discovery-overview': { route: 'muster', view: 'discovery', testId: 'nav-muster-discovery' },
   '/assess/adaptive-interviews/interview-sessions': { route: 'muster', view: 'assessment', testId: 'nav-muster-situation' },
-  '/assess/readiness-assessment/readiness-overview': { route: 'muster', view: 'readiness', testId: 'nav-muster-readiness' },
+  // Sprint 3/4 slice "Assess" (2026-11-10): persisted runs on muster-api. The device-local Muster Readiness tab stays reachable from Discovery.
+  '/assess/assessment-overview/assessment-dashboard': { route: 'assess/readiness' },
+  '/assess/assessment-overview/assessment-status': { route: 'assess/readiness' },
+  '/assess/readiness-assessment/readiness-overview': { route: 'assess/readiness', testId: 'nav-muster-readiness' },
+  '/assess/readiness-assessment/by-control-family': { route: 'assess/readiness' },
+  '/assess/readiness-assessment/trends-history': { route: 'assess/readiness' },
+  '/assess/gap-analysis/gap-summary': { route: 'assess/gaps', testId: 'nav-assess-gaps' },
+  '/assess/gap-analysis/gaps-by-requirement': { route: 'assess/gaps' },
+  '/assess/gap-analysis/gaps-by-control-family': { route: 'assess/gaps' },
+  '/assess/gap-analysis/gap-details': { route: 'assess/gaps' },
+  '/assess/gap-analysis/assessment-review': { route: 'assess/gaps' },
+  '/assess/discovery/prior-results': { route: 'muster', view: 'readiness' },
   '/assess/compliance-assessment/110-requirements': { route: 'shared/requirements' },
   '/assess/compliance-assessment/assessment-objectives': { route: 'shared/objectives', testId: 'nav-shared-objectives' },
 
@@ -89,7 +100,7 @@ export interface SectionPlan {
 export const SECTION_PLAN: Record<LifecycleSectionKey, SectionPlan> = {
   shared: { sprint: 'Sprint 2 — CES-Shared Core', dates: '30 Nov – 11 Dec 2026', backend: 'muster-api /api/v1/ces-shared (reference data facade over ces-shared JSON)', port: 4000 },
   onboard: { sprint: 'Sprint 3 — Engagement & Muster I', dates: '14 – 25 Dec 2026', backend: 'muster-api /api/organizations, /api/customer-tenants, /api/engagements(/:id/scope), /api/parties, /api/contracts', port: 4000 },
-  assess: { sprint: 'Sprint 3–4 — Muster I & II', dates: '14 Dec 2026 – 8 Jan 2027', backend: 'muster-api /api/discovery, /api/interview, /api/sessions, /api/hil, scoring; ces-eo assessment (authoritative status)', port: 4000 },
+  assess: { sprint: 'Sprint 3–4 — Muster I & II', dates: '14 Dec 2026 – 8 Jan 2027', backend: 'muster-api /api/engagements/:id/assessments (runs, gaps, overrides), /api/discovery, /api/interview, /api/sessions, /api/hil; ces-eo assessment (authoritative status)', port: 4000 },
   plan: { sprint: 'Sprint 4 — Muster II & Readiness', dates: '28 Dec 2026 – 8 Jan 2027', backend: 'muster-api /api/plan/compile, /api/plan/push; ces-eo POA&M generator', port: 4000 },
   remediate: { sprint: 'Sprint 5 — Stamper & AdminOps MVP', dates: '11 – 22 Jan 2027', backend: 'ces-stamper API (:5002 / GUI :3000) and ces-ao API (:5003 / :3001); approvals via EO approver tokens' },
   evidence: { sprint: 'Sprint 6 — EvidenceOps & AI MVP', dates: '25 Jan – 5 Feb 2027', backend: 'ces-eo (:5004 / :4002) collectors, reviews, catalog; ces-ec (:4001) write-once uploads' },

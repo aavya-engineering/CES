@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Assess', description: 'Sprint 3/4 slice: persisted readiness assessment runs (one SPRS), per-requirement results, gap analysis and audited human overrides' },
       { name: 'Onboard', description: 'Sprint 3 slice: organisations, customer Microsoft 365 tenant registrations and the compliance scope (assets + versioned CUI boundary)' },
       ...[
         'Parties',
@@ -199,6 +200,49 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             status: { type: 'string', enum: ['planned', 'in_progress', 'on_hold', 'closed'] },
             start_date: { type: 'string', format: 'date', nullable: true },
             target_date: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        AssessmentRun: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, engagement_id: { type: 'string', format: 'uuid' },
+            source: { type: 'string', enum: ['readiness_result', 'delivery_artifact', 'manual'] }, schema_version: { type: 'string', nullable: true }, label: { type: 'string', nullable: true },
+            sprs_now: { type: 'integer', description: 'computeSprs over the current statuses (FCA conservative: only met passes)' },
+            sprs_after: { type: 'integer', nullable: true, description: 'PROJECTION: registry-fixable gaps flipped to met' },
+            met_count: { type: 'integer' }, partial_count: { type: 'integer' }, not_met_count: { type: 'integer' }, unknown_count: { type: 'integer' },
+            engine: { type: 'object', nullable: true }, generated_at: { type: 'string', format: 'date-time', nullable: true }, delivery_artifact_id: { type: 'string', nullable: true },
+            by_family: { type: 'array', items: { type: 'object', properties: { family: { type: 'string' }, name: { type: 'string' }, total: { type: 'integer' }, met: { type: 'integer' }, partial: { type: 'integer' }, not_met: { type: 'integer' }, unknown: { type: 'integer' }, deduction: { type: 'integer' } } } },
+          },
+        },
+        AssessmentResult: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, run_id: { type: 'string', format: 'uuid' }, requirement_id: { type: 'string', example: 'IA.L2-3.5.3' }, family: { type: 'string' }, weight: { type: 'integer' },
+            status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'] }, engine_status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'], description: 'What the engine derived; kept when a human overrides status' },
+            confidence: { type: 'string', nullable: true }, objective_ids: { type: 'array', items: { type: 'string' } }, ran_entry_ids: { type: 'array', items: { type: 'string' } },
+            fixable: { type: 'string', enum: ['registry', 'manual'], nullable: true }, fix_entry_ids: { type: 'array', items: { type: 'string' } },
+            override_by: { type: 'string', nullable: true }, override_at: { type: 'string', format: 'date-time', nullable: true }, override_reason: { type: 'string', nullable: true }, notes: { type: 'string', nullable: true },
+          },
+        },
+        ReadinessResultRecord: {
+          type: 'object',
+          required: ['schema_version', 'observations'],
+          description: 'The readiness-result record the SPA / ces-tester writes (schema 1.0.0 or 1.1.0). Extra fields are kept.',
+          properties: {
+            schema_version: { type: 'string', enum: ['readiness-result/1.0.0', 'readiness-result/1.1.0'] },
+            label: { type: 'string' },
+            manifest: { type: 'object' },
+            observations: { type: 'array', items: { type: 'object', required: ['control_id', 'derived_posture'], properties: { control_id: { type: 'string' }, objective_ids: { type: 'array', items: { type: 'string' } }, confidence: { type: 'string', enum: ['high', 'medium', 'low', 'unknown'] }, ran_entry_ids: { type: 'array', items: { type: 'string' } }, derived_posture: { type: 'string', enum: ['met', 'not_met', 'partial', 'unknown'] } } } },
+            derived: { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: { requirement_id: { type: 'string' }, weight: { type: 'integer' }, fix_entry_ids: { type: 'array', items: { type: 'string' } }, fixable: { type: 'string', enum: ['registry', 'manual'] } } } } } },
+            provenance: { type: 'object', properties: { engine: { type: 'object', properties: { name: { type: 'string' }, version: { type: 'string' } } }, generated_at: { type: 'string', format: 'date-time' } } },
+          },
+        },
+        GapAnalysis: {
+          type: 'object',
+          properties: {
+            run_id: { type: 'string', format: 'uuid' }, sprs_now: { type: 'integer' }, sprs_after: { type: 'integer', nullable: true },
+            gap_count: { type: 'integer' }, deduction_total: { type: 'integer' }, registry_fixable: { type: 'integer' }, registry_fixable_weight: { type: 'integer' },
+            gaps: { type: 'array', items: ref('AssessmentResult') },
           },
         },
         Organization: {
@@ -379,6 +423,25 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/engagements/{engagementId}/assessments': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Assessment runs of an engagement, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('AssessmentRun') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Assess'], security: bearer, summary: 'Ingest a readiness-result record as a new run (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ReadinessResultRecord')), responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/from-artifact/{artifactId}': {
+        post: { tags: ['Assess'], security: bearer, summary: 'Ingest a delivered readiness_result artifact (Delivery lane) as a new run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('artifactId', 'Delivery artifact id')], responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 409: err('ARTIFACT_KIND'), 410: err('ARTIFACT_PURGED'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}': {
+        get: { tags: ['Assess'], security: bearer, summary: 'One run with its by-family summary', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json(ref('AssessmentRun')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/results': {
+        get: { tags: ['Assess'], security: bearer, summary: 'The 110 requirement results of a run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json({ type: 'array', items: ref('AssessmentResult') }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/gaps': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Gap analysis: results not met, heaviest first, with the registry-fixable projection', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json(ref('GapAnalysis')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/results/{requirementId}': {
+        patch: { tags: ['Assess'], security: bearer, summary: 'Human override of one requirement status (reason required; engine status kept; run re-scored; audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id'), pathParam('requirementId', 'Requirement id, e.g. IA.L2-3.5.3')], requestBody: body({ type: 'object', required: ['status', 'reason'], properties: { status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'] }, reason: { type: 'string', minLength: 10 }, notes: { type: 'string', nullable: true } } }), responses: { 200: json({ type: 'object', properties: { result: ref('AssessmentResult'), run: ref('AssessmentRun') } }), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
       '/api/organizations': {
         get: { tags: ['Onboard'], security: bearer, summary: 'List organisations of the caller’s tenant', responses: { 200: json({ type: 'array', items: ref('Organization') }), ...common } },
         post: { tags: ['Onboard'], security: bearer, summary: 'Create an organisation (prime, bhd_operator)', requestBody: body(ref('Organization')), responses: { 201: json(ref('Organization'), 'Created'), 409: err('Legal name already exists (ORGANIZATION_EXISTS)'), 422: err('Validation'), ...common } },

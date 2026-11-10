@@ -44,6 +44,20 @@ describe('Onboard slice routes', () => {
     expect(all.find((i) => i.label === 'Scope Definition')).toMatchObject({ route: 'onboard/scope' });
   });
 
+  it('Assess › Readiness Assessment and Gap Analysis open the persisted-run screens; the assessor may read them', () => {
+    const onboard = LIFECYCLE_NAV.find((s) => s.key === 'assess')!;
+    for (const groupKey of ['readiness-assessment', 'gap-analysis']) {
+      const group = onboard.groups.find((g) => g.key === groupKey)!;
+      const built = group.items.filter((i) => BUILT[i.path]);
+      expect(built.length, groupKey).toBeGreaterThanOrEqual(3);
+      for (const i of built) expect(BUILT[i.path].route).toMatch(/^assess\//);
+    }
+    expect(routesFor(signedIn('compliance_manager')).has('assess/gaps')).toBe(true);
+    expect(routesFor(signedIn('assessor_read_only')).has('assess/readiness')).toBe(false); // assessor: Prepare only (matrix)
+    expect(routesFor(signedIn('platform_admin')).has('assess/readiness')).toBe(false);
+    expect(routeTitle('assess/gaps')).toEqual(['Assess', 'Gap Analysis', 'Gap Summary']);
+  });
+
   it('breadcrumbs name the workbook section, group and page', () => {
     expect(routeTitle('onboard/organizations')).toEqual(['Onboard', 'Organization Management', 'All Organizations']);
     expect(routeTitle('onboard/tenants')).toEqual(['Onboard', 'Tenant Management', 'All Tenants']);

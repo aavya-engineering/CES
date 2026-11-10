@@ -46,6 +46,7 @@ import { EngagementsPage, HomePage } from '@/features/portal/pages/HomeAndEngage
 import PortfolioPage from '@/features/portal/PortfolioPage';
 import LifecycleScaffoldPage from '@/features/portal/pages/LifecycleScaffoldPage';
 import { CustomerTenantsPage, OrganizationsPage, ScopePage } from '@/features/portal/pages/onboard/OnboardPages';
+import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/assess/AssessPages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -452,6 +453,11 @@ export default function App() {
         return <CustomerTenantsPage viewer={viewer} />;
       case 'onboard/scope':
         return <ScopePage viewer={viewer} />;
+      // Sprint 3/4 slice "Assess".
+      case 'assess/readiness':
+        return <ReadinessOverviewPage viewer={viewer} />;
+      case 'assess/gaps':
+        return <GapAnalysisPage viewer={viewer} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':
