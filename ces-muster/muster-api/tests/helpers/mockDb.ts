@@ -109,6 +109,9 @@ export function createMockDb() {
     planAction: makeModel(),
     poamItem: makeModel(),
     remediationRun: makeModel(),
+    evidenceItem: makeModel(),
+    evidenceRequest: makeModel(),
+    sharedItem: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the

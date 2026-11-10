@@ -49,6 +49,7 @@ import { CustomerTenantsPage, OrganizationsPage, ScopePage } from '@/features/po
 import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/assess/AssessPages';
 import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/pages/plan/PlanPages';
 import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
+import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -474,6 +475,13 @@ export default function App() {
         return <StamperPage viewer={viewer} />;
       case 'remediate/adminops':
         return <AdminOpsPage viewer={viewer} />;
+      // Sprint 6 slice "Collect Evidence".
+      case 'evidence/overview':
+        return <EvidenceOverviewPage viewer={viewer} go={go} />;
+      case 'evidence/explorer':
+        return <EvidenceExplorerPage viewer={viewer} />;
+      case 'evidence/collect':
+        return <EvidenceCollectPage viewer={viewer} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':

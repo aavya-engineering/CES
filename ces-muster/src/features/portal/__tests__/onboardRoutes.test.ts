@@ -83,6 +83,18 @@ describe('Onboard slice routes', () => {
     expect(routeTitle('remediate/adminops')).toEqual(['Remediate', 'Administrative Operations – AdminOps', 'AdminOps Overview']);
   });
 
+  it('Collect Evidence: every workbook page opens a built screen; the reviewer approves, the CIS admin collects, the assessor stays out', () => {
+    const ev = LIFECYCLE_NAV.find((s) => s.key === 'evidence')!;
+    for (const g of ev.groups) {
+      const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
+      for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
+    }
+    expect(routesFor(signedIn('evidence_reviewer')).has('evidence/explorer')).toBe(true);
+    expect(routesFor(signedIn('it_security_admin')).has('evidence/collect')).toBe(true);
+    expect(routesFor(signedIn('assessor_read_only')).has('evidence/overview')).toBe(false);
+    expect(routeTitle('evidence/collect')).toEqual(['Collect Evidence', 'Evidence Collection', 'Upload Evidence']);
+  });
+
   it('breadcrumbs name the workbook section, group and page', () => {
     expect(routeTitle('onboard/organizations')).toEqual(['Onboard', 'Organization Management', 'All Organizations']);
     expect(routeTitle('onboard/tenants')).toEqual(['Onboard', 'Tenant Management', 'All Tenants']);

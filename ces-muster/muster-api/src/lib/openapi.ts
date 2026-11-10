@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Evidence', description: 'Sprint 6 slice: evidence items validated against the published CES-Shared catalogue (archetypes, mappings, EVR rule conditions), SoD review, versions, coverage and evidence requests' },
       { name: 'Remediate', description: 'Sprint 5 slice: Stamper / AdminOps run requests with the engine gates (HELD, simulator-first, DP-1 cost, DP-2 two-person), approval, simulated execution, human verification' },
       { name: 'Plan', description: 'Sprint 4 slice: remediation action items generated from gaps (priority = SPRS weight) and the POA&M register (poam_prohibited flagged)' },
       { name: 'Assess', description: 'Sprint 3/4 slice: persisted readiness assessment runs (one SPRS), per-requirement results, gap analysis and audited human overrides' },
@@ -203,6 +204,36 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             start_date: { type: 'string', format: 'date', nullable: true },
             target_date: { type: 'string', format: 'date', nullable: true },
           },
+        },
+        EvidenceItem: {
+          type: 'object',
+          required: ['title', 'requirement_ids'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, title: { type: 'string' }, description: { type: 'string', nullable: true },
+            requirement_ids: { type: 'array', items: { type: 'string', example: 'AC.L1-3.1.1' } }, objective_ids: { type: 'array', items: { type: 'string' } },
+            archetype_code: { type: 'string', nullable: true, example: 'EMX-IAM-005' }, form: { type: 'string', nullable: true, description: 'One of the archetype acceptable_forms' },
+            kind: { type: 'string', enum: ['document', 'screenshot', 'export', 'config_capture', 'attestation', 'log', 'other'] }, source: { type: 'string', enum: ['upload', 'stamper', 'adminops', 'discovery', 'manual'] },
+            file_name: { type: 'string', nullable: true }, content_type: { type: 'string', nullable: true }, content_base64: { type: 'string', writeOnly: true, description: '≤ 10 MB; omit and set metadata.external_url for larger files' },
+            size_bytes: { type: 'integer', readOnly: true }, sha256: { type: 'string', readOnly: true }, metadata: { type: 'object', nullable: true },
+            collected_at: { type: 'string', format: 'date-time' }, period_start: { type: 'string', format: 'date', nullable: true }, period_end: { type: 'string', format: 'date', nullable: true },
+            owner: { type: 'string', nullable: true }, classification: { type: 'string', enum: ['cui', 'non_cui', 'internal'] },
+            status: { type: 'string', enum: ['draft', 'submitted', 'validated', 'rejected', 'expired', 'archived'], readOnly: true },
+            validation: { type: 'object', readOnly: true, properties: { checked_at: { type: 'string' }, passed: { type: 'boolean' }, strength: { type: 'string', enum: ['weak', 'adequate', 'strong'] }, checks: { type: 'array', items: { type: 'object' } }, rules: { type: 'array', items: { type: 'object' } }, mapping: { type: 'object' } } },
+            reviewed_by: { type: 'string', nullable: true, readOnly: true }, reviewed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, review_notes: { type: 'string', nullable: true, readOnly: true },
+            run_id: { type: 'string', nullable: true }, version: { type: 'integer', readOnly: true }, supersedes_id: { type: 'string', nullable: true, readOnly: true }, retention_until: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        EvidenceRequest: {
+          type: 'object',
+          required: ['requirement_id', 'title'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, requirement_id: { type: 'string' }, archetype_code: { type: 'string', nullable: true }, title: { type: 'string' }, instructions: { type: 'string', nullable: true },
+            assignee: { type: 'string', nullable: true }, due_date: { type: 'string', format: 'date', nullable: true }, status: { type: 'string', enum: ['open', 'submitted', 'fulfilled', 'cancelled'] }, evidence_item_id: { type: 'string', nullable: true },
+          },
+        },
+        EvidenceCoverage: {
+          type: 'object',
+          properties: { requirement_id: { type: 'string' }, required: { type: 'integer' }, covered: { type: 'integer' }, pending: { type: 'integer' }, missing: { type: 'array', items: { type: 'string' } }, recommended: { type: 'integer' }, items: { type: 'integer' }, state: { type: 'string', enum: ['covered', 'partial', 'missing', 'none_required'] } },
         },
         RemediationRun: {
           type: 'object',
@@ -475,6 +506,29 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/engagements/{engagementId}/evidence/summary': { get: { tags: ['Evidence'], security: bearer, summary: 'Counts by status / source, coverage totals, pending review, expiring, open requests', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/catalog': { get: { tags: ['Evidence'], security: bearer, summary: 'Published CES-Shared archetypes, requirement→archetype mappings and EVR rules', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/coverage': { get: { tags: ['Evidence'], security: bearer, summary: 'Per requirement: required archetypes covered / pending / missing', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceCoverage') }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'Evidence items (no content); ?requirement= ?status= ?source= ?archetype= ?q=', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceItem') }), ...common } },
+        post: { tags: ['Evidence'], security: bearer, summary: 'Add evidence (draft, validated at once). prime / sub / bhd_operator', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('EvidenceItem')), responses: { 201: json(ref('EvidenceItem'), 'Created'), 413: err('TOO_LARGE'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/items/{id}': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'One item with its related versions', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Evidence'], security: bearer, summary: 'Edit metadata (draft / submitted / rejected only); re-validated', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body(ref('EvidenceItem')), responses: { 200: json(ref('EvidenceItem')), 409: err('IMMUTABLE'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/items/{id}/content': { get: { tags: ['Evidence'], security: bearer, summary: 'Download the stored file (audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: { description: 'The file' }, 409: err('NO_CONTENT'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/validate': { post: { tags: ['Evidence'], security: bearer, summary: 'Re-run the built-in checks and EVR rule conditions', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/submit': { post: { tags: ['Evidence'], security: bearer, summary: 'Submit for review (blocking checks must pass)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), 409: err('NOT_DRAFT'), 422: err('VALIDATION_FAILED'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/review': { post: { tags: ['Evidence'], security: bearer, summary: 'Approve / reject (evidence_reviewer or BHD; never the submitter — SoD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body({ type: 'object', required: ['decision', 'notes'], properties: { decision: { type: 'string', enum: ['approve', 'reject'] }, notes: { type: 'string' } } }), responses: { 200: json(ref('EvidenceItem')), 409: err('NOT_SUBMITTED / SOD_SAME_PERSON (403 NOT_REVIEWER)'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/new-version': { post: { tags: ['Evidence'], security: bearer, summary: 'Create version n+1 (previous archived)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body(ref('EvidenceItem')), responses: { 201: json(ref('EvidenceItem'), 'Created'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/archive': { post: { tags: ['Evidence'], security: bearer, summary: 'Archive (retention)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), ...common } } },
+      '/api/engagements/{engagementId}/evidence/requests': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'Evidence requests, soonest due first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceRequest') }), ...common } },
+        post: { tags: ['Evidence'], security: bearer, summary: 'Ask a person for a specific archetype by a date', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('EvidenceRequest')), responses: { 201: json(ref('EvidenceRequest'), 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/requests/generate': { post: { tags: ['Evidence'], security: bearer, summary: 'One request per missing required archetype (optionally only for the gaps of a run)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', properties: { requirement_ids: { type: 'array', items: { type: 'string' } }, only_gaps_of_run: { type: 'string', format: 'uuid' }, assignee: { type: 'string' }, due_date: { type: 'string', format: 'date' } } }), responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, requests: { type: 'array', items: ref('EvidenceRequest') } } }, 'Created'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/requests/{id}': { patch: { tags: ['Evidence'], security: bearer, summary: 'Update a request', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Request id')], requestBody: body(ref('EvidenceRequest')), responses: { 200: json(ref('EvidenceRequest')), 404: err('Not found'), ...common } } },
       '/api/engagements/{engagementId}/remediation/summary': {
         get: { tags: ['Remediate'], security: bearer, summary: 'Remediation tracking: action and run counts, pending approval / verification, registry sizes', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
       },

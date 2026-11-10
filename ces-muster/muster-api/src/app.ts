@@ -19,6 +19,7 @@ import { createOrganizationsRouter, createCustomerTenantsRouter, createScopeRout
 import { createAssessmentsRouter } from './routes/assessments.js';
 import { createPlanActionsRouter } from './routes/planActions.js';
 import { createRemediationRouter } from './routes/remediation.js';
+import { createEvidenceRouter } from './routes/evidence.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
 import { createHilRouter } from './routes/hil.js';
@@ -118,6 +119,8 @@ export function createApp(opts: AppOptions = {}) {
 
   app.use('/api/plan', express.json({ limit: PLAN_BODY_LIMIT }), createPlanRouter());
 
+  // Sprint 6: evidence uploads carry base64 content (≤ 10 MB) — parsed with a larger limit before the global parser.
+  app.use('/api/engagements/:engagementId/evidence', express.json({ limit: '15mb' }));
   app.use(express.json());
 
   // Auth (keep as-is)
@@ -145,6 +148,8 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/engagements/:engagementId/plan', createPlanActionsRouter(db));
   // Sprint 5 slice "Remediate": Stamper / AdminOps run requests with gates, approval, verification.
   app.use('/api/engagements/:engagementId/remediation', createRemediationRouter(db));
+  // Sprint 6 slice "Collect Evidence": items (≤10 MB inline), validation, SoD review, requests.
+  app.use('/api/engagements/:engagementId/evidence', createEvidenceRouter(db));
   // Individual party read + sub self-only guard
   app.use('/api/parties', createPartyRouter(db));
   // Party actions (mergeParams picks up :id from parent path)

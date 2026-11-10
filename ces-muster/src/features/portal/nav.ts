@@ -59,6 +59,9 @@ export type StaticRouteId =
   | 'remediate/overview'
   | 'remediate/stamper'
   | 'remediate/adminops'
+  | 'evidence/overview'
+  | 'evidence/explorer'
+  | 'evidence/collect'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -242,6 +245,9 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'remediate/overview': ['Remediate', 'Remediation Overview', 'Remediation Dashboard'],
   'remediate/stamper': ['Remediate', 'Configuration Management – Stamper', 'Configuration Overview'],
   'remediate/adminops': ['Remediate', 'Administrative Operations – AdminOps', 'AdminOps Overview'],
+  'evidence/overview': ['Collect Evidence', 'Evidence Overview', 'Evidence Dashboard'],
+  'evidence/explorer': ['Collect Evidence', 'Evidence Explorer', 'All Evidence'],
+  'evidence/collect': ['Collect Evidence', 'Evidence Collection', 'Upload Evidence'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],
