@@ -48,6 +48,9 @@ export type StaticRouteId =
   | 'store/integrity'
   | 'engagements/tenants'
   | 'engagements/all'
+  | 'onboard/organizations'
+  | 'onboard/tenants'
+  | 'onboard/scope'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -213,6 +216,9 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'store/integrity': ['Shared Foundation', 'Evidence Store', 'Storage Integrity'],
   'engagements/tenants': ['Onboard', 'Tenant Management', 'Register Tenant'],
   'engagements/all': ['Onboard', 'Engagement Management', 'All Engagements'],
+  'onboard/organizations': ['Onboard', 'Organization Management', 'All Organizations'],
+  'onboard/tenants': ['Onboard', 'Tenant Management', 'All Tenants'],
+  'onboard/scope': ['Onboard', 'Compliance Scope', 'Scope Definition'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

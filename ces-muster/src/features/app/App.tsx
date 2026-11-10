@@ -45,6 +45,7 @@ import { ContractsInfoPage, HelpPage, ModulePage, NotBuiltPage, SharedOverviewPa
 import { EngagementsPage, HomePage } from '@/features/portal/pages/HomeAndEngagements';
 import PortfolioPage from '@/features/portal/PortfolioPage';
 import LifecycleScaffoldPage from '@/features/portal/pages/LifecycleScaffoldPage';
+import { CustomerTenantsPage, OrganizationsPage, ScopePage } from '@/features/portal/pages/onboard/OnboardPages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -444,6 +445,13 @@ export default function App() {
         return <NotBuiltPage route={route} />;
       case 'engagements/all':
         return <EngagementsPage viewer={viewer} openMuster={(v) => go('muster', v)} />;
+      // Sprint 3 slice "Onboard" (2026-11-10).
+      case 'onboard/organizations':
+        return <OrganizationsPage viewer={viewer} />;
+      case 'onboard/tenants':
+        return <CustomerTenantsPage viewer={viewer} />;
+      case 'onboard/scope':
+        return <ScopePage viewer={viewer} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':

@@ -99,6 +99,11 @@ export function createMockDb() {
     deliveryArtifact: makeModel(),
     deliveryGrant: makeModel(),
     deliveryAuditEntry: makeModel(),
+    auditEvent: makeModel(),
+    organization: makeModel(),
+    customerTenant: makeModel(),
+    scopeAsset: makeModel(),
+    scopeBoundary: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the

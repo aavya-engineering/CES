@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Onboard', description: 'Sprint 3 slice: organisations, customer Microsoft 365 tenant registrations and the compliance scope (assets + versioned CUI boundary)' },
       ...[
         'Parties',
         'Contracts',
@@ -200,6 +201,61 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             target_date: { type: 'string', format: 'date', nullable: true },
           },
         },
+        Organization: {
+          type: 'object',
+          required: ['legal_name'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            legal_name: { type: 'string' }, dba_name: { type: 'string', nullable: true },
+            uei: { type: 'string', nullable: true, description: '12 alphanumeric' }, cage: { type: 'string', nullable: true, description: '5 alphanumeric' },
+            website: { type: 'string', nullable: true }, address: { type: 'string', nullable: true },
+            primary_contact_name: { type: 'string', nullable: true }, primary_contact_email: { type: 'string', format: 'email', nullable: true },
+            contract_clauses: { type: 'array', items: { type: 'string', enum: ['DFARS 252.204-7012', 'DFARS 252.204-7019', 'DFARS 252.204-7020', 'DFARS 252.204-7021', 'FAR 52.204-21'] } },
+            status: { type: 'string', enum: ['active', 'inactive'] }, notes: { type: 'string', nullable: true },
+          },
+        },
+        CustomerTenant: {
+          type: 'object',
+          required: ['display_name'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            organization_id: { type: 'string', format: 'uuid', nullable: true },
+            display_name: { type: 'string' }, entra_tenant_id: { type: 'string', format: 'uuid', nullable: true }, primary_domain: { type: 'string', nullable: true },
+            cloud: { type: 'string', enum: ['gcc_high', 'gcc', 'commercial'] },
+            app_registration_id: { type: 'string', format: 'uuid', nullable: true }, certificate_thumbprint: { type: 'string', nullable: true, description: 'SHA-1, 40 hex' },
+            status: { type: 'string', enum: ['registered', 'consented', 'live_enabled', 'disabled'] },
+            connection_status: { type: 'string', nullable: true, readOnly: true }, connection_tested_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+            notes: { type: 'string', nullable: true },
+          },
+        },
+        ConnectionTest: {
+          type: 'object',
+          properties: {
+            tenant: ref('CustomerTenant'),
+            connection_status: { type: 'string', enum: ['prerequisites_complete', 'prerequisites_missing'] },
+            checks: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, ok: { type: 'boolean' }, note: { type: 'string' } } } },
+          },
+        },
+        ScopeAsset: {
+          type: 'object',
+          required: ['name', 'asset_type', 'category'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            name: { type: 'string' }, asset_type: { type: 'string' },
+            category: { type: 'string', enum: ['cui', 'security_protection', 'contractor_risk_managed', 'specialized', 'out_of_scope'], description: 'CMMC L2 scoping category' },
+            location: { type: 'string', nullable: true }, owner: { type: 'string', nullable: true }, external_provider: { type: 'boolean' }, notes: { type: 'string', nullable: true },
+          },
+        },
+        ScopeBoundary: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, version: { type: 'integer', readOnly: true },
+            status: { type: 'string', enum: ['draft', 'confirmed', 'superseded'], readOnly: true },
+            narrative: { type: 'string', nullable: true },
+            data_flows: { type: 'array', nullable: true, items: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' }, data: { type: 'string' }, protection: { type: 'string' } } } },
+            asset_count: { type: 'integer', readOnly: true }, confirmed_by: { type: 'string', nullable: true, readOnly: true }, confirmed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
         Milestone: {
           type: 'object',
           properties: {
@@ -323,6 +379,42 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/organizations': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'List organisations of the caller’s tenant', responses: { 200: json({ type: 'array', items: ref('Organization') }), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Create an organisation (prime, bhd_operator)', requestBody: body(ref('Organization')), responses: { 201: json(ref('Organization'), 'Created'), 409: err('Legal name already exists (ORGANIZATION_EXISTS)'), 422: err('Validation'), ...common } },
+      },
+      '/api/organizations/{id}': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'One organisation with its tenant registrations', parameters: [pathParam('id', 'Organisation id')], responses: { 200: json(ref('Organization')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update an organisation', parameters: [pathParam('id', 'Organisation id')], requestBody: body(ref('Organization')), responses: { 200: json(ref('Organization')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Delete an organisation (refused while tenants reference it)', parameters: [pathParam('id', 'Organisation id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), 409: err('ORGANIZATION_IN_USE'), ...common } },
+      },
+      '/api/customer-tenants': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'List customer Microsoft 365 tenant registrations', responses: { 200: json({ type: 'array', items: ref('CustomerTenant') }), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Register a customer tenant (prime, bhd_operator)', requestBody: body(ref('CustomerTenant')), responses: { 201: json(ref('CustomerTenant'), 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/customer-tenants/{id}': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'One tenant registration', parameters: [pathParam('id', 'Registration id')], responses: { 200: json(ref('CustomerTenant')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update a tenant registration', parameters: [pathParam('id', 'Registration id')], requestBody: body(ref('CustomerTenant')), responses: { 200: json(ref('CustomerTenant')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Remove a registration (refused while live_enabled)', parameters: [pathParam('id', 'Registration id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), 409: err('TENANT_LIVE'), ...common } },
+      },
+      '/api/customer-tenants/{id}/test-connection': {
+        post: { tags: ['Onboard'], security: bearer, summary: 'Check connection prerequisites (never contacts the tenant; runner integration in Sprint 5)', parameters: [pathParam('id', 'Registration id')], responses: { 200: json(ref('ConnectionTest')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/assets': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'Scope assets of an engagement', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('ScopeAsset') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Add a scope asset', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ScopeAsset')), responses: { 201: json(ref('ScopeAsset'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/assets/{id}': {
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update a scope asset', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Asset id')], requestBody: body(ref('ScopeAsset')), responses: { 200: json(ref('ScopeAsset')), 404: err('Not found'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Remove a scope asset', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Asset id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/boundaries': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'Boundary versions (newest first)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('ScopeBoundary') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Create the next draft boundary version from the current asset list', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ScopeBoundary')), responses: { 201: json(ref('ScopeBoundary'), 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/boundaries/{id}/confirm': {
+        post: { tags: ['Onboard'], security: bearer, summary: 'Confirm a draft boundary (human act; supersedes the previous confirmed version)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Boundary id')], responses: { 200: json(ref('ScopeBoundary')), 404: err('Not found'), 409: err('BOUNDARY_NOT_DRAFT or BOUNDARY_INCOMPLETE'), ...common } },
+      },
       '/api/engagements': {
         get: { tags: ['Engagements'], security: bearer, summary: 'List engagements of the caller’s tenant', responses: { 200: json({ type: 'array', items: ref('Engagement') }), ...common } },
         post: { tags: ['Engagements'], security: bearer, summary: 'Create an engagement', requestBody: body(ref('Engagement')), responses: { 201: json(ref('Engagement'), 'Created'), 400: err('Validation (dates must be YYYY-MM-DD and in order)'), ...common } },

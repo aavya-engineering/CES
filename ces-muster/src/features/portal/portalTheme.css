@@ -3369,3 +3369,30 @@ textarea[data-testid='req-import-text'] {
 .source-box {
   padding: 10px 14px;
 }
+
+/* ---- Sprint 3 slice "Onboard" (2026-11-10): forms and check lists on the Onboard pages ---- */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+@media (max-width: 720px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
+}
+.hint {
+  font-size: 12px;
+  color: var(--co-text-muted);
+}
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.checklist li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}

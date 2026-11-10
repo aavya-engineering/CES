@@ -84,6 +84,10 @@ model Tenant {
   users       User[]
   engagements Engagement[]
   parties     Party[]
+  organizations    Organization[]
+  customer_tenants CustomerTenant[]
+  scope_assets     ScopeAsset[]
+  scope_boundaries ScopeBoundary[]
 
   @@map("tenants")
 }
@@ -141,6 +145,8 @@ model Engagement {
   contracts    Contract[]
   nudge_events NudgeEvent[]
   dispositions Disposition[]
+  scope_assets     ScopeAsset[]
+  scope_boundaries ScopeBoundary[]
 
   @@map("engagements")
 }
@@ -173,9 +179,11 @@ model Party {
   lifecycle        PartyLifecycle @default(invited)
   last_activity_at DateTime?
   created_at       DateTime       @default(now())
+  organization_id  String?
 
   tenant             Tenant             @relation(fields: [tenant_id], references: [id])
   engagement         Engagement         @relation(fields: [engagement_id], references: [id])
+  organization       Organization?      @relation(fields: [organization_id], references: [id], onDelete: SetNull)
   interview_sessions InterviewSession[]
   contracts          Contract[]
   nudge_events       NudgeEvent[]
@@ -392,4 +400,133 @@ model SharedChange {
   detail        Json?
 
   @@map("shared_changes")
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 3 slice "Onboard" (migration 015_onboard_registry, 2026-11-10):
+// organisation master data, customer M365 tenant registrations, compliance
+// scope (assets by CMMC category) and the versioned CUI boundary.
+// ---------------------------------------------------------------------------
+
+enum CustomerCloud {
+  gcc_high
+  gcc
+  commercial
+}
+
+enum CustomerTenantStatus {
+  registered
+  consented
+  live_enabled
+  disabled
+}
+
+enum ScopeCategory {
+  cui
+  security_protection
+  contractor_risk_managed
+  specialized
+  out_of_scope
+}
+
+enum BoundaryStatus {
+  draft
+  confirmed
+  superseded
+}
+
+model Organization {
+  id                    String   @id @default(uuid())
+  tenant_id             String
+  legal_name            String
+  dba_name              String?
+  uei                   String?
+  cage                  String?
+  website               String?
+  address               String?
+  primary_contact_name  String?
+  primary_contact_email String?
+  contract_clauses      String[] @default([])
+  status                String   @default("active")
+  notes                 String?
+  created_by            String?
+  created_at            DateTime @default(now()) @db.Timestamptz
+  updated_at            DateTime @default(now()) @db.Timestamptz
+
+  tenant           Tenant           @relation(fields: [tenant_id], references: [id])
+  customer_tenants CustomerTenant[]
+  parties          Party[]
+
+  @@unique([tenant_id, legal_name])
+  @@index([tenant_id])
+  @@map("organizations")
+}
+
+model CustomerTenant {
+  id                     String               @id @default(uuid())
+  tenant_id              String
+  organization_id        String?
+  display_name           String
+  entra_tenant_id        String?
+  primary_domain         String?
+  cloud                  CustomerCloud        @default(gcc_high)
+  app_registration_id    String?
+  certificate_thumbprint String?
+  status                 CustomerTenantStatus @default(registered)
+  connection_status      String?
+  connection_tested_at   DateTime?            @db.Timestamptz
+  notes                  String?
+  created_by             String?
+  created_at             DateTime             @default(now()) @db.Timestamptz
+  updated_at             DateTime             @default(now()) @db.Timestamptz
+
+  tenant       Tenant        @relation(fields: [tenant_id], references: [id])
+  organization Organization? @relation(fields: [organization_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id])
+  @@index([organization_id])
+  @@map("customer_tenants")
+}
+
+model ScopeAsset {
+  id                String        @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  name              String
+  asset_type        String
+  category          ScopeCategory
+  location          String?
+  owner             String?
+  external_provider Boolean       @default(false)
+  notes             String?
+  created_by        String?
+  created_at        DateTime      @default(now()) @db.Timestamptz
+  updated_at        DateTime      @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@index([engagement_id])
+  @@map("scope_assets")
+}
+
+model ScopeBoundary {
+  id            String         @id @default(uuid())
+  tenant_id     String
+  engagement_id String
+  version       Int
+  status        BoundaryStatus @default(draft)
+  narrative     String?
+  data_flows    Json?
+  asset_count   Int            @default(0)
+  confirmed_by  String?
+  confirmed_at  DateTime?      @db.Timestamptz
+  created_by    String?
+  created_at    DateTime       @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, version])
+  @@map("scope_boundaries")
 }
