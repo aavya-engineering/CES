@@ -580,6 +580,7 @@ enum AssessmentSource {
   readiness_result
   delivery_artifact
   manual
+  engine_run
 }
 
 model AssessmentRun {

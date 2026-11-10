@@ -22,7 +22,7 @@ export interface FamilySummary { family: string; name: string; total: number; me
 export interface AssessmentRun {
   id: string;
   engagement_id: string;
-  source: 'readiness_result' | 'delivery_artifact' | 'manual';
+  source: 'readiness_result' | 'delivery_artifact' | 'manual' | 'engine_run';
   schema_version: string | null;
   label: string | null;
   sprs_now: number;
@@ -71,7 +71,12 @@ export interface GapAnalysis {
 
 const base = (eid: string) => `/api/engagements/${eid}/assessments`;
 
+export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown }
+
 export const assessApi = {
+  /** ENGINE: walk the command registry against the simulator (or live, behind the gate) and persist the outcome as a run. */
+  startRun: (eid: string, body: { mode: 'sim' | 'live'; tenant_slug?: string; consent_ids?: string[]; label?: string }) => api.post<{ job_id: string; status: string; mode: string }>(`${base(eid)}/run`, body),
+  job: (eid: string, jobId: string) => api.get<EngineJob>(`${base(eid)}/jobs/${jobId}`),
   runs: (eid: string) => api.get<AssessmentRun[]>(base(eid)),
   run: (eid: string, runId: string) => api.get<AssessmentRun>(`${base(eid)}/${runId}`),
   results: (eid: string, runId: string) => api.get<AssessmentResult[]>(`${base(eid)}/${runId}/results`),

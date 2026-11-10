@@ -48,7 +48,10 @@ beforeAll(async () => {
   db = createMockDb();
   const app = express();
   app.use(express.json({ limit: '5mb' }));
-  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db));
+  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, {
+    // Engine seam: the simulator walk returns our RECORD as its envelope; the live path has no gate → refused.
+    runSim: async ({ slug }) => (slug === 'broken' ? { ok: false, code: 'sim_unreachable', message: 'ledger down' } : { ok: true, envelope: { ...RECORD, provenance: { engine: { name: 'muster-api discovery', version: 'sim' }, generated_at: new Date().toISOString() } }, stats: { entries: 4 }, postures: { met: 2, unknown: 0, not_met: 1 } }),
+  }));
   server = http.createServer(app);
   await new Promise<void>((r) => server.listen(0, () => r()));
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
@@ -119,6 +122,31 @@ describe('runs', () => {
     expect(ok.run.not_met_count).toBe(0);
     expect(db.auditEvent._records.at(-1)).toMatchObject({ action: 'assessment.override', detail: { from: 'not_met', to: 'met', requirement_id: 'IA.L2-3.5.3' } });
     expect((await call('PATCH', `/${run.id}/results/XX.L9-9.9.9`, 'prime', { status: 'met', reason: 'does not exist anywhere' })).status).toBe(404);
+  });
+
+  it('ENGINE: POST /run walks the registry (simulator) and persists the outcome as an engine_run; live is refused without the gate; failures are reported on the job', async () => {
+    expect((await call('POST', '/run', 'evidence_reviewer', { mode: 'sim' })).status).toBe(403);
+    const started = await call('POST', '/run', 'compliance_manager', { mode: 'sim', tenant_slug: 'mp', label: 'Nightly sim' });
+    expect(started.status).toBe(202);
+    const { job_id } = await started.json();
+    let job: { status: string; run_id?: string; error?: string } = { status: 'running' };
+    for (let i = 0; i < 20 && job.status === 'running'; i++) { await new Promise((r) => setTimeout(r, 10)); job = await (await call('GET', `/jobs/${job_id}`, 'assessor_read_only')).json(); }
+    expect(job.status).toBe('done');
+    const run = await (await call('GET', `/${job.run_id}`, 'prime')).json();
+    expect(run).toMatchObject({ source: 'engine_run', label: 'Nightly sim', met_count: 1 });
+    expect(run.engine.name).toBe('muster-api discovery');
+    expect(db.auditEvent._records.map((a) => a.action)).toEqual(['assessment.run.start', 'assessment.ingest']);
+
+    const live = await call('POST', '/run', 'bhd_operator', { mode: 'live' });
+    expect(live.status).toBeGreaterThanOrEqual(400); // no Live gate configured → refused, never a silent sim fallback
+    expect((await live.json()).code).toBe('LIVE_REFUSED');
+
+    const bad = await (await call('POST', '/run', 'prime', { mode: 'sim', tenant_slug: 'broken' })).json();
+    let failed: { status: string; error?: string } = { status: 'running' };
+    for (let i = 0; i < 20 && failed.status === 'running'; i++) { await new Promise((r) => setTimeout(r, 10)); failed = await (await call('GET', `/jobs/${bad.job_id}`, 'prime')).json(); }
+    expect(failed.status).toBe('failed');
+    expect(failed.error).toMatch(/sim_unreachable/);
+    expect((await call('GET', '/jobs/00000000-0000-0000-0000-000000000000', 'prime')).status).toBe(404);
   });
 
   it('ingests a delivered readiness_result artifact and refuses other kinds', async () => {

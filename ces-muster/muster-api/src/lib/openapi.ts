@@ -310,7 +310,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
           type: 'object',
           properties: {
             id: { type: 'string', format: 'uuid', readOnly: true }, engagement_id: { type: 'string', format: 'uuid' },
-            source: { type: 'string', enum: ['readiness_result', 'delivery_artifact', 'manual'] }, schema_version: { type: 'string', nullable: true }, label: { type: 'string', nullable: true },
+            source: { type: 'string', enum: ['readiness_result', 'delivery_artifact', 'manual', 'engine_run'] }, schema_version: { type: 'string', nullable: true }, label: { type: 'string', nullable: true },
             sprs_now: { type: 'integer', description: 'computeSprs over the current statuses (FCA conservative: only met passes)' },
             sprs_after: { type: 'integer', nullable: true, description: 'PROJECTION: registry-fixable gaps flipped to met' },
             met_count: { type: 'integer' }, partial_count: { type: 'integer' }, not_met_count: { type: 'integer' }, unknown_count: { type: 'integer' },
@@ -668,6 +668,12 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       '/api/engagements/{engagementId}/assessments': {
         get: { tags: ['Assess'], security: bearer, summary: 'Assessment runs of an engagement, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('AssessmentRun') }), 404: err('Not found'), ...common } },
         post: { tags: ['Assess'], security: bearer, summary: 'Ingest a readiness-result record as a new run (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ReadinessResultRecord')), responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/run': {
+        post: { tags: ['Assess'], security: bearer, summary: 'ENGINE: run discovery through the command registry (simulator by default; live only behind the Live gate) and persist the outcome as a run (source engine_run). Returns a job id.', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', properties: { mode: { type: 'string', enum: ['sim', 'live'], default: 'sim' }, tenant_slug: { type: 'string', default: 'mp' }, consent_ids: { type: 'array', items: { type: 'string' } }, label: { type: 'string' } } }), responses: { 202: json({ type: 'object', properties: { job_id: { type: 'string' }, status: { type: 'string' }, mode: { type: 'string' } } }, 'Started'), 404: err('Not found (403 LIVE_REFUSED when the flag is off or no consent)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs/{jobId}': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Engine job status (running / done with run_id / failed with error)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('jobId', 'Job id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
       },
       '/api/engagements/{engagementId}/assessments/from-artifact/{artifactId}': {
         post: { tags: ['Assess'], security: bearer, summary: 'Ingest a delivered readiness_result artifact (Delivery lane) as a new run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('artifactId', 'Delivery artifact id')], responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 409: err('ARTIFACT_KIND'), 410: err('ARTIFACT_PURGED'), 422: err('Validation'), ...common } },

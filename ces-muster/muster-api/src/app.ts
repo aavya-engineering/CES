@@ -147,7 +147,7 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/customer-tenants', createCustomerTenantsRouter(db));
   app.use('/api/engagements/:engagementId/scope', createScopeRouter(db));
   // Sprint 3/4 slice "Assess": persisted readiness runs, gap analysis, human overrides.
-  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db));
+  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, { live }));
   // Sprint 4 slice "Plan": action items from gaps, POA&M register.
   app.use('/api/engagements/:engagementId/plan', createPlanActionsRouter(db));
   // Sprint 5 slice "Remediate": Stamper / AdminOps run requests with gates, approval, verification.

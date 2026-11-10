@@ -18,6 +18,9 @@
 //   GET  /api/engagements/:engagementId/assessments/:runId/results  110 rows
 //   GET  /api/engagements/:engagementId/assessments/:runId/gaps     rows whose status != met, heaviest first
 //   PATCH /api/engagements/:engagementId/assessments/:runId/results/:requirementId   human override (reason required)
+//   POST /api/engagements/:engagementId/assessments/run                 ENGINE: run discovery (simulator, or live behind the Live gate)
+//                                                                      through the registry and persist the outcome as a run (source engine_run)
+//   GET  /api/engagements/:engagementId/assessments/jobs/:jobId        job status while the engine runs
 //
 // Rules kept from the engine: one SPRS — computeSprs() (FCA conservative: only
 // 'met' passes); sprs_after is a PROJECTION (registry-fixable gaps flipped to
@@ -31,6 +34,12 @@ import { validate } from '../middleware/validate.js';
 import { withTenant } from '../lib/prisma.js';
 import { audit } from '../lib/audit.js';
 import { computeSprs } from '../services/sprsCalc.js';
+import { randomUUID } from 'node:crypto';
+import os from 'node:os';
+import path from 'node:path';
+import { runSimDiscovery, type SimDiscoveryDeps, type SimDiscoveryOutcome } from '../services/simDiscoveryRun.js';
+import { runLiveDiscovery, type LiveDiscoveryDeps } from '../services/liveDiscoveryRun.js';
+import { authorizeLive, type LiveGate } from '../services/liveAccess.js';
 import CONTROLS from '../vendored/ces-shared/data/cmmc-l2-controls.reference.json';
 import SPRS_WEIGHTS from '../vendored/ces-shared/data/sprs-weights.json';
 
@@ -158,9 +167,49 @@ function byFamily(rows: { family: string; status: Status; weight: number }[]) {
 }
 
 // ---------------------------------------------------------------- router
-export function createAssessmentsRouter(db: Db) {
+export interface AssessmentsRouterOptions {
+  /** Live gate (engagement flag + device-code consent). Absent → live runs refused. */
+  live?: LiveGate;
+  /** Test seams. */
+  runSim?: typeof runSimDiscovery;
+  runSimDeps?: SimDiscoveryDeps;
+  runLive?: typeof runLiveDiscovery;
+  runLiveDeps?: LiveDiscoveryDeps;
+  workRoot?: string;
+}
+
+type EngineSource = 'readiness_result' | 'delivery_artifact' | 'engine_run';
+interface Job { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown }
+const MAX_JOBS = 200;
+
+export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions = {}) {
   const r = Router({ mergeParams: true });
   const eid = (req: Request) => (req.params as { engagementId: string }).engagementId;
+  const jobs = new Map<string, Job>();
+  const workRoot = opts.workRoot ?? path.join(os.tmpdir(), 'muster-assessment-runs');
+  const remember = (job: Job) => { jobs.set(job.id, job); while (jobs.size > MAX_JOBS) { const oldest = [...jobs.entries()].find(([, j]) => j.status !== 'running'); if (!oldest) break; jobs.delete(oldest[0]); } };
+
+  /** Persist a readiness record as a run for (tenant, engagement). Shared by import, artifact and engine paths. */
+  async function persistRun(actor: { sub: string; role: string; tenant_id: string }, engagementId: string, rec: ReadinessResultInput, source: EngineSource, extra: { artifactId?: string; label?: string } = {}) {
+    const rows = deriveRows(rec);
+    const s = summarise(rows);
+    const run = await withTenant(actor.tenant_id, async (t: Db) => {
+      const created = await t.assessmentRun.create({
+        data: {
+          tenant_id: actor.tenant_id, engagement_id: engagementId, source, schema_version: rec.schema_version,
+          label: extra.label ?? rec.label ?? null, sprs_now: s.sprs_now, sprs_after: s.sprs_after,
+          met_count: s.counts.met, partial_count: s.counts.partial, not_met_count: s.counts.not_met, unknown_count: s.counts.unknown,
+          engine: rec.provenance?.engine ?? null, manifest: rec.manifest ?? null,
+          generated_at: rec.provenance?.generated_at ? new Date(rec.provenance.generated_at) : null,
+          delivery_artifact_id: extra.artifactId ?? null, created_by: actor.sub,
+        },
+      });
+      for (const row of rows) await t.assessmentResult.create({ data: { ...row, engine_status: row.status, tenant_id: actor.tenant_id, run_id: created.id } });
+      return created;
+    }, db);
+    await audit(db, { action: 'assessment.ingest', actor, target_type: 'assessment_run', target_id: run.id, tenant_id: actor.tenant_id, detail: { engagement_id: engagementId, source, sprs_now: s.sprs_now, observations: rec.observations.length } }, { strict: true });
+    return { run, rows };
+  }
 
   async function engagementOf(req: Request) {
     const e = await db.engagement.findUnique({ where: { id: eid(req) } });
@@ -173,23 +222,7 @@ export function createAssessmentsRouter(db: Db) {
   }
 
   async function ingest(req: Request, res: Response, rec: ReadinessResultInput, source: 'readiness_result' | 'delivery_artifact', artifactId?: string) {
-    const rows = deriveRows(rec);
-    const s = summarise(rows);
-    const run = await tx(req, db, async (t) => {
-      const created = await t.assessmentRun.create({
-        data: {
-          tenant_id: user(req).tenant_id, engagement_id: eid(req), source, schema_version: rec.schema_version,
-          label: rec.label ?? null, sprs_now: s.sprs_now, sprs_after: s.sprs_after,
-          met_count: s.counts.met, partial_count: s.counts.partial, not_met_count: s.counts.not_met, unknown_count: s.counts.unknown,
-          engine: rec.provenance?.engine ?? null, manifest: rec.manifest ?? null,
-          generated_at: rec.provenance?.generated_at ? new Date(rec.provenance.generated_at) : null,
-          delivery_artifact_id: artifactId ?? null, created_by: user(req).sub,
-        },
-      });
-      for (const row of rows) await t.assessmentResult.create({ data: { ...row, engine_status: row.status, tenant_id: user(req).tenant_id, run_id: created.id } });
-      return created;
-    });
-    await audit(db, { action: 'assessment.ingest', actor: user(req), target_type: 'assessment_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { engagement_id: eid(req), source, sprs_now: s.sprs_now, observations: rec.observations.length } }, { strict: true });
+    const { run, rows } = await persistRun(user(req), eid(req), rec, source, { artifactId });
     res.status(201).json({ ...run, by_family: byFamily(rows) });
   }
 
@@ -270,6 +303,61 @@ export function createAssessmentsRouter(db: Db) {
       const newRun = await tx(req, db, (t) => t.assessmentRun.update({ where: { id: run.id }, data: { sprs_now: s.sprs_now, sprs_after: s.sprs_after, met_count: s.counts.met, partial_count: s.counts.partial, not_met_count: s.counts.not_met, unknown_count: s.counts.unknown } }));
       await audit(db, { action: 'assessment.override', actor: user(req), target_type: 'assessment_result', target_id: row.id, tenant_id: user(req).tenant_id, detail: { run_id: run.id, requirement_id: requirementId, from: row.status, to: body.status, engine_status: row.engine_status, reason: body.reason } }, { strict: true });
       res.json({ result: updated, run: newRun });
+    } catch (e) { next(e); }
+  });
+
+  // ---------------------------------------------------------------- ENGINE: run discovery and persist
+  const runSchema = z.object({
+    mode: z.enum(['sim', 'live']).default('sim'),
+    tenant_slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/).default('mp'),
+    consent_ids: z.array(z.string()).optional(),
+    label: z.string().trim().max(120).optional(),
+  });
+  const jobParam = z.object({ jobId: z.string().uuid() }).passthrough();
+
+  r.post('/run', bearerAuth, requireRole(...WRITE), validate(runSchema), async (req, res, next) => {
+    try {
+      const engagement = await engagementOf(req);
+      if (!engagement) return notFound(res);
+      const body = req.body as z.infer<typeof runSchema>;
+      const actor = { sub: user(req).sub, role: user(req).role, tenant_id: user(req).tenant_id };
+      const engagementId = eid(req);
+      const id = randomUUID();
+      const outDir = path.join(workRoot, id);
+      let started: Promise<SimDiscoveryOutcome>;
+      if (body.mode === 'live') {
+        // Live rail: engagement flag ON + a granted consent per area, else refused (never a silent fallback to sim).
+        const auth = await authorizeLive(opts.live, actor.tenant_id, engagementId, body.consent_ids);
+        if (!auth.ok) { res.status(auth.status).json({ error: auth.code, code: 'LIVE_REFUSED' }); return; }
+        started = Promise.resolve().then(() => (opts.runLive ?? runLiveDiscovery)({ slug: body.tenant_slug, outDir, engagementId, grants: auth.grants }, opts.runLiveDeps));
+      } else {
+        started = Promise.resolve().then(() => (opts.runSim ?? runSimDiscovery)({ slug: body.tenant_slug, outDir }, opts.runSimDeps));
+      }
+      const job: Job = { id, engagement_id: engagementId, mode: body.mode, status: 'running', started_at: new Date().toISOString() };
+      remember(job);
+      await audit(db, { action: 'assessment.run.start', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, mode: body.mode, tenant_slug: body.tenant_slug } });
+      void started
+        .catch((e): SimDiscoveryOutcome => ({ ok: false, code: 'envelope_invalid', message: e instanceof Error ? e.message : String(e) }))
+        .then(async (outcome) => {
+          if (!outcome.ok) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `${outcome.code}: ${outcome.message}` }); await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, code: outcome.code, message: outcome.message } }); return; }
+          const parsed = readinessResultSchema.safeParse(outcome.envelope);
+          if (!parsed.success) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine envelope did not validate: ${parsed.error.issues[0]?.message ?? 'unknown'}` }); return; }
+          try {
+            const { run } = await persistRun(actor, engagementId, parsed.data, 'engine_run', { label: body.label ?? `Discovery run (${body.mode === 'live' ? 'LIVE' : 'simulator'} · ${body.tenant_slug})` });
+            remember({ ...job, status: 'done', finished_at: new Date().toISOString(), run_id: run.id, stats: outcome.stats });
+          } catch (e) {
+            remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: e instanceof Error ? e.message : String(e) });
+          }
+        });
+      res.status(202).json({ job_id: id, status: 'running', mode: body.mode, tenant_slug: body.tenant_slug });
+    } catch (e) { next(e); }
+  });
+
+  r.get('/jobs/:jobId', bearerAuth, requireRole(...READ), validate(jobParam, 'params'), async (req, res, next) => {
+    try {
+      const job = jobs.get((req.params as { jobId: string }).jobId);
+      if (!job || job.engagement_id !== eid(req)) return notFound(res);
+      res.json(job);
     } catch (e) { next(e); }
   });
 
