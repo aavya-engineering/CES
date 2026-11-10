@@ -19,6 +19,8 @@ export interface BuiltTarget {
   view?: MusterView;
   /** Keep the Sprint-1/2 test ids so existing tests and QA scripts still find the links. */
   testId?: string;
+  /** Shown only to these platform roles even when the group is visible (the API behind the screen is fenced to them). */
+  onlyRoles?: readonly string[];
 }
 
 /** Lifecycle page path → the screen that already exists. */
@@ -68,7 +70,8 @@ export const BUILT: Readonly<Record<string, BuiltTarget>> = {
   '/evidence/standard-evidence-catalog/requirement-to-evidence-mapping': { route: 'shared/mapping', testId: 'nav-shared-mapping' },
   '/evidence/standard-evidence-catalog/evidence-instructions': { route: 'shared/rules', testId: 'nav-shared-rules' },
 
-  '/admin/users-roles/user-management': { route: 'platform/users', testId: 'nav-platform-users' },
+  // /api/users is platform_admin only (RBAC-01); org-scoped user administration is a later slice.
+  '/admin/users-roles/user-management': { route: 'platform/users', testId: 'nav-platform-users', onlyRoles: ['platform_admin'] },
   '/admin/users-roles/role-management': { route: 'platform/roles', testId: 'nav-platform-roles' },
   '/admin/users-roles/permission-management': { route: 'platform/roles' },
   '/admin/audit-log': { route: 'platform/audit', testId: 'nav-platform-audit' },

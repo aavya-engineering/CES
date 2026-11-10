@@ -106,8 +106,9 @@ const SECTION_ICON: Record<string, string> = {
 };
 const SECTION_MOD: Record<string, NavSection['mod']> = { onboard: 'muster', assess: 'muster', plan: 'muster', remediate: 'stamper', evidence: 'evidenceops', monitor: 'evidenceops', prepare: 'evidenceops' };
 
-function itemFor(section: LifecycleSection, path: string, label: string, groupLabel?: string): NavItem {
+function itemFor(section: LifecycleSection, path: string, label: string, groupLabel?: string, role?: string): NavItem | null {
   const built = BUILT[path];
+  if (built?.onlyRoles && (!role || !built.onlyRoles.includes(toPlatformRole(role) ?? role))) return null;
   const testId = built?.testId ?? `nav-lc-${path.replace(/^\//, '').replace(/\//g, '-')}`;
   if (built) return { label, route: built.route, view: built.view, group: groupLabel, testId, icon: SECTION_ICON[section.key] };
   return { label, route: lifecycleRoute(path), planned: true, group: groupLabel, testId, icon: SECTION_ICON[section.key] };
@@ -123,10 +124,14 @@ export function lifecycleNavFor(role: string): NavSection[] {
       if (!canView(role, section.key, group.key)) continue;
       if (group.items.length === 0) {
         // A group without pages (Overview, Audit Log) is a page itself.
-        items.push(itemFor(section, group.path, group.label));
+        const page = itemFor(section, group.path, group.label, undefined, role);
+        if (page) items.push(page);
         continue;
       }
-      for (const item of group.items) items.push(itemFor(section, item.path, item.label, group.label));
+      for (const item of group.items) {
+        const page = itemFor(section, item.path, item.label, group.label, role);
+        if (page) items.push(page);
+      }
     }
     if (!items.length) continue;
     out.push({ id: section.key, label: section.label, icon: SECTION_ICON[section.key] ?? 'overview', mod: SECTION_MOD[section.key], items });
@@ -143,6 +148,8 @@ export function navFor(viewer: Viewer): NavSection[] {
     sections.push(...lifecycleNavFor(viewer.role));
     return sections;
   }
+  // Signed in with a role the matrix does not know: Home and the public Shared Foundation only.
+  const unknownRole = isSignedIn(viewer);
 
   // Offline viewer (no account): the Sprint-1 Muster-only navigation.
   sections.push({
@@ -158,7 +165,7 @@ export function navFor(viewer: Viewer): NavSection[] {
       { label: 'Requirement-to-Evidence Mapping', route: 'shared/mapping', group: 'Standard Evidence & Evaluation Rules', testId: 'nav-shared-mapping', icon: 'mapping' },
     ],
   });
-  if (!isAdmin(viewer)) {
+  if (!isAdmin(viewer) && !unknownRole) {
     sections.push({
       id: 'muster',
       label: 'Muster',

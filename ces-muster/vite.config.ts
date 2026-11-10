@@ -24,6 +24,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    setupFiles: ['./src/vitest.setup.ts'],
     environmentMatchGlobs: [['src/driver/**', 'node']],
     exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**', 'muster-api/**', '**/.worktrees/**'],
     coverage: {

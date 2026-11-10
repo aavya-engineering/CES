@@ -40,7 +40,7 @@ describe('Onboard slice routes', () => {
       expect(onboardItems(role)).toEqual([]);
     }
     const all = onboardItems('bhd_operator');
-    expect(all.find((i) => i.label === 'All Organizations')).toMatchObject({ route: 'onboard/organizations', testId: 'nav-onboard-organizations', planned: false });
+    expect(all.find((i) => i.label === 'All Organizations')).toMatchObject({ route: 'onboard/organizations', testId: 'nav-onboard-organizations' });
     expect(all.find((i) => i.label === 'Scope Definition')).toMatchObject({ route: 'onboard/scope' });
   });
 

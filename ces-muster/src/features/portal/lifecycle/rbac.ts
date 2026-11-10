@@ -111,6 +111,12 @@ export function scopeFor(section: LifecycleSectionKey, groupKey?: string): Scope
 export function actionsFor(role: string, section: LifecycleSectionKey | 'home', groupKey?: string): readonly Action[] {
   const pr = toPlatformRole(role);
   if (!pr) return [];
+  // Remediate as a whole is visible when any of its group scopes is (Stamper for BHD, AdminOps / tracking for customers).
+  if (section === 'remediate' && !groupKey) {
+    const union = new Set<Action>();
+    for (const scope of ['remediate.stamper', 'remediate.adminops', 'remediate.tracking'] as const) for (const a of RBAC_MATRIX[scope]?.[pr] ?? []) union.add(a);
+    return [...union];
+  }
   const scope = section === 'home' ? 'home' : scopeFor(section, groupKey);
   const actions = RBAC_MATRIX[scope]?.[pr] ?? [];
   if (!actions.length) return [];

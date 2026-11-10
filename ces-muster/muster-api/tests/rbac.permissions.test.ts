@@ -34,7 +34,7 @@ vi.mock('../src/lib/prisma.js', () => ({
 
 const { createApp } = await import('../src/app.js');
 const { mintToken } = await import('../src/lib/jwt.js');
-const { PERMISSIONS, ROLES, permissionsFor } = await import('../src/lib/permissions.js');
+const { PERMISSIONS, ROLES, effectiveRoles, permissionsFor } = await import('../src/lib/permissions.js');
 
 const PROBES: Record<string, { method: string; path: string; body?: unknown }> = {
   'users.manage': { method: 'GET', path: '/api/users' },
@@ -88,7 +88,8 @@ describe('RBAC-01: catalogue matches the enforced routes', () => {
 
   for (const perm of PERMISSIONS) {
     for (const role of ROLES) {
-      const allowed = (perm.roles as readonly string[]).includes(role);
+      // Sprint 1 Foundation: platform roles act as their engine roles (ROLE_INHERITS).
+      const allowed = effectiveRoles(role).some((r) => (perm.roles as readonly string[]).includes(r));
       test(`${perm.id} · ${role} → ${allowed ? 'allowed' : '403'}`, async () => {
         const s = await status(role, PROBES[perm.id]);
         if (allowed) expect(s).not.toBe(403);

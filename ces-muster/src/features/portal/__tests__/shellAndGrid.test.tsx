@@ -21,17 +21,19 @@ import RequirementsPage from '../pages/RequirementsPage';
 
 const op: Viewer = { kind: 'signed-in', role: 'bhd_operator' };
 
-describe('S1.4 sidebar follows the wireframe tree', () => {
-  it('CES-Shared groups: Reference Data, Standard Evidence & Evaluation Rules, Contract Validation', () => {
+describe('S1.4 sidebar follows the wireframe tree (now the lifecycle workbook, 2026-11-10)', () => {
+  it('Shared Foundation per the workbook: Overview + Reference Data (110 Requirements, SPRS Weight Table, Version Compatibility); evidence catalog and rules moved to Collect Evidence', () => {
     const shared = navFor(op).find((s) => s.id === 'shared')!;
-    const groups = [...new Set(shared.items.map((i) => i.group).filter(Boolean))];
-    expect(groups).toEqual(['Reference Data', 'Standard Evidence & Evaluation Rules', 'Contract Validation', 'Evidence Store']);
-    expect(shared.items.filter((i) => i.group === 'Contract Validation').map((i) => i.label)).toEqual(['Golden Files', 'Contract Tests', 'Version Compatibility']);
+    expect(shared.items.map((i) => i.label)).toEqual(['Overview', '110 Requirements', 'SPRS Weight Table', 'Version Compatibility']);
+    const evidence = navFor(op).find((s) => s.id === 'evidence')!;
+    expect(evidence.items.some((i) => i.route === 'shared/evidence')).toBe(true);
+    expect(shared.items.find((i) => i.label === '110 Requirements')).toMatchObject({ route: 'shared/requirements', testId: 'nav-shared-requirements' });
   });
 
-  it('Engagements: Tenant Registration, All Engagements, Create Engagement, Engagement Workspace', () => {
-    const eng = navFor(op).find((s) => s.id === 'engagements')!;
-    expect(eng.items.map((i) => i.label)).toEqual(['Tenant Registration', 'All Engagements', 'Create Engagement', 'Engagement Workspace']);
+  it('Onboard › Engagement Management: All Engagements, Create Engagement, Engagement Details open the built screens', () => {
+    const onboard = navFor(op).find((s) => s.id === 'onboard')!;
+    const eng = onboard.items.filter((i) => i.group === 'Engagement Management').map((i) => [i.label, i.route]);
+    expect(eng).toEqual(expect.arrayContaining([['All Engagements', 'engagements/all'], ['Create Engagement', 'muster'], ['Engagement Details', 'muster']]));
   });
 });
 
@@ -115,14 +117,13 @@ describe('S1.4 standard grid on 110 Requirements', () => {
 });
 
 describe('S1.9 sidebar from the Create Requirement mockup', () => {
-  it('adds Contract Registry, Version Compatibility, Interfaces and Evidence Store; modules come before Engagements', () => {
+  it('Version Compatibility stays in Shared Foundation; Collect Evidence (evidence store) is its own lifecycle section', () => {
     const ids = navFor(op).map((s) => s.id);
-    expect(ids.indexOf('evidenceops')).toBeLessThan(ids.indexOf('engagements'));
+    expect(ids).toEqual(['home', 'shared', 'onboard', 'assess', 'plan', 'remediate', 'evidence', 'monitor', 'prepare', 'admin']);
     const shared = navFor(op).find((s) => s.id === 'shared')!;
-    expect(shared.items.map((i) => i.label)).toEqual(expect.arrayContaining(['Contract Registry', 'Version Compatibility', 'Interfaces', 'Storage Integrity']));
+    expect(shared.items.map((i) => i.label)).toEqual(expect.arrayContaining(['Version Compatibility']));
   });
-  it('a platform administrator does not get the Evidence Store (customer evidence)', () => {
-    const shared = navFor({ kind: 'signed-in', role: 'platform_admin' }).find((s) => s.id === 'shared')!;
-    expect(shared.items.some((i) => i.group === 'Evidence Store')).toBe(false);
+  it('a platform administrator does not get Collect Evidence (customer evidence)', () => {
+    expect(navFor({ kind: 'signed-in', role: 'platform_admin' }).some((s) => s.id === 'evidence')).toBe(false);
   });
 });

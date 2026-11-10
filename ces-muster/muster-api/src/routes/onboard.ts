@@ -91,7 +91,8 @@ export const boundaryDraftSchema = z.object({
   data_flows: z.array(z.object({ from: z.string().trim().min(1), to: z.string().trim().min(1), data: z.string().trim().min(1), protection: z.string().trim().optional() })).max(200).optional(),
 });
 
-const idParam = z.object({ id: z.string().uuid() });
+// passthrough: keeps :engagementId of the parent router (zod strips unknown keys otherwise).
+const idParam = z.object({ id: z.string().uuid() }).passthrough();
 
 // ---------------------------------------------------------------- helpers
 function notFound(res: import('express').Response) {
