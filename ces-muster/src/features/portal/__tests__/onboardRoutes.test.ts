@@ -53,14 +53,16 @@ describe('Onboard slice routes', () => {
       for (const i of built) expect(BUILT[i.path].route).toMatch(/^assess\//);
     }
     expect(routesFor(signedIn('compliance_manager')).has('assess/gaps')).toBe(true);
-    expect(routesFor(signedIn('assessor_read_only')).has('assess/readiness')).toBe(false); // assessor: Prepare only (matrix)
+    // The assessor reaches the SPRS score and results screens only through Prepare › Assessment Documentation (read-only APIs).
+    expect(navFor(signedIn('assessor_read_only')).some((s) => s.id === 'assess')).toBe(false);
+    expect(routesFor(signedIn('assessor_read_only')).has('assess/readiness')).toBe(true);
     expect(routesFor(signedIn('platform_admin')).has('assess/readiness')).toBe(false);
     expect(routeTitle('assess/gaps')).toEqual(['Assess', 'Gap Analysis', 'Gap Summary']);
   });
 
   it('Plan: every Remediation Planning / Action Management / Prioritization / POA&M page opens a built screen', () => {
     const plan = LIFECYCLE_NAV.find((s) => s.key === 'plan')!;
-    for (const g of plan.groups.filter((x) => x.key !== 'plan-artifacts')) { // sign-off / version history: Prepare slice
+    for (const g of plan.groups) {
       const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
       for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
     }
@@ -105,6 +107,21 @@ describe('Onboard slice routes', () => {
     expect(routesFor(signedIn('senior_approver')).has('monitor/overview')).toBe(true);
     expect(routesFor(signedIn('assessor_read_only')).has('monitor/overview')).toBe(false);
     expect(routeTitle('monitor/activity')).toEqual(['Monitor', 'Audit & Activity', 'Compliance Event History']);
+  });
+
+  it('Prepare: every workbook page opens a built screen; the external assessor reaches the workspace, documentation and packages', () => {
+    const prep = LIFECYCLE_NAV.find((s) => s.key === 'prepare')!;
+    for (const g of prep.groups) {
+      const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
+      for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
+    }
+    const assessor = routesFor(signedIn('assessor_read_only'));
+    expect(assessor.has('prepare/assessor')).toBe(true);
+    expect(assessor.has('prepare/packages')).toBe(true);
+    expect(assessor.has('prepare/ssp')).toBe(true);
+    expect(assessor.has('prepare/overview')).toBe(false); // internal readiness review is not the assessor's
+    expect(routesFor(signedIn('compliance_manager')).has('prepare/overview')).toBe(true);
+    expect(routeTitle('prepare/ssp')).toEqual(['Prepare for Assessment', 'Assessment Documentation', 'System Security Plan (SSP)']);
   });
 
   it('breadcrumbs name the workbook section, group and page', () => {

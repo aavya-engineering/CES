@@ -51,6 +51,7 @@ import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/p
 import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
 import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
 import { MonitorActivityPage, MonitorFindingsPage, MonitorOverviewPage } from '@/features/portal/pages/monitor/MonitorPages';
+import { AssessorWorkspacePage, PackagesPage, PrepareOverviewPage, ReportsPage, SspPage } from '@/features/portal/pages/prepare/PreparePages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -490,6 +491,17 @@ export default function App() {
         return <MonitorFindingsPage viewer={viewer} />;
       case 'monitor/activity':
         return <MonitorActivityPage />;
+      // Sprint 6 slice "Prepare for Assessment".
+      case 'prepare/overview':
+        return <PrepareOverviewPage viewer={viewer} go={go} />;
+      case 'prepare/ssp':
+        return <SspPage viewer={viewer} />;
+      case 'prepare/packages':
+        return <PackagesPage viewer={viewer} />;
+      case 'prepare/assessor':
+        return <AssessorWorkspacePage viewer={viewer} />;
+      case 'prepare/reports':
+        return <ReportsPage go={go} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':

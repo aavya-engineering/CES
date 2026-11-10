@@ -65,6 +65,11 @@ export type StaticRouteId =
   | 'monitor/overview'
   | 'monitor/findings'
   | 'monitor/activity'
+  | 'prepare/overview'
+  | 'prepare/ssp'
+  | 'prepare/packages'
+  | 'prepare/assessor'
+  | 'prepare/reports'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -254,6 +259,11 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'monitor/overview': ['Monitor', 'Monitoring Overview', 'Compliance Dashboard'],
   'monitor/findings': ['Monitor', 'Alerts & Notifications', 'Active Alerts'],
   'monitor/activity': ['Monitor', 'Audit & Activity', 'Compliance Event History'],
+  'prepare/overview': ['Prepare for Assessment', 'Assessment Preparation Overview', 'Assessment Readiness Dashboard'],
+  'prepare/ssp': ['Prepare for Assessment', 'Assessment Documentation', 'System Security Plan (SSP)'],
+  'prepare/packages': ['Prepare for Assessment', 'Evidence Packages', 'All Evidence Packages'],
+  'prepare/assessor': ['Prepare for Assessment', 'Assessor Workspace', 'Assessor Read-Only View'],
+  'prepare/reports': ['Prepare for Assessment', 'Reports & Exports', 'CMMC Readiness Report'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

@@ -21,6 +21,7 @@ import { createPlanActionsRouter } from './routes/planActions.js';
 import { createRemediationRouter } from './routes/remediation.js';
 import { createEvidenceRouter } from './routes/evidence.js';
 import { createMonitorRouter } from './routes/monitor.js';
+import { createPrepareRouter } from './routes/prepare.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
 import { createHilRouter } from './routes/hil.js';
@@ -153,6 +154,8 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/engagements/:engagementId/evidence', createEvidenceRouter(db));
   // Sprint 6 slice "Monitor": findings derived from the programme's records, trends, activity.
   app.use('/api/engagements/:engagementId/monitor', createMonitorRouter(db));
+  // Sprint 6 slice "Prepare": readiness checklist, SSP statements, evidence packages, assessor workspace, sign-offs, reports.
+  app.use('/api/engagements/:engagementId/prepare', createPrepareRouter(db));
   // Individual party read + sub self-only guard
   app.use('/api/parties', createPartyRouter(db));
   // Party actions (mergeParams picks up :id from parent path)

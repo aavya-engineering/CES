@@ -97,6 +97,10 @@ model Tenant {
   evidence_requests  EvidenceRequest[]
   monitor_findings   MonitorFinding[]
   monitor_snapshots  MonitorSnapshot[]
+  implementation_statements ImplementationStatement[]
+  evidence_packages  EvidencePackage[]
+  assessor_requests  AssessorRequest[]
+  assessment_sign_offs AssessmentSignOff[]
 
   @@map("tenants")
 }
@@ -164,6 +168,10 @@ model Engagement {
   evidence_requests EvidenceRequest[]
   monitor_findings  MonitorFinding[]
   monitor_snapshots MonitorSnapshot[]
+  implementation_statements ImplementationStatement[]
+  evidence_packages EvidencePackage[]
+  assessor_requests AssessorRequest[]
+  assessment_sign_offs AssessmentSignOff[]
 
   @@map("engagements")
 }
@@ -591,6 +599,8 @@ model AssessmentRun {
   engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
   results    AssessmentResult[]
   plan_actions PlanAction[]
+  evidence_packages EvidencePackage[]
+  sign_offs  AssessmentSignOff[]
 
   @@index([engagement_id, created_at(sort: Desc)])
   @@map("assessment_runs")
@@ -972,4 +982,144 @@ model MonitorSnapshot {
 
   @@index([engagement_id, taken_at(sort: Desc)])
   @@map("monitor_snapshots")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 6 slice "Prepare for Assessment" (migration 021_prepare, 2026-11-10):
+// SSP implementation statements, evidence packages, assessor requests, sign-offs.
+// ---------------------------------------------------------------------------
+
+enum ImplementationStatus {
+  implemented
+  partially_implemented
+  planned
+  alternative
+  not_applicable
+}
+
+enum PackageStatus {
+  draft
+  validated
+  signed_off
+  superseded
+}
+
+enum AssessorRequestStatus {
+  open
+  answered
+  closed
+}
+
+enum SignOffKind {
+  internal_review
+  evidence_completeness
+  gap_closure
+  package
+  final
+}
+
+model ImplementationStatement {
+  id                String               @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  requirement_id    String
+  status            ImplementationStatus @default(planned)
+  statement         String               @default("")
+  responsible_role  String?
+  systems           String[]             @default([])
+  evidence_item_ids String[]             @default([])
+  source            String               @default("manual")
+  version           Int                  @default(1)
+  approved_by       String?
+  approved_at       DateTime?            @db.Timestamptz
+  updated_by        String?
+  updated_at        DateTime             @default(now()) @db.Timestamptz
+  created_at        DateTime             @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, requirement_id])
+  @@map("implementation_statements")
+}
+
+model EvidencePackage {
+  id             String            @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  name           String
+  scope_type     String            @default("all")
+  scope_values   String[]          @default([])
+  item_ids       String[]          @default([])
+  manifest       Json
+  validation     Json?
+  status         PackageStatus     @default(draft)
+  version        Int               @default(1)
+  supersedes_id  String?
+  run_id         String?
+  built_by       String?
+  built_at       DateTime          @default(now()) @db.Timestamptz
+  signed_off_by  String?
+  signed_off_at  DateTime?         @db.Timestamptz
+  sign_off_notes String?
+  updated_at     DateTime          @default(now()) @db.Timestamptz
+
+  tenant     Tenant             @relation(fields: [tenant_id], references: [id])
+  engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        AssessmentRun?     @relation(fields: [run_id], references: [id], onDelete: SetNull)
+  supersedes EvidencePackage?   @relation("PackageVersions", fields: [supersedes_id], references: [id], onDelete: SetNull)
+  successors EvidencePackage[]  @relation("PackageVersions")
+  requests   AssessorRequest[]
+  sign_offs  AssessmentSignOff[]
+
+  @@index([engagement_id, status])
+  @@map("evidence_packages")
+}
+
+model AssessorRequest {
+  id                String                @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  package_id        String?
+  requirement_id    String?
+  question          String
+  requested_by      String
+  status            AssessorRequestStatus @default(open)
+  answer            String?
+  answered_by       String?
+  answered_at       DateTime?             @db.Timestamptz
+  evidence_item_ids String[]              @default([])
+  created_at        DateTime              @default(now()) @db.Timestamptz
+  updated_at        DateTime              @default(now()) @db.Timestamptz
+
+  tenant     Tenant           @relation(fields: [tenant_id], references: [id])
+  engagement Engagement       @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  package    EvidencePackage? @relation(fields: [package_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("assessor_requests")
+}
+
+model AssessmentSignOff {
+  id            String      @id @default(uuid())
+  tenant_id     String
+  engagement_id String
+  kind          SignOffKind
+  decision      String
+  notes         String
+  package_id    String?
+  run_id        String?
+  readiness     Json?
+  signed_by     String
+  signed_role   String?
+  signed_at     DateTime    @default(now()) @db.Timestamptz
+
+  tenant     Tenant           @relation(fields: [tenant_id], references: [id])
+  engagement Engagement       @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  package    EvidencePackage? @relation(fields: [package_id], references: [id], onDelete: SetNull)
+  run        AssessmentRun?   @relation(fields: [run_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, kind])
+  @@map("assessment_sign_offs")
 }

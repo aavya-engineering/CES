@@ -114,6 +114,10 @@ export function createMockDb() {
     sharedItem: makeModel(),
     monitorFinding: makeModel(),
     monitorSnapshot: makeModel(),
+    implementationStatement: makeModel(),
+    evidencePackage: makeModel(),
+    assessorRequest: makeModel(),
+    assessmentSignOff: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the
