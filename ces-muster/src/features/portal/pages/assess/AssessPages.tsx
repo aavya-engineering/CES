@@ -71,7 +71,7 @@ function Selectors({ eng, runs, runId, setRunId, extra }: { eng: ReturnType<type
 }
 
 /** ENGINE: start a discovery run and poll the job until the run lands. Simulator first; live only when the engagement's Live gate allows it. */
-function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string) => void }) {
+function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string, job: EngineJob) => void }) {
   const [mode, setMode] = useState<'sim' | 'live'>('sim');
   const [slug, setSlug] = useState('mp');
   const [job, setJob] = useState<EngineJob | null>(null);
@@ -81,7 +81,7 @@ function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string)
     if (!job || job.status !== 'running') return;
     const t = setInterval(async () => {
       const r = await assessApi.job(eid, job.id);
-      if (r.ok) { setJob(r.data); if (r.data.status === 'done' && r.data.run_id) onDone(r.data.run_id); if (r.data.status === 'failed') setError(r.data.error ?? 'Engine run failed.'); }
+      if (r.ok) { setJob(r.data); if (r.data.status === 'done' && r.data.run_id) onDone(r.data.run_id, r.data); if (r.data.status === 'failed') setError(r.data.error ?? 'Engine run failed.'); }
     }, 1500);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,7 +153,7 @@ export function ReadinessOverviewPage({ viewer }: { viewer: Viewer }) {
   return (
     <div className="pg" data-testid="page-assess-readiness">
       <PageHeader icon="readiness" title="Readiness assessment" lede="The engagement's SPRS position from the latest assessed record — one calculator, conservative (only Met counts), with the registry-fixable projection labelled as such." />
-      <Selectors eng={eng} runs={runs} runId={runId} setRunId={setRunId} extra={writable && eng.id ? <span className="grow" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}><RunEngineButton eid={eng.id} onDone={(id) => { setToast('Engine run landed — new SPRS below.'); reload(); setRunId(id); }} /><ImportButton eid={eng.id} onDone={(r) => { setToast(`Run imported — SPRS ${r.sprs_now}.`); reload(); }} /></span> : undefined} />
+      <Selectors eng={eng} runs={runs} runId={runId} setRunId={setRunId} extra={writable && eng.id ? <span className="grow" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}><RunEngineButton eid={eng.id} onDone={(id, job) => { setToast(`Engine run landed — new SPRS below.${job.evidence?.created ? ` ${job.evidence.created} capture${job.evidence.created === 1 ? '' : 's'} added to Collect Evidence as drafts.` : ''}`); reload(); setRunId(id); }} /><ImportButton eid={eng.id} onDone={(r) => { setToast(`Run imported — SPRS ${r.sprs_now}.`); reload(); }} /></span> : undefined} />
       {(eng.error || error) && <p className="note" data-tone="bad" role="alert">{eng.error ?? error}</p>}
       {runs && runs.length === 0 && eng.id && <Empty>No assessment run for this engagement yet.{writable ? ' Run the engine against the simulator (needs tenant-stacksim on the server), or import a readiness-result JSON (Muster › Readiness export, ces-tester output, or a delivered record).' : ''}</Empty>}
       {run && (

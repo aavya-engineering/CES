@@ -39,6 +39,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { runSimDiscovery, type SimDiscoveryDeps, type SimDiscoveryOutcome } from '../services/simDiscoveryRun.js';
 import { runLiveDiscovery, type LiveDiscoveryDeps } from '../services/liveDiscoveryRun.js';
+import { captureRunEvidence } from '../services/runCaptures.js';
 import { authorizeLive, type LiveGate } from '../services/liveAccess.js';
 import CONTROLS from '../vendored/ces-shared/data/cmmc-l2-controls.reference.json';
 import SPRS_WEIGHTS from '../vendored/ces-shared/data/sprs-weights.json';
@@ -75,6 +76,7 @@ const observationSchema = z.object({
   objective_ids: z.array(z.string()).default([]),
   confidence: z.enum(['high', 'medium', 'low', 'unknown']).default('unknown'),
   ran_entry_ids: z.array(z.string()).default([]),
+  raw_capture_ref: z.string().optional(),
   derived_posture: z.enum(STATUSES),
 }).passthrough();
 
@@ -176,10 +178,12 @@ export interface AssessmentsRouterOptions {
   runLive?: typeof runLiveDiscovery;
   runLiveDeps?: LiveDiscoveryDeps;
   workRoot?: string;
+  /** Test seam for reading capture files. */
+  readCapture?: (abs: string) => Buffer | null;
 }
 
 type EngineSource = 'readiness_result' | 'delivery_artifact' | 'engine_run';
-interface Job { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown }
+interface Job { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
 const MAX_JOBS = 200;
 
 export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions = {}) {
@@ -343,8 +347,12 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
           const parsed = readinessResultSchema.safeParse(outcome.envelope);
           if (!parsed.success) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine envelope did not validate: ${parsed.error.issues[0]?.message ?? 'unknown'}` }); return; }
           try {
-            const { run } = await persistRun(actor, engagementId, parsed.data, 'engine_run', { label: body.label ?? `Discovery run (${body.mode === 'live' ? 'LIVE' : 'simulator'} · ${body.tenant_slug})` });
-            remember({ ...job, status: 'done', finished_at: new Date().toISOString(), run_id: run.id, stats: outcome.stats });
+            const label = body.label ?? `Discovery run (${body.mode === 'live' ? 'LIVE' : 'simulator'} · ${body.tenant_slug})`;
+            const { run } = await persistRun(actor, engagementId, parsed.data, 'engine_run', { label });
+            // Captures → Collect Evidence (source = discovery, draft, SHA-256). Failure here never fails the run.
+            let evidence: { created: number; missing_files: number } | undefined;
+            try { evidence = await captureRunEvidence(db, { actor, engagementId, assessmentRunId: run.id, source: 'discovery', outDir, observations: parsed.data.observations, label, readFile: opts.readCapture }); } catch { evidence = undefined; }
+            remember({ ...job, status: 'done', finished_at: new Date().toISOString(), run_id: run.id, stats: outcome.stats, evidence });
           } catch (e) {
             remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: e instanceof Error ? e.message : String(e) });
           }

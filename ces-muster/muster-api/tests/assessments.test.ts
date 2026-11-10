@@ -50,7 +50,8 @@ beforeAll(async () => {
   app.use(express.json({ limit: '5mb' }));
   app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, {
     // Engine seam: the simulator walk returns our RECORD as its envelope; the live path has no gate → refused.
-    runSim: async ({ slug }) => (slug === 'broken' ? { ok: false, code: 'sim_unreachable', message: 'ledger down' } : { ok: true, envelope: { ...RECORD, provenance: { engine: { name: 'muster-api discovery', version: 'sim' }, generated_at: new Date().toISOString() } }, stats: { entries: 4 }, postures: { met: 2, unknown: 0, not_met: 1 } }),
+    readCapture: (abs) => (abs.endsWith('captures/ac-3.1.1.txt') ? Buffer.from('Get-MgPolicy… (sim output)') : null),
+    runSim: async ({ slug }) => (slug === 'broken' ? { ok: false, code: 'sim_unreachable', message: 'ledger down' } : { ok: true, envelope: { ...RECORD, observations: RECORD.observations.map((o, i) => ({ ...o, raw_capture_ref: i < 2 ? 'captures/ac-3.1.1.txt' : i === 2 ? 'captures/missing.txt' : undefined })), provenance: { engine: { name: 'muster-api discovery', version: 'sim' }, generated_at: new Date().toISOString() } }, stats: { entries: 4 }, postures: { met: 2, unknown: 0, not_met: 1 } }),
   }));
   server = http.createServer(app);
   await new Promise<void>((r) => server.listen(0, () => r()));
@@ -59,7 +60,7 @@ beforeAll(async () => {
 afterAll(() => new Promise<void>((r) => server.close(() => r())));
 
 beforeEach(async () => {
-  for (const m of ['assessmentRun', 'assessmentResult', 'auditEvent', 'engagement', 'deliveryArtifact'] as const) db[m]._records.length = 0;
+  for (const m of ['assessmentRun', 'assessmentResult', 'auditEvent', 'engagement', 'deliveryArtifact', 'evidenceItem'] as const) db[m]._records.length = 0;
   await db.engagement.create({ data: { id: ENG_A, tenant_id: TENANT_A, engagement_kind: 'prime_only' } });
 });
 
@@ -135,7 +136,14 @@ describe('runs', () => {
     const run = await (await call('GET', `/${job.run_id}`, 'prime')).json();
     expect(run).toMatchObject({ source: 'engine_run', label: 'Nightly sim', met_count: 1 });
     expect(run.engine.name).toBe('muster-api discovery');
-    expect(db.auditEvent._records.map((a) => a.action)).toEqual(['assessment.run.start', 'assessment.ingest']);
+    expect(db.auditEvent._records.map((a) => a.action)).toEqual(['assessment.run.start', 'assessment.ingest', 'evidence.capture']);
+    // Captures → Collect Evidence: one draft item per capture file (two observations shared one), the missing file is counted, nothing inlined into the run.
+    expect((job as { evidence?: unknown }).evidence).toMatchObject({ created: 1, missing_files: 1, skipped_no_ref: 1 });
+    const items = db.evidenceItem._records;
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ source: 'discovery', status: 'draft', kind: 'config_capture', classification: 'internal', requirement_ids: ['AC.L1-3.1.1'], objective_ids: ['AC.L1-3.1.1[a]', 'AC.L1-3.1.1[b]'] });
+    expect(items[0].sha256).toHaveLength(64);
+    expect((items[0].metadata as { assessment_run_id: string }).assessment_run_id).toBe(job.run_id);
 
     const live = await call('POST', '/run', 'bhd_operator', { mode: 'live' });
     expect(live.status).toBeGreaterThanOrEqual(400); // no Live gate configured → refused, never a silent sim fallback

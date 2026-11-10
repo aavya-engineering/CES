@@ -71,7 +71,7 @@ export interface GapAnalysis {
 
 const base = (eid: string) => `/api/engagements/${eid}/assessments`;
 
-export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown }
+export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
 
 export const assessApi = {
   /** ENGINE: walk the command registry against the simulator (or live, behind the gate) and persist the outcome as a run. */
