@@ -65,7 +65,9 @@ const idParam = z.object({ id: z.string().uuid() }).passthrough();
 
 const publicUser = (u: Record<string, unknown>) => ({ id: u.id, email: u.email, display_name: u.display_name ?? null, role: u.role, last_login_at: u.last_login_at ?? null, disabled: !!u.disabled_at, created_at: u.created_at });
 
-export function createAdminRouter(db: Db) {
+export interface AdminRouterOptions { schedulerStatus?: () => { enabled: boolean; interval_ms: number; last_tick_at: string | null; last_report: unknown; ticks: number } }
+
+export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
   const r = Router();
 
   // ---------------------------------------------------------------- settings
@@ -191,7 +193,7 @@ export function createAdminRouter(db: Db) {
         service: { status: dbOk ? 'ok' : 'degraded', version: process.env.CES_VERSION ?? 'dev', node: process.version, uptime_seconds: Math.floor((Date.now() - STARTED_AT) / 1000), started_at: new Date(STARTED_AT).toISOString() },
         database: { status: dbOk ? 'ok' : 'unreachable', latency_ms: dbMs, rls: 'tenant_isolation policies (fail-closed)' },
         records: { engagements: engagements.length, organizations: await count('organization', { tenant_id: tenant }), customer_tenants: await count('customerTenant', { tenant_id: tenant }), assessment_runs: await count('assessmentRun', { tenant_id: tenant }), plan_actions: await count('planAction', { tenant_id: tenant }), remediation_runs: await count('remediationRun', { tenant_id: tenant }), evidence_items: await count('evidenceItem', { tenant_id: tenant }), monitor_findings: await count('monitorFinding', { tenant_id: tenant }), evidence_packages: await count('evidencePackage', { tenant_id: tenant }) },
-        background_jobs: { scheduler: 'none configured — monitoring runs on "Evaluate now" or an external cron calling POST /monitor/evaluate', last_monitor_evaluation: engagements.map((e: { id: string; name: string | null }) => ({ engagement_id: e.id, name: e.name, at: lastEval.get(e.id)?.toISOString() ?? null })) },
+        background_jobs: { scheduler: opts.schedulerStatus ? { ...opts.schedulerStatus(), note: 'in-process; honours Settings › System › monitoring cadence per tenant' } : 'none configured — monitoring runs on "Evaluate now" or an external cron calling POST /monitor/evaluate', last_monitor_evaluation: engagements.map((e: { id: string; name: string | null }) => ({ engagement_id: e.id, name: e.name, at: lastEval.get(e.id)?.toISOString() ?? null })) },
         integrations: [
           { id: 'tenant_runner', label: 'Tenant runner (Stamper / AdminOps live execution)', status: 'not_wired', note: 'Sprint 5 — live runs stay queued' },
           { id: 'ces_eo', label: 'ces-eo assessment engine (server-side runs)', status: 'not_wired', note: 'Runs are imported from readiness-result records' },

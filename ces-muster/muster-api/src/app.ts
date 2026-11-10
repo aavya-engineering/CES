@@ -23,6 +23,7 @@ import { createEvidenceRouter } from './routes/evidence.js';
 import { createMonitorRouter } from './routes/monitor.js';
 import { createPrepareRouter } from './routes/prepare.js';
 import { createAdminRouter } from './routes/admin.js';
+import { createMonitorScheduler } from './services/monitorScheduler.js';
 import { createOnboardChecklistRouter, createSystemsRouter } from './routes/systems.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
@@ -159,7 +160,9 @@ export function createApp(opts: AppOptions = {}) {
   // Sprint 6 slice "Prepare": readiness checklist, SSP statements, evidence packages, assessor workspace, sign-offs, reports.
   app.use('/api/engagements/:engagementId/prepare', createPrepareRouter(db));
   // Administration (tenant settings, access requests / reviews, health) and Onboard leftovers (systems registry, checklist).
-  app.use('/api/admin', createAdminRouter(db));
+  const monitorScheduler = createMonitorScheduler({ db, intervalMs: parseInt(process.env.MONITOR_SCHEDULER_INTERVAL_MS ?? '900000', 10), log: logger });
+  app.locals.monitorScheduler = monitorScheduler;
+  app.use('/api/admin', createAdminRouter(db, { schedulerStatus: monitorScheduler.status }));
   app.use('/api/engagements/:engagementId/systems', createSystemsRouter(db));
   app.use('/api/engagements/:engagementId/onboard', createOnboardChecklistRouter(db));
   // Individual party read + sub self-only guard

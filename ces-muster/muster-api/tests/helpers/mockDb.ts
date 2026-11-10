@@ -118,6 +118,7 @@ export function createMockDb() {
     evidencePackage: makeModel(),
     assessorRequest: makeModel(),
     assessmentSignOff: makeModel(),
+    tenant: makeModel(),
     tenantSettings: makeModel(),
     accessRequest: makeModel(),
     accessReview: makeModel(),

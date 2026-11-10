@@ -34,7 +34,8 @@ export interface Settings { organization: { display_name: string; timezone: stri
 export interface TenantUser { id: string; email: string; display_name: string | null; role: string; last_login_at: string | null; disabled: boolean; created_at: string }
 export interface AccessRequest { id: string; requested_by: string; subject_email: string; requested_role: string; engagement_id: string | null; justification: string; status: 'open' | 'approved' | 'rejected' | 'fulfilled'; decided_by: string | null; decided_at: string | null; decision_notes: string | null; created_at: string }
 export interface AccessReview { id: string; title: string; snapshot: TenantUser[]; decisions: { user_id: string; decision: 'keep' | 'remove' | 'change_role'; note?: string | null; by: string; at: string }[]; status: 'open' | 'completed'; started_by: string; started_at: string; completed_by: string | null; completed_at: string | null }
-export interface Health { service: { status: string; version: string; node: string; uptime_seconds: number; started_at: string }; database: { status: string; latency_ms: number; rls: string }; records: Record<string, number | null>; background_jobs: { scheduler: string; last_monitor_evaluation: { engagement_id: string; name: string | null; at: string | null }[] }; integrations: { id: string; label: string; status: string; note: string }[] }
+export interface SchedulerStatus { enabled: boolean; interval_ms: number; last_tick_at: string | null; ticks: number; note?: string; last_report?: { tenants: number; considered: number; evaluated: number; skipped_fresh: number; failed: { engagement_id: string; error: string }[]; at: string } | null }
+export interface Health { service: { status: string; version: string; node: string; uptime_seconds: number; started_at: string }; database: { status: string; latency_ms: number; rls: string }; records: Record<string, number | null>; background_jobs: { scheduler: string | SchedulerStatus; last_monitor_evaluation: { engagement_id: string; name: string | null; at: string | null }[] }; integrations: { id: string; label: string; status: string; note: string }[] }
 export interface SystemRecord { id: string; name: string; kind: 'system' | 'environment' | 'infrastructure' | 'cloud_resource'; environment: string | null; hosting: string | null; description: string | null; owner: string | null; handles_cui: boolean; scope_asset_id: string | null; attributes: Record<string, string> | null; updated_at: string }
 export interface Checklist { sections: { id: string; label: string; items: { id: string; label: string; ok: boolean; route: RouteId }[] }[]; done: number; total: number; ready: boolean }
 export interface EngagementDetail { id: string; name: string | null; reference_id: string | null; engagement_kind: string; cmmc_level: number | null; status: 'planned' | 'in_progress' | 'on_hold' | 'closed'; start_date: string | null; target_date: string | null; live_access_enabled?: boolean; created_at: string }
@@ -122,7 +123,7 @@ export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'o
                 <label className="form-row">Locale<input className="input" value={d.organization.locale} onChange={(e) => set('organization', { locale: e.target.value })} /></label>
               </div>}
               {tab === 'system' && <div className="form-grid-2">
-                <label className="form-row">Monitoring cadence (hours)<input className="input" type="number" min={1} max={168} value={d.system.monitoring_cadence_hours} onChange={(e) => set('system', { monitoring_cadence_hours: Number(e.target.value) })} /><span className="hint">An external scheduler calls POST /monitor/evaluate at this cadence; see System health.</span></label>
+                <label className="form-row">Monitoring cadence (hours)<input className="input" type="number" min={1} max={168} value={d.system.monitoring_cadence_hours} onChange={(e) => set('system', { monitoring_cadence_hours: Number(e.target.value) })} /><span className="hint">The built-in scheduler (when enabled on the server) evaluates each active engagement at this cadence; otherwise an external cron calls POST /monitor/evaluate. See System health › Background jobs.</span></label>
                 <label className="form-row">Evidence currency (days)<input className="input" type="number" min={30} max={1095} value={d.system.evidence_currency_days} onChange={(e) => set('system', { evidence_currency_days: Number(e.target.value) })} /></label>
                 <label className="form-row">Session idle timeout (minutes)<input className="input" type="number" min={5} max={480} value={d.system.session_idle_minutes} onChange={(e) => set('system', { session_idle_minutes: Number(e.target.value) })} /></label>
               </div>}
@@ -218,6 +219,16 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
 }
 
 // ====================================================================== system health
+function SchedulerCard({ s }: { s: SchedulerStatus }) {
+  const r = s.last_report;
+  return (
+    <div data-testid="scheduler-status">
+      <p className="note" data-tone={s.enabled ? 'good' : 'warn'}>{s.enabled ? `Monitoring scheduler running — ticks every ${Math.round(s.interval_ms / 60000)} min, honouring each tenant's cadence.` : 'Monitoring scheduler is built in but not enabled on this server (MONITOR_SCHEDULER=1). "Evaluate now" and an external cron still work.'}</p>
+      {r && <p className="hint">Last tick {fmt(r.at)}: {r.considered} active engagement{r.considered === 1 ? '' : 's'} considered, {r.evaluated} evaluated, {r.skipped_fresh} still fresh{r.failed.length ? `, ${r.failed.length} failed` : ''}.</p>}
+    </div>
+  );
+}
+
 export function SystemHealthPage() {
   const h = useLoader<Health>(() => adminApi.health(), []);
   const d = h.data;
@@ -236,7 +247,7 @@ export function SystemHealthPage() {
           </div>
           <div className="form-grid-2">
             <section className="card card-pad"><h2 className="card-title">Integrations</h2><ul className="checklist" data-testid="health-integrations">{d.integrations.map((i) => <li key={i.id}><span className="pill" data-tone={i.status === 'ok' || i.status === 'configured' ? 'good' : i.status === 'console' ? 'info' : 'warn'}>{i.status.replace('_', ' ')}</span> <span>{i.label}<div className="hint">{i.note}</div></span></li>)}</ul></section>
-            <section className="card card-pad"><h2 className="card-title">Background jobs</h2><p className="note" data-tone="info">{d.background_jobs.scheduler}</p><table className="tbl"><thead><tr><th scope="col">Engagement</th><th scope="col">Last monitoring evaluation</th></tr></thead><tbody>{d.background_jobs.last_monitor_evaluation.map((e) => <tr key={e.engagement_id}><td>{e.name ?? e.engagement_id.slice(0, 8)}</td><td className="hint">{e.at ? fmt(e.at) : 'never'}</td></tr>)}</tbody></table></section>
+            <section className="card card-pad"><h2 className="card-title">Background jobs</h2>{typeof d.background_jobs.scheduler === 'string' ? <p className="note" data-tone="info">{d.background_jobs.scheduler}</p> : <SchedulerCard s={d.background_jobs.scheduler} />}<table className="tbl"><thead><tr><th scope="col">Engagement</th><th scope="col">Last monitoring evaluation</th></tr></thead><tbody>{d.background_jobs.last_monitor_evaluation.map((e) => <tr key={e.engagement_id}><td>{e.name ?? e.engagement_id.slice(0, 8)}</td><td className="hint">{e.at ? fmt(e.at) : 'never'}</td></tr>)}</tbody></table></section>
           </div>
           <section className="card card-pad"><h2 className="card-title">Records (this tenant)</h2><table className="tbl"><tbody>{Object.entries(d.records).map(([k, v]) => <tr key={k}><td>{k.replace(/_/g, ' ')}</td><td className="num">{v ?? '—'}</td></tr>)}</tbody></table></section>
         </>
