@@ -53,6 +53,9 @@ export type StaticRouteId =
   | 'onboard/scope'
   | 'assess/readiness'
   | 'assess/gaps'
+  | 'plan/overview'
+  | 'plan/actions'
+  | 'plan/poam'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -230,6 +233,9 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'onboard/scope': ['Onboard', 'Compliance Scope', 'Scope Definition'],
   'assess/readiness': ['Assess', 'Readiness Assessment', 'Readiness Overview'],
   'assess/gaps': ['Assess', 'Gap Analysis', 'Gap Summary'],
+  'plan/overview': ['Plan', 'Planning Overview'],
+  'plan/actions': ['Plan', 'Action Management', 'All Action Items'],
+  'plan/poam': ['Plan', 'POA&M Planning', 'POA&M Items'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

@@ -90,6 +90,8 @@ model Tenant {
   scope_boundaries ScopeBoundary[]
   assessment_runs    AssessmentRun[]
   assessment_results AssessmentResult[]
+  plan_actions       PlanAction[]
+  poam_items         PoamItem[]
 
   @@map("tenants")
 }
@@ -150,6 +152,8 @@ model Engagement {
   scope_assets     ScopeAsset[]
   scope_boundaries ScopeBoundary[]
   assessment_runs  AssessmentRun[]
+  plan_actions     PlanAction[]
+  poam_items       PoamItem[]
 
   @@map("engagements")
 }
@@ -576,6 +580,7 @@ model AssessmentRun {
   tenant     Tenant             @relation(fields: [tenant_id], references: [id])
   engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
   results    AssessmentResult[]
+  plan_actions PlanAction[]
 
   @@index([engagement_id, created_at(sort: Desc)])
   @@map("assessment_runs")
@@ -605,4 +610,95 @@ model AssessmentResult {
 
   @@unique([run_id, requirement_id])
   @@map("assessment_results")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 4 slice "Plan" (migration 017_plan_actions, 2026-11-10): remediation
+// action items from gaps and the POA&M register.
+// ---------------------------------------------------------------------------
+
+enum ActionPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum ActionStatus {
+  open
+  in_progress
+  blocked
+  done
+  wont_fix
+}
+
+enum PoamStatus {
+  open
+  ongoing
+  completed
+  risk_accepted
+}
+
+model PlanAction {
+  id             String         @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  run_id         String?
+  requirement_id String?
+  family         String?
+  weight         Int            @default(0)
+  title          String
+  description    String?
+  source         String         @default("manual")
+  fix_kind       String         @default("manual")
+  fix_entry_ids  String[]       @default([])
+  priority       ActionPriority @default(medium)
+  status         ActionStatus   @default(open)
+  owner          String?
+  due_date       DateTime?      @db.Date
+  effort_hours   Int?
+  depends_on     String[]       @default([])
+  sequence       Int?
+  notes          String?
+  created_by     String?
+  created_at     DateTime       @default(now()) @db.Timestamptz
+  updated_at     DateTime       @default(now()) @db.Timestamptz
+  closed_at      DateTime?      @db.Timestamptz
+
+  tenant     Tenant         @relation(fields: [tenant_id], references: [id])
+  engagement Engagement     @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        AssessmentRun? @relation(fields: [run_id], references: [id], onDelete: SetNull)
+  poam_items PoamItem[]
+
+  @@index([engagement_id, status])
+  @@map("plan_actions")
+}
+
+model PoamItem {
+  id                   String     @id @default(uuid())
+  tenant_id            String
+  engagement_id        String
+  action_id            String?
+  requirement_id       String
+  weight               Int        @default(0)
+  poam_allowed         Boolean    @default(true)
+  weakness             String
+  mitigation           String?
+  milestones           Json?
+  scheduled_completion DateTime?  @db.Date
+  responsible          String?
+  resources            String?
+  status               PoamStatus @default(open)
+  created_by           String?
+  created_at           DateTime   @default(now()) @db.Timestamptz
+  updated_at           DateTime   @default(now()) @db.Timestamptz
+  completed_at         DateTime?  @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  action     PlanAction? @relation(fields: [action_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("poam_items")
 }

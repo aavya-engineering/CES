@@ -58,6 +58,17 @@ describe('Onboard slice routes', () => {
     expect(routeTitle('assess/gaps')).toEqual(['Assess', 'Gap Analysis', 'Gap Summary']);
   });
 
+  it('Plan: every Remediation Planning / Action Management / Prioritization / POA&M page opens a built screen', () => {
+    const plan = LIFECYCLE_NAV.find((s) => s.key === 'plan')!;
+    for (const g of plan.groups.filter((x) => x.key !== 'plan-artifacts')) { // sign-off / version history: Prepare slice
+      const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
+      for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
+    }
+    expect(routesFor(signedIn('senior_approver')).has('plan/poam')).toBe(true); // approves POA&M, no edit
+    expect(routesFor(signedIn('evidence_reviewer')).has('plan/actions')).toBe(false);
+    expect(routeTitle('plan/poam')).toEqual(['Plan', 'POA&M Planning', 'POA&M Items']);
+  });
+
   it('breadcrumbs name the workbook section, group and page', () => {
     expect(routeTitle('onboard/organizations')).toEqual(['Onboard', 'Organization Management', 'All Organizations']);
     expect(routeTitle('onboard/tenants')).toEqual(['Onboard', 'Tenant Management', 'All Tenants']);

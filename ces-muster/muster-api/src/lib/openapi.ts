@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Plan', description: 'Sprint 4 slice: remediation action items generated from gaps (priority = SPRS weight) and the POA&M register (poam_prohibited flagged)' },
       { name: 'Assess', description: 'Sprint 3/4 slice: persisted readiness assessment runs (one SPRS), per-requirement results, gap analysis and audited human overrides' },
       { name: 'Onboard', description: 'Sprint 3 slice: organisations, customer Microsoft 365 tenant registrations and the compliance scope (assets + versioned CUI boundary)' },
       ...[
@@ -200,6 +201,41 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             status: { type: 'string', enum: ['planned', 'in_progress', 'on_hold', 'closed'] },
             start_date: { type: 'string', format: 'date', nullable: true },
             target_date: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        PlanAction: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, run_id: { type: 'string', nullable: true, readOnly: true }, requirement_id: { type: 'string', nullable: true, example: 'IA.L2-3.5.3' },
+            family: { type: 'string', nullable: true, readOnly: true }, weight: { type: 'integer', readOnly: true }, title: { type: 'string' }, description: { type: 'string', nullable: true },
+            source: { type: 'string', enum: ['gap', 'manual'], readOnly: true }, fix_kind: { type: 'string', enum: ['registry', 'manual'] }, fix_entry_ids: { type: 'array', items: { type: 'string' } },
+            priority: { type: 'string', enum: ['critical', 'high', 'medium', 'low'], description: 'Defaults from SPRS weight: 5 critical, 3 high, 1 medium' },
+            status: { type: 'string', enum: ['open', 'in_progress', 'blocked', 'done', 'wont_fix'] }, owner: { type: 'string', nullable: true }, due_date: { type: 'string', format: 'date', nullable: true },
+            effort_hours: { type: 'integer', nullable: true }, depends_on: { type: 'array', items: { type: 'string', format: 'uuid' } }, sequence: { type: 'integer', nullable: true }, notes: { type: 'string', nullable: true },
+            closed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
+        PoamItem: {
+          type: 'object',
+          required: ['requirement_id', 'weakness'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, action_id: { type: 'string', nullable: true }, requirement_id: { type: 'string', example: 'MP.L2-3.8.3' }, weight: { type: 'integer', readOnly: true },
+            poam_allowed: { type: 'boolean', readOnly: true, description: 'false for sprs-weights.json poam_prohibited requirements' },
+            weakness: { type: 'string' }, mitigation: { type: 'string', nullable: true },
+            milestones: { type: 'array', nullable: true, items: { type: 'object', properties: { title: { type: 'string' }, due_date: { type: 'string', format: 'date', nullable: true }, done: { type: 'boolean' } } } },
+            scheduled_completion: { type: 'string', format: 'date', nullable: true }, responsible: { type: 'string', nullable: true }, resources: { type: 'string', nullable: true },
+            status: { type: 'string', enum: ['open', 'ongoing', 'completed', 'risk_accepted'] }, completed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
+        PlanSummary: {
+          type: 'object',
+          properties: {
+            latest_run: { type: 'object', nullable: true, properties: { id: { type: 'string' }, sprs_now: { type: 'integer' }, created_at: { type: 'string', format: 'date-time' } } },
+            actions: { type: 'object', properties: { total: { type: 'integer' }, by_status: { type: 'object' }, by_priority: { type: 'object' }, overdue: { type: 'integer' }, weight_open: { type: 'integer' } } },
+            poam: { type: 'object', properties: { total: { type: 'integer' }, by_status: { type: 'object' }, prohibited: { type: 'integer' } } },
+            sprs_if_all_actions_done: { type: 'integer', nullable: true, description: 'PROJECTION' },
+            next_due: { type: 'array', items: { type: 'object' } },
           },
         },
         AssessmentRun: {
@@ -423,6 +459,30 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/engagements/{engagementId}/plan/summary': {
+        get: { tags: ['Plan'], security: bearer, summary: 'Plan overview: action / POA&M counts, overdue, next due, projected SPRS', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json(ref('PlanSummary')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions': {
+        get: { tags: ['Plan'], security: bearer, summary: 'Action items (sequence, then priority, then weight)', parameters: [pathParam('engagementId', 'Engagement id'), { name: 'status', in: 'query', schema: { type: 'string' } }, { name: 'priority', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: ref('PlanAction') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Plan'], security: bearer, summary: 'Add a manual action (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('PlanAction')), responses: { 201: json(ref('PlanAction'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions/generate': {
+        post: { tags: ['Plan'], security: bearer, summary: 'Generate one action per gap of a run (requirements already covered are skipped)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['run_id'], properties: { run_id: { type: 'string', format: 'uuid' }, statuses: { type: 'array', items: { type: 'string', enum: ['not_met', 'partial', 'unknown'] }, default: ['not_met', 'partial'] } } }), responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, skipped: { type: 'integer' }, actions: { type: 'array', items: ref('PlanAction') } } }, 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions/{id}': {
+        patch: { tags: ['Plan'], security: bearer, summary: 'Update an action (status done / wont_fix sets closed_at)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Action id')], requestBody: body(ref('PlanAction')), responses: { 200: json(ref('PlanAction')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Plan'], security: bearer, summary: 'Delete an action', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Action id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam': {
+        get: { tags: ['Plan'], security: bearer, summary: 'POA&M items, heaviest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('PoamItem') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Plan'], security: bearer, summary: 'Add a POA&M item', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('PoamItem')), responses: { 201: json(ref('PoamItem'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam/from-actions': {
+        post: { tags: ['Plan'], security: bearer, summary: 'Open actions → POA&M items (one per requirement; poam_prohibited flagged, never dropped)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, items: { type: 'array', items: ref('PoamItem') } } }, 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam/{id}': {
+        patch: { tags: ['Plan'], security: bearer, summary: 'Update a POA&M item (a prohibited item needs a recorded mitigation before completed)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'POA&M item id')], requestBody: body(ref('PoamItem')), responses: { 200: json(ref('PoamItem')), 404: err('Not found'), 409: err('POAM_PROHIBITED'), 422: err('Validation'), ...common } },
+      },
       '/api/engagements/{engagementId}/assessments': {
         get: { tags: ['Assess'], security: bearer, summary: 'Assessment runs of an engagement, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('AssessmentRun') }), 404: err('Not found'), ...common } },
         post: { tags: ['Assess'], security: bearer, summary: 'Ingest a readiness-result record as a new run (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ReadinessResultRecord')), responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
