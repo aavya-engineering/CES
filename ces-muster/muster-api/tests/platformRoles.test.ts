@@ -57,7 +57,8 @@ describe('platform roles (RBAC-01, Sprint 1 Foundation)', () => {
       expect(ui[scope], `UI matrix is missing scope ${scope}`).toBeDefined();
       expect(byRole).toEqual(ui[scope]);
     }
-    // Stamper is BHD-only.
-    expect(Object.keys(PLATFORM_ROLE_MATRIX['remediate.stamper']).sort()).toEqual(['bhd_operator', 'platform_admin']);
+    // Stamper is BHD-only; the platform administrator holds no customer data (PB-01).
+    expect(Object.keys(PLATFORM_ROLE_MATRIX['remediate.stamper'])).toEqual(['bhd_operator']);
+    expect(PLATFORM_ROLE_MATRIX.onboard.platform_admin).toBeUndefined();
   });
 });

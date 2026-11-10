@@ -36,7 +36,7 @@ export default function LifecycleAccessMatrix() {
     <section className="card" data-testid="lifecycle-access-matrix">
       <div className="card-bar">
         <h2 className="card-title">Lifecycle access by role</h2>
-        <span className="muted">V view · E edit · A approve · X execute · ★ administer. Stamper is visible to BHD roles only.</span>
+        <span className="muted">V view · E edit · A approve · X execute · ★ administer. Stamper is visible to the BHD operator only; the platform administrator holds no customer data (BHD PB-01).</span>
       </div>
       <div className="table-wrap">
         <table className="tbl">

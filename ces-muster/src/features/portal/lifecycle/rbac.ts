@@ -69,21 +69,24 @@ const VEA: readonly Action[] = ['view', 'edit', 'approve'];
 const VA: readonly Action[] = ['view', 'approve'];
 const ALL: readonly Action[] = ['view', 'edit', 'approve', 'execute', 'admin'];
 
+// BHD role review PB-01 + platformAdminFence.ts: a platform administrator holds NO
+// customer data, so platform_admin appears only in home / shared / admin. BHD staff
+// who run engagements use bhd_operator (msutton may need both accounts — decision open).
 export const RBAC_MATRIX: Matrix = {
   home: { platform_admin: V, bhd_operator: V, org_admin: V, compliance_manager: V, it_security_admin: V, evidence_reviewer: V, senior_approver: V },
   shared: { platform_admin: ['view', 'edit', 'admin'], bhd_operator: V, org_admin: V, compliance_manager: V, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
-  onboard: { platform_admin: ALL, bhd_operator: VE, org_admin: VEA, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
-  assess: { platform_admin: VEX, bhd_operator: VEX, org_admin: V, compliance_manager: ['view', 'edit', 'execute', 'approve'], it_security_admin: VEX, evidence_reviewer: V, senior_approver: V },
-  plan: { platform_admin: VEA, bhd_operator: VEX, org_admin: VA, compliance_manager: VEA, it_security_admin: VE, evidence_reviewer: V, senior_approver: VA },
+  onboard: { bhd_operator: VE, org_admin: VEA, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
+  assess: { bhd_operator: VEX, org_admin: V, compliance_manager: ['view', 'edit', 'execute', 'approve'], it_security_admin: VEX, evidence_reviewer: V, senior_approver: V },
+  plan: { bhd_operator: VEX, org_admin: VA, compliance_manager: VEA, it_security_admin: VE, evidence_reviewer: V, senior_approver: VA },
   // Stamper: BHD only (walkthrough 2026-11-04 01:00:11). Customers never see it.
-  'remediate.stamper': { platform_admin: ['view', 'execute', 'approve'], bhd_operator: VEX },
+  'remediate.stamper': { bhd_operator: VEX },
   // AdminOps: the customer's CIS administrator runs it; second person approves.
-  'remediate.adminops': { platform_admin: ['view', 'execute', 'approve'], bhd_operator: ['view', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
-  'remediate.tracking': { platform_admin: V, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
+  'remediate.adminops': { bhd_operator: ['view', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
+  'remediate.tracking': { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
   remediate: {}, // resolved per group, see scopeFor()
-  evidence: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: VA, senior_approver: V },
-  monitor: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VEX, evidence_reviewer: V, senior_approver: VA },
-  prepare: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VEA, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
+  evidence: { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: VA, senior_approver: V },
+  monitor: { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VEX, evidence_reviewer: V, senior_approver: VA },
+  prepare: { bhd_operator: VE, org_admin: V, compliance_manager: VEA, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
   admin: { platform_admin: ALL, bhd_operator: V, org_admin: VE },
 };
 

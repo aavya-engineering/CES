@@ -43,8 +43,8 @@ export const ROLE_LABELS: Record<RoleName, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<RoleName, string> = {
-  platform_admin: 'Blue Heron Defense staff. Manages users and roles, reads the audit log, edits and publishes CES-Shared content (a second administrator publishes each draft). Sees every lifecycle stage; Stamper execution with the live-access flag.',
-  bhd_operator: 'Blue Heron Defense / delivery team. Runs engagements end to end: discovery, live access, plan push, Stamper, results. The only role besides platform administrator that sees Stamper.',
+  platform_admin: 'Blue Heron Defense staff. Manages users and roles, reads the audit log, edits and publishes CES-Shared content (a second administrator publishes each draft). Holds no customer data (BHD role review PB-01): Home, Shared Foundation and Administration only.',
+  bhd_operator: 'Blue Heron Defense / delivery team. Runs engagements end to end: discovery, live access, plan push, Stamper, results. The only role that sees Stamper.',
   prime: 'Prime contractor (engine role). Manages its engagement and subcontractors, runs discovery, pushes plans.',
   sub: 'Contractor being assessed (engine role). Answers the interview for its own organisation.',
   assessor_read_only: 'C3PAO assessor or reviewer. Reads the assessor workspace and evidence packages; changes nothing.',
@@ -95,18 +95,21 @@ const ALL: readonly LifecycleAction[] = ['view', 'edit', 'approve', 'execute', '
  * tests/platformRoles.test.ts). Stamper: BHD only. AdminOps: customer CIS admin
  * executes, senior approver approves (BHD walkthrough 2026-11-04).
  */
+// BHD role review PB-01 + platformAdminFence.ts: a platform administrator holds NO
+// customer data, so platform_admin appears only in home / shared / admin. BHD staff
+// who run engagements use bhd_operator (msutton may need both accounts — decision open).
 export const PLATFORM_ROLE_MATRIX: Record<LifecycleScope, Partial<Record<RoleName, readonly LifecycleAction[]>>> = {
   home: { platform_admin: V, bhd_operator: V, org_admin: V, compliance_manager: V, it_security_admin: V, evidence_reviewer: V, senior_approver: V },
   shared: { platform_admin: ['view', 'edit', 'admin'], bhd_operator: V, org_admin: V, compliance_manager: V, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
-  onboard: { platform_admin: ALL, bhd_operator: VE, org_admin: VEA, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
-  assess: { platform_admin: VEX, bhd_operator: VEX, org_admin: V, compliance_manager: ['view', 'edit', 'execute', 'approve'], it_security_admin: VEX, evidence_reviewer: V, senior_approver: V },
-  plan: { platform_admin: VEA, bhd_operator: VEX, org_admin: VA, compliance_manager: VEA, it_security_admin: VE, evidence_reviewer: V, senior_approver: VA },
-  'remediate.stamper': { platform_admin: ['view', 'execute', 'approve'], bhd_operator: VEX },
-  'remediate.adminops': { platform_admin: ['view', 'execute', 'approve'], bhd_operator: ['view', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
-  'remediate.tracking': { platform_admin: V, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
-  evidence: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: VA, senior_approver: V },
-  monitor: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VEX, evidence_reviewer: V, senior_approver: VA },
-  prepare: { platform_admin: VE, bhd_operator: VE, org_admin: V, compliance_manager: VEA, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
+  onboard: { bhd_operator: VE, org_admin: VEA, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
+  assess: { bhd_operator: VEX, org_admin: V, compliance_manager: ['view', 'edit', 'execute', 'approve'], it_security_admin: VEX, evidence_reviewer: V, senior_approver: V },
+  plan: { bhd_operator: VEX, org_admin: VA, compliance_manager: VEA, it_security_admin: VE, evidence_reviewer: V, senior_approver: VA },
+  'remediate.stamper': { bhd_operator: VEX },
+  'remediate.adminops': { bhd_operator: ['view', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
+  'remediate.tracking': { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
+  evidence: { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: VA, senior_approver: V },
+  monitor: { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VEX, evidence_reviewer: V, senior_approver: VA },
+  prepare: { bhd_operator: VE, org_admin: V, compliance_manager: VEA, it_security_admin: V, evidence_reviewer: V, senior_approver: V, assessor_read_only: V },
   admin: { platform_admin: ALL, bhd_operator: V, org_admin: VE },
 };
 

@@ -34,13 +34,17 @@ describe('lifecycle navigation model (CES Navigation.xlsx, 2026-11-10)', () => {
 });
 
 describe('role-aware sidebar', () => {
-  it('platform admin and BHD operator see every section including Remediate › Stamper', () => {
-    for (const role of ['platform_admin', 'bhd_operator']) {
-      const sections = navFor(signedIn(role));
-      expect(sections.map((s) => s.id)).toEqual(['home', 'shared', 'onboard', 'assess', 'plan', 'remediate', 'evidence', 'monitor', 'prepare', 'admin']);
-      const remediate = sections.find((s) => s.id === 'remediate')!;
-      expect(remediate.items.some((i) => i.group === 'Configuration Management – Stamper')).toBe(true);
-    }
+  it('the BHD operator sees every lifecycle section including Remediate › Stamper', () => {
+    const sections = navFor(signedIn('bhd_operator'));
+    expect(sections.map((s) => s.id)).toEqual(['home', 'shared', 'onboard', 'assess', 'plan', 'remediate', 'evidence', 'monitor', 'prepare', 'admin']);
+    const remediate = sections.find((s) => s.id === 'remediate')!;
+    expect(remediate.items.some((i) => i.group === 'Configuration Management – Stamper')).toBe(true);
+  });
+
+  it('the platform administrator holds no customer data (BHD PB-01): Home, Shared Foundation, Administration only', () => {
+    expect(navFor(signedIn('platform_admin')).map((s) => s.id)).toEqual(['home', 'shared', 'admin']);
+    expect(canView('platform_admin', 'onboard')).toBe(false);
+    expect(canView('platform_admin', 'remediate', 'configuration-management-stamper')).toBe(false);
   });
 
   it('customer roles never see Stamper; the CIS administrator sees AdminOps', () => {
@@ -83,7 +87,7 @@ describe('role-aware sidebar', () => {
 
 describe('routes', () => {
   it('built pages open their existing screens with the Sprint-1 test ids', () => {
-    const shared = navFor(signedIn('platform_admin')).find((s) => s.id === 'shared')!;
+    const shared = navFor(signedIn('bhd_operator')).find((s) => s.id === 'shared')!;
     const req = shared.items.find((i) => i.label === '110 Requirements')!;
     expect(req.route).toBe('shared/requirements');
     expect(req.testId).toBe('nav-shared-requirements');
