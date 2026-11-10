@@ -22,6 +22,12 @@ enum Role {
   bhd_operator
   assessor_read_only
   platform_admin
+  // Sprint 1 Foundation (014_platform_roles): platform roles of the lifecycle UI.
+  org_admin
+  compliance_manager
+  it_security_admin
+  evidence_reviewer
+  senior_approver
 }
 
 enum EngagementKind {

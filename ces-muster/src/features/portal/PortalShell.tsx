@@ -11,7 +11,7 @@
 // screen (Aavya mockups). Sidebar items come from nav.ts and are filtered by
 // role; the top bar holds breadcrumbs, help, theme and the account menu.
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { navFor, routesFor, ROUTE_TITLES, type MusterView, type NavItem, type RouteId, type Viewer } from './nav';
+import { navFor, routesFor, routeTitle, type MusterView, type NavItem, type RouteId, type Viewer } from './nav';
 import { CesShield } from '@/features/auth/icons';
 import { ChevronDown, ChevronRight, CircleHelp, Menu } from 'lucide-react';
 import { NavIcon } from './icons';
@@ -142,7 +142,7 @@ export default function PortalShell({
     if (r === route && r !== 'muster') setSearchNonce((n) => n + 1);
     onGo(r, v);
   };
-  const crumbs = route === 'muster' ? ['Muster', MUSTER_VIEW_TITLE[musterView] ?? ''] : ROUTE_TITLES[route];
+  const crumbs = route === 'muster' ? ['Muster', MUSTER_VIEW_TITLE[musterView] ?? ''] : routeTitle(route);
 
   return (
     <div className="portal" data-nav-open={navOpen} data-nav-hidden={navHidden || undefined} data-testid="portal">

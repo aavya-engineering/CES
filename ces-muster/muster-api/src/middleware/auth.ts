@@ -9,6 +9,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from '../lib/jwt.js';
+import { effectiveRoles } from '../lib/permissions.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -42,7 +43,8 @@ export function bearerAuth(req: Request, res: Response, next: NextFunction): voi
 
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    // Sprint 1 Foundation: a platform role acts as the engine roles it inherits (permissions.ts ROLE_INHERITS).
+    if (!req.user || !effectiveRoles(req.user.role).some((r) => roles.includes(r))) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }

@@ -44,6 +44,8 @@ import { SharedViewerContext, type SharedViewer } from '@/features/portal/govern
 import { ContractsInfoPage, HelpPage, ModulePage, NotBuiltPage, SharedOverviewPage } from '@/features/portal/pages/InfoPages';
 import { EngagementsPage, HomePage } from '@/features/portal/pages/HomeAndEngagements';
 import PortfolioPage from '@/features/portal/PortfolioPage';
+import LifecycleScaffoldPage from '@/features/portal/pages/LifecycleScaffoldPage';
+import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
 import type { EngagementKind, InterviewFact } from '@/shared/types/engagement';
@@ -459,7 +461,8 @@ export default function App() {
       case 'help':
         return <HelpPage role={account.kind === 'signed-in' ? account.roleId : null} go={go} />;
       default:
-        return null;
+        // Sprint 1 Foundation: lifecycle pages without a screen yet open the scaffold.
+        return isLifecycleRoute(route) ? <LifecycleScaffoldPage route={route} viewer={viewer} go={go} /> : null;
     }
   })();
 
