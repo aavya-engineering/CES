@@ -187,6 +187,10 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
       const count = async (model: string, where: Record<string, unknown>) => { try { return (await tx(req, db, (t) => t[model].findMany({ where }))).length; } catch { return null; } };
       const engagements = await tx(req, db, (t) => t.engagement.findMany({ where: { tenant_id: tenant } }));
       const snaps = await tx(req, db, (t) => t.monitorSnapshot.findMany({ where: { tenant_id: tenant } }));
+      const claims = (await tx(req, db, (t) => t.auditEvent.findMany({ where: { tenant_id: tenant, action: 'remediation.run.claim' } }))) as { at: Date; detail: { runner?: string } | null }[];
+      const lastClaim = claims.sort((a, b) => +new Date(b.at) - +new Date(a.at))[0];
+      const runnerSeen = lastClaim ? new Date(lastClaim.at) : null;
+      const runnerName = lastClaim?.detail?.runner ?? 'runner';
       const lastEval = new Map<string, Date>();
       for (const s of snaps as { engagement_id: string; taken_at: Date }[]) { const cur = lastEval.get(s.engagement_id); if (!cur || +new Date(s.taken_at) > +cur) lastEval.set(s.engagement_id, new Date(s.taken_at)); }
       res.json({
@@ -195,7 +199,7 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
         records: { engagements: engagements.length, organizations: await count('organization', { tenant_id: tenant }), customer_tenants: await count('customerTenant', { tenant_id: tenant }), assessment_runs: await count('assessmentRun', { tenant_id: tenant }), plan_actions: await count('planAction', { tenant_id: tenant }), remediation_runs: await count('remediationRun', { tenant_id: tenant }), evidence_items: await count('evidenceItem', { tenant_id: tenant }), monitor_findings: await count('monitorFinding', { tenant_id: tenant }), evidence_packages: await count('evidencePackage', { tenant_id: tenant }) },
         background_jobs: { scheduler: opts.schedulerStatus ? { ...opts.schedulerStatus(), note: 'in-process; honours Settings › System › monitoring cadence per tenant' } : 'none configured — monitoring runs on "Evaluate now" or an external cron calling POST /monitor/evaluate', last_monitor_evaluation: engagements.map((e: { id: string; name: string | null }) => ({ engagement_id: e.id, name: e.name, at: lastEval.get(e.id)?.toISOString() ?? null })) },
         integrations: [
-          { id: 'tenant_runner', label: 'Tenant runner (Stamper / AdminOps live execution)', status: 'not_wired', note: 'Sprint 5 — live runs stay queued' },
+          { id: 'tenant_runner', label: 'Tenant runner (Stamper / AdminOps live execution)', status: runnerSeen ? 'ok' : 'not_wired', note: runnerSeen ? `Pull protocol live — last claim ${runnerSeen.toISOString()} by ${runnerName}` : 'Pull protocol ready (runner/queue → claim → result); no runner has claimed a run yet — live runs stay queued until one does' },
           { id: 'ces_eo', label: 'ces-eo assessment engine (server-side runs)', status: 'not_wired', note: 'Runs are imported from readiness-result records' },
           { id: 'stamper_registry', label: 'Stamper command registry (vendored index)', status: 'ok', note: `${(STAMPER_INDEX as { count: number; vendored_on: string }).count} entries · ${(STAMPER_INDEX as { vendored_on: string }).vendored_on}` },
           { id: 'adminops_registry', label: 'AdminOps operations (vendored index)', status: 'ok', note: `${(ADMINOPS_INDEX as { count: number; vendored_on: string }).count} ops · ${(ADMINOPS_INDEX as { vendored_on: string }).vendored_on}` },

@@ -225,7 +225,7 @@ export function createCustomerTenantsRouter(db: Db) {
         { id: 'app_registration', label: 'App registration id recorded', ok: !!row.app_registration_id },
         { id: 'certificate', label: 'Certificate thumbprint recorded', ok: !!row.certificate_thumbprint },
         { id: 'cloud', label: 'Cloud is GCC High (only cloud implemented)', ok: row.cloud === 'gcc_high' },
-        { id: 'runner', label: 'Tenant runner reachable (Windows host)', ok: false, note: 'Not wired in this release — Sprint 5 (Stamper & AdminOps MVP).' },
+        { id: 'runner', label: 'Tenant runner has claimed a run (Windows host)', ok: false, note: 'The runner pulls queued live runs (remediation/runner/queue); this check turns green once it has claimed one — see Administration › System health.' },
       ];
       const ready = checks.filter((c) => c.id !== 'runner').every((c) => c.ok);
       const connection_status = ready ? 'prerequisites_complete' : 'prerequisites_missing';

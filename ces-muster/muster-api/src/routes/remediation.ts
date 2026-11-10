@@ -19,9 +19,16 @@
 //   GET  /api/engagements/:engagementId/remediation/runs/:id
 //   POST /api/engagements/:engagementId/remediation/runs/:id/approve  DP-2: a different person
 //   POST /api/engagements/:engagementId/remediation/runs/:id/reject   { reason }
-//   POST /api/engagements/:engagementId/remediation/runs/:id/execute  simulate → recorded; live → queued (runner: Sprint 5)
+//   POST /api/engagements/:engagementId/remediation/runs/:id/execute  simulate → recorded; live → queued for the runner
 //   POST /api/engagements/:engagementId/remediation/runs/:id/verify   { verified, notes } — task verification by a person
 //   POST /api/engagements/:engagementId/remediation/runs/:id/cancel
+//
+// Runner protocol (2026-11-10, pull model — the Windows runner hosting
+// ces-stamper / ces-ao polls; the API never executes a set_command itself):
+//   GET  /api/engagements/:engagementId/remediation/runner/queue        bhd_operator: queued live runs, parameters without secrets
+//   POST /api/engagements/:engagementId/remediation/runs/:id/claim      { runner } → running (only from queued)
+//   POST /api/engagements/:engagementId/remediation/runs/:id/result     { outcome, summary, steps, captures[] } → succeeded | failed;
+//                                                                      captures become draft evidence (source = stamper | adminops, run_id set)
 //
 // Module access (walkthrough 2026-11-04): Stamper is BHD-only (bhd_operator
 // requests and approves — two different operators). AdminOps is run by the
@@ -38,6 +45,7 @@ import { withTenant } from '../lib/prisma.js';
 import { audit } from '../lib/audit.js';
 import STAMPER_INDEX from '../vendored/ces-registry/stamper-index.json';
 import ADMINOPS_INDEX from '../vendored/ces-registry/adminops-index.json';
+import { createCaptureItems } from '../services/runCaptures.js';
 
 const READ = ['prime', 'bhd_operator', 'assessor_read_only', 'sub'] as const;
 const STAMPER_ROLES = ['bhd_operator'] as const;
@@ -51,6 +59,27 @@ const user = (req: Request) => req.user!;
 const tx = (req: Request, db: Db, fn: (t: Db) => Promise<any>): Promise<any> => withTenant(user(req).tenant_id, fn, db);
 const notFound = (res: Response) => res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' });
 const conflict = (res: Response, error: string, code: string) => res.status(409).json({ error, code });
+
+const RUNNER_ROLES = ['bhd_operator'] as const; // the runner is BHD's service identity
+const claimSchema = z.object({ runner: z.string().trim().min(2).max(120) });
+const captureSchema = z.object({
+  ref: z.string().trim().min(1).max(200),
+  content: z.string().max(2 * 1024 * 1024, 'capture over 2 MB — store it on the runner and post a reference'),
+  encoding: z.enum(['utf8', 'base64']).default('utf8'),
+  content_type: z.string().max(100).optional(),
+  entry_id: z.string().max(200).optional(),
+  requirement_ids: z.array(z.string()).default([]),
+  note: z.string().max(500).optional(),
+});
+const resultSchema = z.object({
+  outcome: z.enum(['succeeded', 'failed']),
+  summary: z.string().trim().min(3).max(4000),
+  runner: z.string().trim().min(2).max(120),
+  steps: z.array(z.object({ step: z.number().int().min(1), entry_id: z.string().optional(), op_id: z.string().optional(), label: z.string().max(300).optional(), outcome: z.enum(['ok', 'failed', 'skipped', 'held']), detail: z.string().max(2000).optional(), duration_ms: z.number().int().min(0).optional() })).max(500).default([]),
+  captures: z.array(captureSchema).max(50).default([]),
+  /** Optional ces-shared execution-results manifest, stored as-is for the Delivery lane. */
+  execution_results: z.unknown().optional(),
+});
 
 export interface StamperEntry { entry_id: string; control_ids: string[]; label: string; engine: string | null; registry: string; has_set: boolean; has_get: boolean; manual_only: boolean; idempotency: string | null; variables_required: string[]; azure_tier: string | null; module: string | null; layer_hint: number | null; sequence_hint: number | null }
 export interface AdminOp { id: string; title: string; domain: string; domain_name: string; trigger: string | null; priority: string | null; sod_tier: string | null; cmmc_practices: string[]; idempotency_class: string | null; overview: string | null; parameters: { name: string; label: string; type: string; required: boolean; placeholder?: string | null }[] }
@@ -256,7 +285,7 @@ export function createRemediationRouter(db: Db) {
     } catch (e) { next(e); }
   });
 
-  /** simulate: record the plan that would run (no tenant contact). live: queued for the runner (Sprint 5). */
+  /** simulate: record the plan that would run (no tenant contact). live: queued for the runner (see runner protocol below). */
   r.post('/runs/:id/execute', bearerAuth, requireRole(...ADMINOPS_REQUEST_ROLES), validate(idParam, 'params'), async (req, res, next) => {
     try {
       const run = await runOf(req);
@@ -264,7 +293,7 @@ export function createRemediationRouter(db: Db) {
       if (run.module === 'stamper' && !isBhd(req)) { res.status(403).json({ error: 'Stamper runs are executed by BHD operators', code: 'STAMPER_BHD_ONLY' }); return; }
       if (run.status !== 'approved') return conflict(res, run.status === 'requested' ? 'Approval pending (DP-2)' : `Run is ${run.status}`, 'RUN_NOT_APPROVED');
       if (run.mode === 'live') {
-        const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'queued', started_at: new Date(), updated_at: new Date(), result: { queued: true, note: 'Tenant runner integration lands in Sprint 5 (Stamper & AdminOps MVP); nothing has been executed against the tenant.' } } }));
+        const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'queued', started_at: new Date(), updated_at: new Date(), result: { queued: true, note: 'Waiting for the tenant runner to claim this run (GET …/remediation/runner/queue → POST …/claim → POST …/result). Nothing has been executed against the tenant yet.' } } }));
         await audit(db, { action: 'remediation.run.queue', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { mode: 'live' } }, { strict: true });
         res.status(202).json(row);
         return;
@@ -305,6 +334,53 @@ export function createRemediationRouter(db: Db) {
       const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'cancelled', updated_at: new Date() } }));
       await audit(db, { action: 'remediation.run.cancel', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id });
       res.json(row);
+    } catch (e) { next(e); }
+  });
+
+  // ------------------------------------------------------------------ runner
+  /** Queue for the runner: live runs that are queued, with what it needs and nothing secret (parameters are ids/options; credentials live on the runner). */
+  r.get('/runner/queue', bearerAuth, requireRole(...RUNNER_ROLES), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const rows = await tx(req, db, (t) => t.remediationRun.findMany({ where: { engagement_id: eid(req), status: 'queued', mode: 'live' } }));
+      rows.sort((a: { started_at: Date | null }, b: { started_at: Date | null }) => +new Date(a.started_at ?? 0) - +new Date(b.started_at ?? 0));
+      res.json(rows.map((x: Record<string, unknown>) => ({ id: x.id, module: x.module, entry_ids: x.entry_ids, op_id: x.op_id, parameters: x.parameters ?? {}, requirement_id: x.requirement_id, action_id: x.action_id, approved_by: x.approved_by, approved_at: x.approved_at, queued_at: x.started_at, justification: x.justification })));
+    } catch (e) { next(e); }
+  });
+
+  r.post('/runs/:id/claim', bearerAuth, requireRole(...RUNNER_ROLES), validate(idParam, 'params'), validate(claimSchema), async (req, res, next) => {
+    try {
+      const run = await runOf(req);
+      if (!run) return notFound(res);
+      if (run.status !== 'queued' || run.mode !== 'live') return conflict(res, `Run is ${run.status}${run.mode !== 'live' ? ' (simulate runs never reach the runner)' : ''}`, 'RUN_NOT_QUEUED');
+      const runner = (req.body as z.infer<typeof claimSchema>).runner;
+      const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'running', updated_at: new Date(), result: { ...(run.result ?? {}), queued: false, claimed_by: runner, claimed_at: new Date().toISOString() } } }));
+      await audit(db, { action: 'remediation.run.claim', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { runner, module: run.module } }, { strict: true });
+      res.json(row);
+    } catch (e) { next(e); }
+  });
+
+  /** Result from the runner. Finishes the run; captures become draft evidence linked to it. Verification by a person still closes the action. */
+  r.post('/runs/:id/result', bearerAuth, requireRole(...RUNNER_ROLES), validate(idParam, 'params'), validate(resultSchema), async (req, res, next) => {
+    try {
+      const run = await runOf(req);
+      if (!run) return notFound(res);
+      if (run.status !== 'running') return conflict(res, `Run is ${run.status}; results are accepted only for a running run`, 'RUN_NOT_RUNNING');
+      const body = req.body as z.infer<typeof resultSchema>;
+      const captures = body.captures.map((c) => ({
+        ref: c.ref, content: Buffer.from(c.content, c.encoding), content_type: c.content_type,
+        requirement_ids: c.requirement_ids.length ? c.requirement_ids : run.requirement_id ? [run.requirement_id] : [],
+        entries: c.entry_id ? [c.entry_id] : run.module === 'adminops' && run.op_id ? [run.op_id] : [], note: c.note,
+      }));
+      const label = `${run.module === 'stamper' ? 'Stamper' : 'AdminOps'} live run ${run.id.slice(0, 8)} on ${body.runner}`;
+      const evidence_ids = captures.length ? await createCaptureItems(db, { actor: user(req), engagementId: eid(req), source: run.module, label, captures, remediationRunId: run.id }) : [];
+      const now = new Date();
+      const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: {
+        status: body.outcome, finished_at: now, updated_at: now,
+        result: { ...(run.result ?? {}), simulated: false, tenant_touched: true, runner: body.runner, summary: body.summary, steps: body.steps, evidence_ids, execution_results: body.execution_results ?? null, held: body.steps.filter((s) => s.outcome === 'held').length },
+      } }));
+      await audit(db, { action: 'remediation.run.result', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { outcome: body.outcome, runner: body.runner, steps: body.steps.length, captures: evidence_ids.length } }, { strict: true });
+      res.json({ ...row, evidence_ids });
     } catch (e) { next(e); }
   });
 

@@ -47,7 +47,7 @@ beforeAll(async () => {
 afterAll(() => new Promise<void>((r) => server.close(() => r())));
 
 beforeEach(async () => {
-  for (const m of ['remediationRun', 'planAction', 'auditEvent', 'engagement'] as const) db[m]._records.length = 0;
+  for (const m of ['remediationRun', 'planAction', 'auditEvent', 'engagement', 'evidenceItem'] as const) db[m]._records.length = 0;
   await db.engagement.create({ data: { id: ENG_A, tenant_id: TENANT_A, engagement_kind: 'prime_only', live_access_enabled: false } });
   await db.planAction.create({ data: { id: ACTION, tenant_id: TENANT_A, engagement_id: ENG_A, title: 'MFA', status: 'open', weight: 5 } });
 });
@@ -119,6 +119,41 @@ describe('Stamper runs (BHD only)', () => {
     const queued = await call('POST', `/runs/${live.id}/execute`, 'bhd_operator', undefined, 'op-a');
     expect(queued.status).toBe(202);
     expect((await queued.json()).status).toBe('queued');
+  });
+
+  it('RUNNER: BHD runner lists the queue, claims (only from queued), posts the result; captures become draft evidence linked to the run; a person still verifies', async () => {
+    await db.engagement.update({ where: { id: ENG_A }, data: { live_access_enabled: true } });
+    const live = await (await call('POST', '/runs', 'bhd_operator', { module: 'stamper', mode: 'live', entry_ids: [GET_ENTRY.entry_id], requirement_id: 'AC.L2-3.1.5', justification: 'Live evidence read' }, 'op-a')).json();
+    await call('POST', `/runs/${live.id}/approve`, 'bhd_operator', undefined, 'op-b');
+    expect((await call('GET', '/runner/queue', 'prime')).status).toBe(403); // customers never see the runner queue
+    expect(await (await call('GET', '/runner/queue', 'bhd_operator', undefined, 'runner:bhd-win-01')).json()).toEqual([]); // not queued yet
+    expect((await call('POST', `/runs/${live.id}/claim`, 'bhd_operator', { runner: 'bhd-win-01' }, 'runner:bhd-win-01')).status).toBe(409);
+    await call('POST', `/runs/${live.id}/execute`, 'bhd_operator', undefined, 'op-a');
+    const queue = await (await call('GET', '/runner/queue', 'bhd_operator', undefined, 'runner:bhd-win-01')).json();
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toMatchObject({ id: live.id, module: 'stamper', entry_ids: [GET_ENTRY.entry_id] });
+    expect(Object.keys(queue[0])).not.toContain('result'); // nothing beyond what the runner needs
+    const claimed = await (await call('POST', `/runs/${live.id}/claim`, 'bhd_operator', { runner: 'bhd-win-01' }, 'runner:bhd-win-01')).json();
+    expect(claimed.status).toBe('running');
+    expect(claimed.result.claimed_by).toBe('bhd-win-01');
+    expect((await call('POST', `/runs/${live.id}/claim`, 'bhd_operator', { runner: 'bhd-win-02' }, 'runner:bhd-win-02')).status).toBe(409); // claimed once
+    expect((await call('POST', `/runs/${live.id}/result`, 'bhd_operator', { outcome: 'succeeded', summary: 'x', runner: 'bhd-win-01' })).status).toBe(422); // summary too short
+    const done = await (await call('POST', `/runs/${live.id}/result`, 'bhd_operator', {
+      outcome: 'succeeded', runner: 'bhd-win-01', summary: 'Get-MgPolicy… returned 3 conditional access policies',
+      steps: [{ step: 1, entry_id: GET_ENTRY.entry_id, outcome: 'ok', duration_ms: 1200 }],
+      captures: [{ ref: 'captures/ca-policies.json', content: Buffer.from('{"value":[]}').toString('base64'), encoding: 'base64', content_type: 'application/json', entry_id: GET_ENTRY.entry_id }],
+    }, 'runner:bhd-win-01')).json();
+    expect(done.status).toBe('succeeded');
+    expect(done.result).toMatchObject({ tenant_touched: true, simulated: false, runner: 'bhd-win-01' });
+    expect(done.evidence_ids).toHaveLength(1);
+    const ev = db.evidenceItem._records[0];
+    expect(ev).toMatchObject({ source: 'stamper', status: 'draft', run_id: live.id, requirement_ids: ['AC.L2-3.1.5'], content_type: 'application/json', size_bytes: 12 });
+    expect(ev.sha256).toHaveLength(64);
+    expect((await call('POST', `/runs/${live.id}/result`, 'bhd_operator', { outcome: 'failed', runner: 'bhd-win-01', summary: 'late duplicate result' }, 'runner:bhd-win-01')).status).toBe(409);
+    expect(db.auditEvent._records.map((a) => a.action)).toEqual(expect.arrayContaining(['remediation.run.queue', 'remediation.run.claim', 'evidence.capture', 'remediation.run.result']));
+    // The engine never verifies: a person does.
+    const v = await (await call('POST', `/runs/${live.id}/verify`, 'bhd_operator', { verified: true, notes: 'Policies match the SSP' }, 'op-b')).json();
+    expect(v.run.status).toBe('verified');
   });
 });
 

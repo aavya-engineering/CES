@@ -45,7 +45,7 @@ export interface RemediationRun {
   rejection_reason: string | null;
   started_at: string | null;
   finished_at: string | null;
-  result: { simulated?: boolean; queued?: boolean; note?: string; tenant_touched?: boolean; steps?: { step: number; label: string; kind?: string; entry_id?: string; op_id?: string; outcome: string }[] } | null;
+  result: { simulated?: boolean; queued?: boolean; note?: string; tenant_touched?: boolean; claimed_by?: string; claimed_at?: string; runner?: string; summary?: string; evidence_ids?: string[]; held?: number; steps?: { step: number; label?: string; kind?: string; entry_id?: string; op_id?: string; outcome: string; detail?: string; duration_ms?: number }[] } | null;
   verified_by: string | null;
   verified_at: string | null;
   verification_notes: string | null;

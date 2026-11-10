@@ -641,6 +641,15 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       '/api/engagements/{engagementId}/remediation/runs/{id}/cancel': {
         post: { tags: ['Remediate'], security: bearer, summary: 'Cancel (requester or BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_CANCELLABLE (403 NOT_REQUESTER)'), ...common } },
       },
+      '/api/engagements/{engagementId}/remediation/runner/queue': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — queued live runs for the Windows runner (bhd_operator service identity); parameters carry no secrets', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), 404: err('Not found (403 for non-BHD roles)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/claim': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — claim a queued live run (→ running)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['runner'], properties: { runner: { type: 'string' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_QUEUED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/result': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — post the outcome of a running live run; captures (≤ 2 MB each, ≤ 50) become draft evidence with source = stamper | adminops linked to the run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['outcome', 'summary', 'runner'], properties: { outcome: { type: 'string', enum: ['succeeded', 'failed'] }, summary: { type: 'string' }, runner: { type: 'string' }, steps: { type: 'array', items: { type: 'object' } }, captures: { type: 'array', items: { type: 'object', properties: { ref: { type: 'string' }, content: { type: 'string' }, encoding: { type: 'string', enum: ['utf8', 'base64'] }, content_type: { type: 'string' }, entry_id: { type: 'string' }, requirement_ids: { type: 'array', items: { type: 'string' } } } } }, execution_results: { type: 'object' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_RUNNING'), 422: err('Validation'), ...common } },
+      },
       '/api/engagements/{engagementId}/plan/summary': {
         get: { tags: ['Plan'], security: bearer, summary: 'Plan overview: action / POA&M counts, overdue, next due, projected SPRS', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json(ref('PlanSummary')), 404: err('Not found'), ...common } },
       },

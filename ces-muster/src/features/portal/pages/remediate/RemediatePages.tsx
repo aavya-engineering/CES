@@ -116,9 +116,11 @@ function RunDrawer({ eid, run, viewer, onChanged, onClose }: { eid: string; run:
       {detail.result && (
         <>
           <h3 className="card-title">Result</h3>
-          {detail.result.note && <p className="note" data-tone="warn">{detail.result.note}</p>}
+          {detail.result.queued && detail.result.note && <p className="note" data-tone="warn">{detail.result.note}</p>}
+          {detail.status === 'running' && <p className="note" data-tone="info">Running on tenant runner <strong>{detail.result.claimed_by}</strong> since {fmt(detail.result.claimed_at)}. Results arrive from the runner; refresh to see them.</p>}
           {detail.result.simulated && <p className="hint">Simulated — the tenant was not touched. {detail.result.steps?.length} step(s) would run:</p>}
-          {detail.result.steps && <ol>{detail.result.steps.map((s) => <li key={s.step}>{s.label} <span className="hint">({s.kind ?? s.op_id} · {s.outcome})</span></li>)}</ol>}
+          {detail.result.tenant_touched && <p className="note" data-tone={detail.status === 'failed' ? 'bad' : 'good'}>Executed on the tenant by runner <strong>{detail.result.runner}</strong>: {detail.result.summary}{detail.result.held ? ` · ${detail.result.held} step(s) HELD` : ''}{detail.result.evidence_ids?.length ? ` · ${detail.result.evidence_ids.length} capture${detail.result.evidence_ids.length === 1 ? '' : 's'} added to Collect Evidence as drafts (source ${detail.module})` : ''}</p>}
+          {detail.result.steps && detail.result.steps.length > 0 && <ol>{detail.result.steps.map((s) => <li key={s.step}>{s.label ?? s.entry_id ?? s.op_id} <span className="hint">({s.kind ?? s.op_id ?? 'step'} · {s.outcome}{s.duration_ms != null ? ` · ${(s.duration_ms / 1000).toFixed(1)}s` : ''}){s.detail ? ` — ${s.detail}` : ''}</span></li>)}</ol>}
         </>
       )}
       {detail.verified_by && <p className="note" data-tone={detail.status === 'verified' ? 'good' : 'bad'}>{detail.status === 'verified' ? 'Verified' : 'Marked failed'} by {detail.verified_by} on {fmt(detail.verified_at)}: {detail.verification_notes}</p>}

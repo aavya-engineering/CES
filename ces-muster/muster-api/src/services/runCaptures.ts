@@ -43,43 +43,68 @@ export interface CaptureInput {
 
 export interface CaptureSummary { created: number; skipped_no_ref: number; missing_files: number; item_ids: string[] }
 
+/** A capture already in memory (runner results post them inline). */
+export interface BufferCapture { ref: string; content: Buffer; content_type?: string; requirement_ids: string[]; objective_ids?: string[]; entries?: string[]; note?: string }
+
+export interface BufferCaptureInput {
+  actor: { sub: string; role: string; tenant_id: string };
+  engagementId: string;
+  source: 'discovery' | 'stamper' | 'adminops';
+  label: string;
+  captures: BufferCapture[];
+  /** Links: an assessment run (discovery) or a remediation run (stamper / adminops → EvidenceItem.run_id). */
+  assessmentRunId?: string;
+  remediationRunId?: string;
+  maxInlineBytes?: number;
+}
+
 const defaultRead = (abs: string): Buffer | null => (existsSync(abs) ? readFileSync(abs) : null);
 
-/** One evidence item per observation that has a capture; the same capture referenced by several observations is written once with all requirement ids. */
+/** Core: one draft evidence item per capture; SHA-256 always, content inline up to maxInlineBytes. */
+export async function createCaptureItems(db: Db, input: BufferCaptureInput): Promise<string[]> {
+  const maxInline = input.maxInlineBytes ?? 1024 * 1024;
+  const ids: string[] = [];
+  for (const c of input.captures) {
+    const requirement_ids = [...new Set(c.requirement_ids)].sort();
+    const entries = c.entries ?? [];
+    const inline = c.content.byteLength <= maxInline;
+    const item: { id: string } = await withTenant(input.actor.tenant_id, (t: Db) => t.evidenceItem.create({ data: {
+      tenant_id: input.actor.tenant_id, engagement_id: input.engagementId,
+      requirement_ids, objective_ids: [...new Set(c.objective_ids ?? [])].sort(), archetype_code: 'configuration_export', form: 'export',
+      title: `${entries[0] ?? requirement_ids[0] ?? path.basename(c.ref)} — ${input.source} capture`,
+      description: `${input.label}. ${c.note ?? `Capture for ${requirement_ids.join(', ') || 'the run'}.`}`,
+      kind: 'config_capture', source: input.source,
+      file_name: path.basename(c.ref), content_type: c.content_type ?? 'text/plain', size_bytes: c.content.byteLength,
+      sha256: sha256Of(c.content), content: inline ? c.content : null,
+      metadata: { assessment_run_id: input.assessmentRunId ?? null, remediation_run_id: input.remediationRunId ?? null, capture_ref: c.ref, ran_entry_ids: entries, inline },
+      run_id: input.remediationRunId ?? null,
+      collected_at: new Date(), classification: 'internal', status: 'draft', version: 1, created_by: input.actor.sub,
+    } }), db);
+    ids.push(item.id);
+  }
+  if (ids.length) await audit(db, { action: 'evidence.capture', actor: input.actor, target_type: input.remediationRunId ? 'remediation_run' : 'assessment_run', target_id: input.remediationRunId ?? input.assessmentRunId ?? input.engagementId, tenant_id: input.actor.tenant_id, detail: { engagement_id: input.engagementId, source: input.source, created: ids.length } });
+  return ids;
+}
+
+/** Discovery path: observations point at capture files under the run folder; the same file referenced by several observations is written once. */
 export async function captureRunEvidence(db: Db, input: CaptureInput): Promise<CaptureSummary> {
   const read = input.readFile ?? defaultRead;
-  const maxInline = input.maxInlineBytes ?? 1024 * 1024;
   const byRef = new Map<string, CaptureObservation[]>();
   let skipped = 0;
   for (const o of input.observations) {
     if (!o.raw_capture_ref) { skipped += 1; continue; }
     byRef.set(o.raw_capture_ref, [...(byRef.get(o.raw_capture_ref) ?? []), o]);
   }
-  const ids: string[] = [];
   let missing = 0;
   const root = path.resolve(input.outDir);
+  const captures: BufferCapture[] = [];
   for (const [ref, obs] of byRef) {
     const abs = path.resolve(root, ref);
     if (!abs.startsWith(root + path.sep)) { missing += 1; continue; } // a capture ref never escapes the run folder
     const buf = read(abs);
     if (!buf) { missing += 1; continue; }
-    const requirement_ids = [...new Set(obs.map((o) => o.control_id))].sort();
-    const objective_ids = [...new Set(obs.flatMap((o) => o.objective_ids ?? []))].sort();
-    const entries = [...new Set(obs.flatMap((o) => o.ran_entry_ids ?? []))];
-    const inline = buf.byteLength <= maxInline;
-    const item: { id: string } = await withTenant(input.actor.tenant_id, (t: Db) => t.evidenceItem.create({ data: {
-      tenant_id: input.actor.tenant_id, engagement_id: input.engagementId,
-      requirement_ids, objective_ids, archetype_code: 'configuration_export', form: 'export',
-      title: `${entries[0] ?? requirement_ids[0]} — ${input.source} capture`,
-      description: `${input.label}. Read-only capture for ${requirement_ids.join(', ')}; posture ${[...new Set(obs.map((o) => o.derived_posture))].join('/')}.`,
-      kind: 'config_capture', source: input.source,
-      file_name: path.basename(ref), content_type: 'text/plain', size_bytes: buf.byteLength,
-      sha256: sha256Of(buf), content: inline ? buf : null,
-      metadata: { assessment_run_id: input.assessmentRunId, capture_ref: ref, ran_entry_ids: entries, inline, observations: obs.length },
-      collected_at: new Date(), classification: 'internal', status: 'draft', version: 1, created_by: input.actor.sub,
-    } }), db);
-    ids.push(item.id);
+    captures.push({ ref, content: buf, requirement_ids: obs.map((o) => o.control_id), objective_ids: obs.flatMap((o) => o.objective_ids ?? []), entries: [...new Set(obs.flatMap((o) => o.ran_entry_ids ?? []))], note: `Read-only capture for ${[...new Set(obs.map((o) => o.control_id))].sort().join(', ')}; posture ${[...new Set(obs.map((o) => o.derived_posture))].join('/')}.` });
   }
-  if (ids.length) await audit(db, { action: 'evidence.capture', actor: input.actor, target_type: 'assessment_run', target_id: input.assessmentRunId, tenant_id: input.actor.tenant_id, detail: { engagement_id: input.engagementId, source: input.source, created: ids.length, missing_files: missing } });
+  const ids = await createCaptureItems(db, { actor: input.actor, engagementId: input.engagementId, source: input.source, label: input.label, captures, assessmentRunId: input.assessmentRunId, maxInlineBytes: input.maxInlineBytes });
   return { created: ids.length, skipped_no_ref: skipped, missing_files: missing, item_ids: ids };
 }
