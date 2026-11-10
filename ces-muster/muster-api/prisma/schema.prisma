@@ -101,6 +101,10 @@ model Tenant {
   evidence_packages  EvidencePackage[]
   assessor_requests  AssessorRequest[]
   assessment_sign_offs AssessmentSignOff[]
+  settings           TenantSettings?
+  access_requests    AccessRequest[]
+  access_reviews     AccessReview[]
+  systems            SystemRecord[]
 
   @@map("tenants")
 }
@@ -172,6 +176,8 @@ model Engagement {
   evidence_packages EvidencePackage[]
   assessor_requests AssessorRequest[]
   assessment_sign_offs AssessmentSignOff[]
+  access_requests   AccessRequest[]
+  systems           SystemRecord[]
 
   @@map("engagements")
 }
@@ -530,6 +536,7 @@ model ScopeAsset {
 
   tenant     Tenant     @relation(fields: [tenant_id], references: [id])
   engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  systems    SystemRecord[]
 
   @@index([engagement_id])
   @@map("scope_assets")
@@ -1122,4 +1129,105 @@ model AssessmentSignOff {
 
   @@index([engagement_id, kind])
   @@map("assessment_sign_offs")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 1/3 leftovers (migration 022_admin_registry, 2026-11-10): tenant
+// settings, access requests / reviews, system & environment registry.
+// ---------------------------------------------------------------------------
+
+enum AccessRequestStatus {
+  open
+  approved
+  rejected
+  fulfilled
+}
+
+enum SystemKind {
+  system
+  environment
+  infrastructure
+  cloud_resource
+}
+
+model TenantSettings {
+  tenant_id     String   @id
+  organization  Json     @default("{}")
+  system        Json     @default("{}")
+  notifications Json     @default("{}")
+  security      Json     @default("{}")
+  retention     Json     @default("{}")
+  version       Int      @default(1)
+  updated_by    String?
+  updated_at    DateTime @default(now()) @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@map("tenant_settings")
+}
+
+model AccessRequest {
+  id             String              @id @default(uuid())
+  tenant_id      String
+  requested_by   String
+  subject_email  String
+  requested_role String
+  engagement_id  String?
+  justification  String
+  status         AccessRequestStatus @default(open)
+  decided_by     String?
+  decided_at     DateTime?           @db.Timestamptz
+  decision_notes String?
+  created_at     DateTime            @default(now()) @db.Timestamptz
+  updated_at     DateTime            @default(now()) @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement? @relation(fields: [engagement_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id, status])
+  @@map("access_requests")
+}
+
+model AccessReview {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  title        String
+  snapshot     Json
+  decisions    Json      @default("[]")
+  status       String    @default("open")
+  started_by   String
+  started_at   DateTime  @default(now()) @db.Timestamptz
+  completed_by String?
+  completed_at DateTime? @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id, status])
+  @@map("access_reviews")
+}
+
+model SystemRecord {
+  id             String     @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  name           String
+  kind           SystemKind @default(system)
+  environment    String?
+  hosting        String?
+  description    String?
+  owner          String?
+  handles_cui    Boolean    @default(false)
+  scope_asset_id String?
+  attributes     Json?
+  created_by     String?
+  created_at     DateTime   @default(now()) @db.Timestamptz
+  updated_at     DateTime   @default(now()) @db.Timestamptz
+
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement  Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  scope_asset ScopeAsset? @relation(fields: [scope_asset_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, kind])
+  @@map("systems")
 }

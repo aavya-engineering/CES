@@ -70,6 +70,11 @@ export type StaticRouteId =
   | 'prepare/packages'
   | 'prepare/assessor'
   | 'prepare/reports'
+  | 'admin/settings'
+  | 'admin/access'
+  | 'admin/health'
+  | 'onboard/systems'
+  | 'onboard/checklist'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -264,6 +269,11 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'prepare/packages': ['Prepare for Assessment', 'Evidence Packages', 'All Evidence Packages'],
   'prepare/assessor': ['Prepare for Assessment', 'Assessor Workspace', 'Assessor Read-Only View'],
   'prepare/reports': ['Prepare for Assessment', 'Reports & Exports', 'CMMC Readiness Report'],
+  'admin/settings': ['Administration', 'Settings', 'Organization Settings'],
+  'admin/access': ['Administration', 'Access Management', 'Access Requests'],
+  'admin/health': ['Administration', 'System Health', 'Service Status'],
+  'onboard/systems': ['Onboard', 'System & Environment Registry', 'Systems Inventory'],
+  'onboard/checklist': ['Onboard', 'Onboarding Checklist', 'Onboarding Summary'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

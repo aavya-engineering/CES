@@ -22,6 +22,8 @@ import { createRemediationRouter } from './routes/remediation.js';
 import { createEvidenceRouter } from './routes/evidence.js';
 import { createMonitorRouter } from './routes/monitor.js';
 import { createPrepareRouter } from './routes/prepare.js';
+import { createAdminRouter } from './routes/admin.js';
+import { createOnboardChecklistRouter, createSystemsRouter } from './routes/systems.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
 import { createHilRouter } from './routes/hil.js';
@@ -156,6 +158,10 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/engagements/:engagementId/monitor', createMonitorRouter(db));
   // Sprint 6 slice "Prepare": readiness checklist, SSP statements, evidence packages, assessor workspace, sign-offs, reports.
   app.use('/api/engagements/:engagementId/prepare', createPrepareRouter(db));
+  // Administration (tenant settings, access requests / reviews, health) and Onboard leftovers (systems registry, checklist).
+  app.use('/api/admin', createAdminRouter(db));
+  app.use('/api/engagements/:engagementId/systems', createSystemsRouter(db));
+  app.use('/api/engagements/:engagementId/onboard', createOnboardChecklistRouter(db));
   // Individual party read + sub self-only guard
   app.use('/api/parties', createPartyRouter(db));
   // Party actions (mergeParams picks up :id from parent path)

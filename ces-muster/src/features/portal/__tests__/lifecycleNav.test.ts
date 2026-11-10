@@ -95,14 +95,16 @@ describe('routes', () => {
     expect(assess.items.find((i) => i.label === 'Discovery Overview')).toMatchObject({ route: 'muster', view: 'discovery' });
   });
 
-  it('unbuilt pages are lifecycle routes that resolve to titles and are accepted by isRouteId', () => {
+  it('scaffold routes still resolve (future workbook pages), but no built page uses one any more', () => {
     const r = lifecycleRoute('/assess/discovery/sync-status');
     expect(r).toBe('lc/assess/discovery/sync-status');
     expect(isRouteId(r)).toBe(true);
     expect(isRouteId('lc/assess/discovery/not-a-page')).toBe(false);
     expect(routeTitle(r)).toEqual(['Assess', 'Discovery', 'Sync Status']);
     expect(routeTitle('lc/plan/planning-overview')).toEqual(['Plan', 'Planning Overview']);
-    expect(routesFor(signedIn('it_security_admin')).has(r)).toBe(true);
+    // 2026-11-10: every workbook page opens a built screen, so the sidebar carries no planned item.
+    expect(navFor(signedIn('bhd_operator')).flatMap((s) => s.items).filter((i) => i.planned)).toEqual([]);
+    expect(routesFor(signedIn('it_security_admin')).has(r)).toBe(false);
     expect(routesFor(signedIn('it_security_admin')).has('remediate/stamper')).toBe(false);
     expect(routesFor(signedIn('bhd_operator')).has('remediate/stamper')).toBe(true);
   });

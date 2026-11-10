@@ -52,6 +52,7 @@ import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/p
 import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
 import { MonitorActivityPage, MonitorFindingsPage, MonitorOverviewPage } from '@/features/portal/pages/monitor/MonitorPages';
 import { AssessorWorkspacePage, PackagesPage, PrepareOverviewPage, ReportsPage, SspPage } from '@/features/portal/pages/prepare/PreparePages';
+import { AccessManagementPage, OnboardingChecklistPage, SettingsPage, SystemHealthPage, SystemsRegistryPage } from '@/features/portal/pages/admin/AdminSettingsPages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -502,6 +503,17 @@ export default function App() {
         return <AssessorWorkspacePage viewer={viewer} />;
       case 'prepare/reports':
         return <ReportsPage go={go} />;
+      // Administration and Onboard leftovers.
+      case 'admin/settings':
+        return <SettingsPage viewer={viewer} />;
+      case 'admin/access':
+        return <AccessManagementPage viewer={viewer} />;
+      case 'admin/health':
+        return <SystemHealthPage />;
+      case 'onboard/systems':
+        return <SystemsRegistryPage viewer={viewer} />;
+      case 'onboard/checklist':
+        return <OnboardingChecklistPage viewer={viewer} go={go} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':

@@ -206,7 +206,7 @@ export function createMonitorRouter(db: Db) {
       const out = rows.filter((a: { action: string; actor_user_id: string | null; target_type: string | null }) => !q.q || `${a.action} ${a.actor_user_id ?? ''} ${a.target_type ?? ''}`.toLowerCase().includes(q.q.toLowerCase()));
       const at = (a: { at?: Date; created_at?: Date }) => +new Date(a.at ?? a.created_at ?? 0);
       // Stable: same-millisecond events keep insertion order (newest last → shown first).
-      const idx = new Map(out.map((a: { id: string }, i: number) => [a.id, i]));
+      const idx = new Map<string, number>(out.map((a: { id: string }, i: number) => [a.id, i] as [string, number]));
       out.sort((a: { id: string; at?: Date; created_at?: Date }, b: { id: string; at?: Date; created_at?: Date }) => at(b) - at(a) || (idx.get(b.id) ?? 0) - (idx.get(a.id) ?? 0));
       res.json(out.slice(0, q.limit).map((a: Record<string, unknown>) => ({ id: a.id, at: a.at ?? a.created_at, actor_user_id: a.actor_user_id, actor_role: a.actor_role, action: a.action, target_type: a.target_type, target_id: a.target_id, detail: a.detail })));
     } catch (e) { next(e); }

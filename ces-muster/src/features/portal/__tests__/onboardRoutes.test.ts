@@ -50,7 +50,7 @@ describe('Onboard slice routes', () => {
       const group = onboard.groups.find((g) => g.key === groupKey)!;
       const built = group.items.filter((i) => BUILT[i.path]);
       expect(built.length, groupKey).toBeGreaterThanOrEqual(3);
-      for (const i of built) expect(BUILT[i.path].route).toMatch(/^assess\//);
+      for (const i of built) expect(BUILT[i.path].route).toMatch(/^(assess|onboard)\//); // by-system-environment opens the systems registry
     }
     expect(routesFor(signedIn('compliance_manager')).has('assess/gaps')).toBe(true);
     // The assessor reaches the SPRS score and results screens only through Prepare › Assessment Documentation (read-only APIs).
@@ -122,6 +122,17 @@ describe('Onboard slice routes', () => {
     expect(assessor.has('prepare/overview')).toBe(false); // internal readiness review is not the assessor's
     expect(routesFor(signedIn('compliance_manager')).has('prepare/overview')).toBe(true);
     expect(routeTitle('prepare/ssp')).toEqual(['Prepare for Assessment', 'Assessment Documentation', 'System Security Plan (SSP)']);
+  });
+
+  it('every page of the workbook now opens a built screen (no scaffold left)', () => {
+    const unbuilt: string[] = [];
+    for (const s of LIFECYCLE_NAV) for (const g of s.groups) for (const i of (g.items.length ? g.items : [{ path: g.path }])) if (!BUILT[i.path]) unbuilt.push(i.path);
+    expect(unbuilt).toEqual([]);
+    expect(routesFor(signedIn('org_admin')).has('admin/settings')).toBe(true);
+    expect(routesFor(signedIn('org_admin')).has('admin/access')).toBe(true);
+    expect(routesFor(signedIn('platform_admin')).has('admin/health')).toBe(true);
+    expect(routesFor(signedIn('compliance_manager')).has('onboard/checklist')).toBe(true);
+    expect(routeTitle('onboard/systems')).toEqual(['Onboard', 'System & Environment Registry', 'Systems Inventory']);
   });
 
   it('breadcrumbs name the workbook section, group and page', () => {
