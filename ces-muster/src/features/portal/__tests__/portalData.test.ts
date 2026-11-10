@@ -27,7 +27,7 @@ describe('UI-02 navigation by role (lifecycle sidebar, Sprint 1 Foundation 2026-
     const r = routesFor(as('platform_admin'));
     expect(r.has('platform/users')).toBe(true);
     expect(r.has('platform/audit')).toBe(true);
-    for (const forbidden of ['muster', 'engagements/all', 'module/stamper', 'onboard/organizations'] as const) expect(r.has(forbidden)).toBe(false);
+    for (const forbidden of ['muster', 'engagements/all', 'remediate/stamper', 'onboard/organizations'] as const) expect(r.has(forbidden)).toBe(false);
     expect(defaultRoute(as('platform_admin'))).toBe('home');
   });
 

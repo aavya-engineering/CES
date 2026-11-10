@@ -69,6 +69,20 @@ describe('Onboard slice routes', () => {
     expect(routeTitle('plan/poam')).toEqual(['Plan', 'POA&M Planning', 'POA&M Items']);
   });
 
+  it('Remediate: every workbook page opens a built screen; Stamper stays BHD-only; AdminOps for the CIS admin and the senior approver', () => {
+    const rem = LIFECYCLE_NAV.find((s) => s.key === 'remediate')!;
+    for (const g of rem.groups) {
+      const items = g.items.length ? g.items : [{ path: g.path, label: g.label }];
+      for (const i of items) expect(BUILT[i.path], `${i.path} should be built`).toBeDefined();
+    }
+    expect(routesFor(signedIn('bhd_operator')).has('remediate/stamper')).toBe(true);
+    expect(routesFor(signedIn('it_security_admin')).has('remediate/stamper')).toBe(false);
+    expect(routesFor(signedIn('it_security_admin')).has('remediate/adminops')).toBe(true);
+    expect(routesFor(signedIn('senior_approver')).has('remediate/adminops')).toBe(true);
+    expect(routesFor(signedIn('assessor_read_only')).has('remediate/overview')).toBe(false);
+    expect(routeTitle('remediate/adminops')).toEqual(['Remediate', 'Administrative Operations – AdminOps', 'AdminOps Overview']);
+  });
+
   it('breadcrumbs name the workbook section, group and page', () => {
     expect(routeTitle('onboard/organizations')).toEqual(['Onboard', 'Organization Management', 'All Organizations']);
     expect(routeTitle('onboard/tenants')).toEqual(['Onboard', 'Tenant Management', 'All Tenants']);

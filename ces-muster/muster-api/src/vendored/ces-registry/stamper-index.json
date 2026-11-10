@@ -1,0 +1,4408 @@
+{
+ "source": "ces-stamper/src/registry (cmmc-l2-commands 1.0.0, infra 1.0.0)",
+ "vendored_on": "2026-11-10",
+ "count": 223,
+ "entries": [
+  {
+   "entry_id": "AC.L2-3.1.1.operator-discover",
+   "control_ids": [
+    "AC.L1-3.1.1",
+    "AC.L1-3.1.2",
+    "AC.L2-3.1.7"
+   ],
+   "label": "Discover Operator User ID",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "operatorUPN"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.1.group-create",
+   "control_ids": [
+    "AC.L1-3.1.1"
+   ],
+   "label": "Create CUI Security Group",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "cuiGroupName"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.1.member-add",
+   "control_ids": [
+    "AC.L1-3.1.1"
+   ],
+   "label": "Add User to CUI Security Group",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L2-3.1.2.role-assign",
+   "control_ids": [
+    "AC.L2-3.1.2"
+   ],
+   "label": "RBAC Role Assignment",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "roleDefId"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 2,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.3.sensitivity-label",
+   "control_ids": [
+    "AC.L2-3.1.3"
+   ],
+   "label": "CUI Sensitivity Label and Publishing Policy",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L2-3.1.3.dlp-policy",
+   "control_ids": [
+    "AC.L2-3.1.3"
+   ],
+   "label": "DLP Compliance Policy for CUI Flow Control",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AC.L2-3.1.3.service-account",
+   "control_ids": [
+    "AC.L2-3.1.3"
+   ],
+   "label": "Service Principal Account Evidence for CUI Flow Control",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "eoAppDisplayName"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 53
+  },
+  {
+   "entry_id": "AC.L2-3.1.4.pim-policy-get",
+   "control_ids": [
+    "AC.L2-3.1.4"
+   ],
+   "label": "Get PIM Policy for Compliance Admin Role",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "safe",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 99
+  },
+  {
+   "entry_id": "AC.L2-3.1.4.pim-approval",
+   "control_ids": [
+    "AC.L2-3.1.4"
+   ],
+   "label": "PIM Separation of Duties - Require Approval",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "approverUPN"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 2,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L2-3.1.5.pim-eligible",
+   "control_ids": [
+    "AC.L2-3.1.5",
+    "AC.L2-3.1.7",
+    "SC.L2-3.13.3"
+   ],
+   "label": "PIM JIT Eligible Role Assignment",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "roleDefId"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 2,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "AC.L2-3.1.7.pim-roles-eligible",
+   "control_ids": [
+    "AC.L2-3.1.7"
+   ],
+   "label": "PIM Eligible Role Assignments for Privileged Users",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "globalAdminRoleDefId",
+    "privilegedRoleAdminDefId",
+    "securityAdminRoleDefId"
+   ],
+   "azure_tier": null,
+   "module": "Microsoft.Graph.Identity.Governance",
+   "layer_hint": 0,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.7.pim-roles-permanent",
+   "control_ids": [
+    "AC.L2-3.1.7"
+   ],
+   "label": "Verify No Permanent Privileged Role Assignments",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "globalAdminRoleDefId",
+    "privilegedRoleAdminDefId",
+    "securityAdminRoleDefId"
+   ],
+   "azure_tier": null,
+   "module": "Microsoft.Graph.Identity.Governance",
+   "layer_hint": 0,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.6.admin-account",
+   "control_ids": [
+    "AC.L2-3.1.6"
+   ],
+   "label": "Create Dedicated Admin Account",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "adminUserName",
+    "tenantName",
+    "initialPassword"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AC.L2-3.1.8.smart-lockout",
+   "control_ids": [
+    "AC.L2-3.1.8"
+   ],
+   "label": "Smart Lockout Configuration Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L2-3.1.9.terms-of-use",
+   "control_ids": [
+    "AC.L2-3.1.9"
+   ],
+   "label": "Create CUI Terms of Use Agreement",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "touFileName",
+    "touFileBase64"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AC.L2-3.1.10.screen-lock",
+   "control_ids": [
+    "AC.L2-3.1.10",
+    "SC.L2-3.13.9"
+   ],
+   "label": "Deploy Screen Lock / Session Timeout Intune Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.11.session-timeout",
+   "control_ids": [
+    "AC.L2-3.1.11"
+   ],
+   "label": "Conditional Access - Session Timeout and No Persistent Browser",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AC.L2-3.1.12.named-location",
+   "control_ids": [
+    "AC.L2-3.1.12"
+   ],
+   "label": "Create Approved CUI Named Location (IP Range)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "approvedIpRange"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.14.block-untrusted",
+   "control_ids": [
+    "AC.L2-3.1.14",
+    "SC.L2-3.13.7"
+   ],
+   "label": "Conditional Access - Block Untrusted Network Locations",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "AC.L2-3.1.15.admin-mfa",
+   "control_ids": [
+    "AC.L2-3.1.15"
+   ],
+   "label": "Conditional Access - Admin MFA Phishing-Resistant",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "AC.L2-3.1.16.wifi-profile",
+   "control_ids": [
+    "AC.L2-3.1.16"
+   ],
+   "label": "Deploy WPA2-Enterprise WiFi Profile via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "wifiSsid"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L2-3.1.18.mobile-ca",
+   "control_ids": [
+    "AC.L2-3.1.18"
+   ],
+   "label": "Conditional Access - Mobile Device Compliance Requirement",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "AC.L2-3.1.18.byod-nonbrowser-block",
+   "control_ids": [
+    "AC.L2-3.1.18",
+    "AC.L2-3.1.19",
+    "CM.L2-3.4.6"
+   ],
+   "label": "BYOD Non-Browser Client Block CA Policies",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 20
+  },
+  {
+   "entry_id": "AC.L2-3.1.18.byod-nonbrowser-signins",
+   "control_ids": [
+    "AC.L2-3.1.18",
+    "AC.L2-3.1.19"
+   ],
+   "label": "BYOD Non-Browser Sign-In Failures (Runtime Sample)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 21
+  },
+  {
+   "entry_id": "AC.L2-3.1.3.byod-dlp-policies",
+   "control_ids": [
+    "AC.L1-3.1.22",
+    "MP.L2-3.8.8",
+    "MP.L2-3.8.9"
+   ],
+   "label": "BYOD DLP Compliance Policies",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 22
+  },
+  {
+   "entry_id": "AC.L2-3.1.3.byod-dlp-matches",
+   "control_ids": [
+    "AC.L1-3.1.22",
+    "MP.L2-3.8.8"
+   ],
+   "label": "BYOD DLP Rule Match Audit Events (Runtime Sample)",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 23
+  },
+  {
+   "entry_id": "SC.L2-3.13.16.byod-sensitivity-labels",
+   "control_ids": [
+    "SC.L2-3.13.16",
+    "AC.L2-3.1.19",
+    "SC.L2-3.13.8"
+   ],
+   "label": "BYOD Sensitivity Labels Configuration",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "SC.L2-3.13.16.byod-label-usage",
+   "control_ids": [
+    "SC.L2-3.13.16"
+   ],
+   "label": "BYOD Sensitivity Label Usage Audit Events (Runtime Sample)",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "AC.L2-3.1.19.ios-mam",
+   "control_ids": [
+    "AC.L2-3.1.19"
+   ],
+   "label": "Deploy iOS MAM App Protection Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "AC.L2-3.1.20.guest-restrict",
+   "control_ids": [
+    "AC.L1-3.1.20"
+   ],
+   "label": "Restrict Guest Invitations via Authorization Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "AC.L2-3.1.20.spo-sharing",
+   "control_ids": [
+    "AC.L1-3.1.20"
+   ],
+   "label": "Disable SharePoint External Sharing at Tenant Level",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L2-3.1.21.block-storage",
+   "control_ids": [
+    "AC.L2-3.1.21"
+   ],
+   "label": "Block Removable Storage via Intune Device Configuration",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "AC.L2-3.1.22.spo-site-sharing",
+   "control_ids": [
+    "AC.L1-3.1.22"
+   ],
+   "label": "Verify SharePoint Site Sharing Restricted (tenant-level 'disabled' covers site-level)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "AT.L2-3.2.1.training-evidence",
+   "control_ids": [
+    "AT.L2-3.2.1",
+    "AT.L2-3.2.2"
+   ],
+   "label": "Security Awareness Training Evidence Collection",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "AT.L2-3.2.3.insider-threat",
+   "control_ids": [
+    "AT.L2-3.2.3"
+   ],
+   "label": "Insider Threat Awareness Program Evidence",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "AU.L2-3.3.1.org-customization",
+   "control_ids": [
+    "AU.L2-3.3.1"
+   ],
+   "label": "Enable Organization Customization (Pre-requisite for Audit)",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AU.L2-3.3.1.audit-enable",
+   "control_ids": [
+    "AU.L2-3.3.1"
+   ],
+   "label": "Enable Unified Audit Log Ingestion",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 41
+  },
+  {
+   "entry_id": "AU.L2-3.3.1.audit-retention",
+   "control_ids": [
+    "AU.L2-3.3.1"
+   ],
+   "label": "Create Audit Log Retention Policy (1 Year)",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 42
+  },
+  {
+   "entry_id": "AU.L2-3.3.2.signin-logs",
+   "control_ids": [
+    "AU.L2-3.3.2"
+   ],
+   "label": "Sign-In and Directory Audit Log Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AU.L2-3.3.3.sentinel-connector",
+   "control_ids": [
+    "AU.L2-3.3.3"
+   ],
+   "label": "Connect Office 365 Data Connector to Sentinel",
+   "engine": "az",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName",
+    "tenantId"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "AU.L2-3.3.5.audit-search",
+   "control_ids": [
+    "AU.L2-3.3.5"
+   ],
+   "label": "Audit Log Search Evidence (Reduce/Review Capability)",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AU.L2-3.3.6.audit-reduction",
+   "control_ids": [
+    "AU.L2-3.3.6"
+   ],
+   "label": "Audit Reduction via Compliance Search",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "tenantName"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AU.L2-3.3.6.audit-report-evidence",
+   "control_ids": [
+    "AU.L2-3.3.6"
+   ],
+   "label": "Audit Log Search and Report Generation Evidence",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 52
+  },
+  {
+   "entry_id": "AU.L2-3.3.7.time-source",
+   "control_ids": [
+    "AU.L2-3.3.7"
+   ],
+   "label": "Authoritative Time Source Verification (Platform Inherited)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "AU.L2-3.3.8.audit-protect",
+   "control_ids": [
+    "AU.L2-3.3.8",
+    "AU.L2-3.3.9"
+   ],
+   "label": "Audit Log Access Restriction - Compliance Admin Role Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "complianceRoleId"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 2,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "CM.L2-3.4.1.security-baseline",
+   "control_ids": [
+    "CM.L2-3.4.1"
+   ],
+   "label": "Deploy Windows Security Baseline via Intune Template",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "CM.L2-3.4.2.asr-rules",
+   "control_ids": [
+    "CM.L2-3.4.2"
+   ],
+   "label": "Deploy Attack Surface Reduction Rules via Intune Configuration Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "CM.L2-3.4.3.change-tracking",
+   "control_ids": [
+    "CM.L2-3.4.3"
+   ],
+   "label": "Configuration Change Tracking via Intune Audit Log",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "CM.L2-3.4.4.impact-analysis",
+   "control_ids": [
+    "CM.L2-3.4.4"
+   ],
+   "label": "Security Impact Analysis of Changes (Manual Process Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "CM.L2-3.4.5.access-restrict",
+   "control_ids": [
+    "CM.L2-3.4.5"
+   ],
+   "label": "Access Restriction for Configuration Changes via Role Assignments",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 2,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "CM.L2-3.4.6.least-functionality",
+   "control_ids": [
+    "CM.L2-3.4.6"
+   ],
+   "label": "Enforce Least Functionality - Disable Cortana and MSIA",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "CM.L2-3.4.7.wdac",
+   "control_ids": [
+    "CM.L2-3.4.7"
+   ],
+   "label": "WDAC Application Control Policy via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "CM.L2-3.4.8.detected-apps",
+   "control_ids": [
+    "CM.L2-3.4.8"
+   ],
+   "label": "Detected Applications Inventory Evidence via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "CM.L2-3.4.8.app-protection-evidence",
+   "control_ids": [
+    "CM.L2-3.4.8"
+   ],
+   "label": "Intune App Protection and Defender Application Control Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 51
+  },
+  {
+   "entry_id": "CM.L2-3.4.9.install-control",
+   "control_ids": [
+    "CM.L2-3.4.9"
+   ],
+   "label": "User Software Installation Control via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "IA.L2-3.5.1.user-identify",
+   "control_ids": [
+    "IA.L1-3.5.1",
+    "IA.L1-3.5.2"
+   ],
+   "label": "User and Device Identification Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "IA.L2-3.5.3.mfa-authenticator",
+   "control_ids": [
+    "IA.L2-3.5.3"
+   ],
+   "label": "Enable Microsoft Authenticator Authentication Method",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "IA.L2-3.5.3.fido2-enable",
+   "control_ids": [
+    "IA.L2-3.5.3"
+   ],
+   "label": "Enable FIDO2 Security Key Authentication Method",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "IA.L2-3.5.4.auth-strength",
+   "control_ids": [
+    "IA.L2-3.5.4"
+   ],
+   "label": "Create Phishing-Resistant Authentication Strength Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "IA.L2-3.5.5.disable-inactive",
+   "control_ids": [
+    "IA.L2-3.5.5",
+    "IA.L2-3.5.6"
+   ],
+   "label": "Disable Inactive Accounts Inactive 90+ Days",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "safe",
+   "variables_required": [
+    "operatorUPN",
+    "breakGlassUPN"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 1,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "IA.L2-3.5.7.password-protection",
+   "control_ids": [
+    "IA.L2-3.5.7"
+   ],
+   "label": "Enable Azure AD Password Protection and Banned Password List",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "IA.L2-3.5.8.password-reuse",
+   "control_ids": [
+    "IA.L2-3.5.8"
+   ],
+   "label": "Password Reuse Prevention Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "IA.L2-3.5.8.password-policy-evidence",
+   "control_ids": [
+    "IA.L2-3.5.8"
+   ],
+   "label": "Entra ID Password Protection Policy Settings",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 50
+  },
+  {
+   "entry_id": "IA.L2-3.5.9.tap-config",
+   "control_ids": [
+    "IA.L2-3.5.9"
+   ],
+   "label": "Configure Temporary Access Pass (One-Time Use, 60 Minutes)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "IA.L2-3.5.10.cert-auth",
+   "control_ids": [
+    "IA.L2-3.5.10"
+   ],
+   "label": "Enable Certificate-Based Authentication Method",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "IA.L2-3.5.11.branding",
+   "control_ids": [
+    "IA.L2-3.5.11"
+   ],
+   "label": "Login Page Branding Evidence (Password Obscured by Platform)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "tenantId"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "IR.L2-3.6.1.atp-enable",
+   "control_ids": [
+    "IR.L2-3.6.1"
+   ],
+   "label": "Enable Defender for Office 365 ATP for SharePoint, Teams, and OneDrive",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "IR.L2-3.6.1.malware-filter",
+   "control_ids": [
+    "IR.L2-3.6.1"
+   ],
+   "label": "Enable File Type Filtering in Default Malware Filter Policy",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "IR.L2-3.6.2.incident-track",
+   "control_ids": [
+    "IR.L2-3.6.2"
+   ],
+   "label": "Sentinel Incident Tracking and Response Evidence",
+   "engine": "az",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "IR.L2-3.6.3.attack-sim",
+   "control_ids": [
+    "IR.L2-3.6.3"
+   ],
+   "label": "Launch Attack Simulation for Incident Response Testing",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "MA.L2-3.7.1.update-ring",
+   "control_ids": [
+    "MA.L2-3.7.1",
+    "MA.L2-3.7.2"
+   ],
+   "label": "Deploy Windows Update for Business Ring via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "MA.L2-3.7.4.media-check",
+   "control_ids": [
+    "MA.L2-3.7.4"
+   ],
+   "label": "Media Malware Check via Defender AV Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "MA.L2-3.7.5.remote-mfa",
+   "control_ids": [
+    "MA.L2-3.7.5"
+   ],
+   "label": "MFA for Remote Maintenance via Conditional Access",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "MA.L2-3.7.6.supervised",
+   "control_ids": [
+    "MA.L2-3.7.6"
+   ],
+   "label": "Supervised Maintenance by Authorized Personnel (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "MP.L2-3.8.1.cui-label",
+   "control_ids": [
+    "MP.L2-3.8.1",
+    "MP.L2-3.8.2",
+    "MP.L2-3.8.4"
+   ],
+   "label": "Create CUI Sensitivity Label with Encryption",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "MP.L2-3.8.1.label-policy",
+   "control_ids": [
+    "MP.L2-3.8.1"
+   ],
+   "label": "Publish CUI Sensitivity Label Policy to All Workloads",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "MP.L2-3.8.3.sanitize",
+   "control_ids": [
+    "MP.L1-3.8.3"
+   ],
+   "label": "Media Sanitization Before Disposal (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 18
+  },
+  {
+   "entry_id": "MP.L2-3.8.5.media-access",
+   "control_ids": [
+    "MP.L2-3.8.5",
+    "SC.L2-3.13.4"
+   ],
+   "label": "CUI Media Access Control via Intune Removable Storage Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 19
+  },
+  {
+   "entry_id": "MP.L2-3.8.6.bitlocker",
+   "control_ids": [
+    "MP.L2-3.8.6"
+   ],
+   "label": "Deploy BitLocker Drive Encryption Policy via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "MP.L2-3.8.7.removable-id",
+   "control_ids": [
+    "MP.L2-3.8.7"
+   ],
+   "label": "Removable Media Identification and Marking (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 20
+  },
+  {
+   "entry_id": "MP.L2-3.8.8.storage-owner",
+   "control_ids": [
+    "MP.L2-3.8.8"
+   ],
+   "label": "Portable Storage Device Ownership and Accountability (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 22
+  },
+  {
+   "entry_id": "MP.L2-3.8.9.dlp-policy",
+   "control_ids": [
+    "MP.L2-3.8.9"
+   ],
+   "label": "Create DLP Compliance Policy to Enforce CUI Blocking",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "MP.L2-3.8.9.dlp-rule",
+   "control_ids": [
+    "MP.L2-3.8.9"
+   ],
+   "label": "Create DLP Compliance Rule to Block CUI and Notify Owner",
+   "engine": "ipps",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "PE.L2-3.10.1.physical-access",
+   "control_ids": [
+    "PE.L1-3.10.1"
+   ],
+   "label": "Physical Access Authorization and Control (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 28
+  },
+  {
+   "entry_id": "PE.L2-3.10.2.physical-monitor",
+   "control_ids": [
+    "PE.L2-3.10.2"
+   ],
+   "label": "Physical Facility Monitoring and Visitor Escort (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 29
+  },
+  {
+   "entry_id": "PE.L2-3.10.3.physical-audit",
+   "control_ids": [
+    "PE.L1-3.10.3"
+   ],
+   "label": "Physical Access Log Audit (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 30
+  },
+  {
+   "entry_id": "PE.L2-3.10.4.physical-safeguard",
+   "control_ids": [
+    "PE.L1-3.10.4"
+   ],
+   "label": "Physical Safeguarding of CUI Systems (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 31
+  },
+  {
+   "entry_id": "PE.L2-3.10.5.physical-protect",
+   "control_ids": [
+    "PE.L1-3.10.5"
+   ],
+   "label": "Physical Protection of CUI Output (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 32
+  },
+  {
+   "entry_id": "PE.L2-3.10.6.alternative-site",
+   "control_ids": [
+    "PE.L2-3.10.6"
+   ],
+   "label": "Alternative Work Site Physical Controls (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 33
+  },
+  {
+   "entry_id": "PS.L2-3.9.1.screening",
+   "control_ids": [
+    "PS.L2-3.9.1"
+   ],
+   "label": "Personnel Background Screening Process (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 34
+  },
+  {
+   "entry_id": "PS.L2-3.9.2.termination",
+   "control_ids": [
+    "PS.L2-3.9.2"
+   ],
+   "label": "Personnel Termination and Transfer Account Disable Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 35
+  },
+  {
+   "entry_id": "PS.L2-3.9.2.account-disable-evidence",
+   "control_ids": [
+    "PS.L2-3.9.2"
+   ],
+   "label": "Terminated User Account Disable Audit Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 53
+  },
+  {
+   "entry_id": "RA.L2-3.11.1.secure-score",
+   "control_ids": [
+    "RA.L2-3.11.1"
+   ],
+   "label": "Microsoft Secure Score Risk Assessment Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "RA.L2-3.11.2.vuln-scan",
+   "control_ids": [
+    "RA.L2-3.11.2"
+   ],
+   "label": "Vulnerability Scan Results Evidence via Defender",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "RA.L2-3.11.3.vuln-remediation",
+   "control_ids": [
+    "RA.L2-3.11.3"
+   ],
+   "label": "Vulnerability Remediation via Windows Update for Business Rings",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "CA.L2-3.12.1.compliance-assess",
+   "control_ids": [
+    "CA.L2-3.12.1",
+    "CA.L2-3.12.3"
+   ],
+   "label": "Compliance Assessment Evidence via Compliance Manager",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 8,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "CA.L2-3.12.2.poam",
+   "control_ids": [
+    "CA.L2-3.12.2"
+   ],
+   "label": "POA&M Improvement Actions Evidence via Compliance Manager",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 8,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "CA.L2-3.12.4.ssp",
+   "control_ids": [
+    "CA.L2-3.12.4"
+   ],
+   "label": "System Security Plan Documentation (Manual Gate)",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 8,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "SC.L2-3.13.2.advisor",
+   "control_ids": [
+    "SC.L2-3.13.2"
+   ],
+   "label": "Azure Advisor Security Recommendations Evidence",
+   "engine": "az",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "SC.L2-3.13.2.session-lock",
+   "control_ids": [
+    "SC.L2-3.13.2"
+   ],
+   "label": "Intune Screen Lock / Session Lock Policy Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 54
+  },
+  {
+   "entry_id": "SC.L2-3.13.4.remote-access",
+   "control_ids": [
+    "SC.L2-3.13.4"
+   ],
+   "label": "Conditional Access Policy for Remote Access Sessions",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 3,
+   "sequence_hint": 52
+  },
+  {
+   "entry_id": "SC.L2-3.13.8.tls-enforce",
+   "control_ids": [
+    "SC.L2-3.13.8",
+    "AC.L2-3.1.13"
+   ],
+   "label": "Disable Legacy TLS Client Connections in Exchange Transport",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "SC.L2-3.13.11.fips",
+   "control_ids": [
+    "SC.L2-3.13.11"
+   ],
+   "label": "FIPS 140-2 Compliance Verification (Platform Inherited)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "SC.L2-3.13.12.camera-block",
+   "control_ids": [
+    "SC.L2-3.13.12"
+   ],
+   "label": "Block Camera and Collaborative Devices via Intune Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "SC.L1-3.13.1.endpoint-firewall",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L1-3.13.5",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Deploy Windows Defender Firewall Policy via Intune Endpoint Security",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 17
+  },
+  {
+   "entry_id": "SC.L2-3.13.13.safe-attach",
+   "control_ids": [
+    "SC.L2-3.13.13"
+   ],
+   "label": "Create Safe Attachments Policy with Dynamic Delivery",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "SC.L2-3.13.13.safe-attach-rule",
+   "control_ids": [
+    "SC.L2-3.13.13"
+   ],
+   "label": "Create Safe Attachments Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "SC.L2-3.13.14.teams-external",
+   "control_ids": [
+    "SC.L2-3.13.14"
+   ],
+   "label": "Disable Teams Federation and Public Cloud External Access",
+   "engine": "teams",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.dkim",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Enable DKIM Signing for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.anti-phish",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Anti-Phishing Policy with Mailbox Intelligence",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.anti-phish-rule",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Anti-Phishing Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "SC.L2-3.13.16.data-at-rest",
+   "control_ids": [
+    "SC.L2-3.13.16"
+   ],
+   "label": "CUI Data-at-Rest Protection Evidence (Labels + BitLocker)",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "SI.L2-3.14.1.flaw-id",
+   "control_ids": [
+    "SI.L1-3.14.1"
+   ],
+   "label": "System Flaw Identification via Defender Vulnerability Management",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 40
+  },
+  {
+   "entry_id": "SI.L2-3.14.2.anti-malware",
+   "control_ids": [
+    "SI.L1-3.14.2"
+   ],
+   "label": "Create CMMC Malware Filter Policy with File Type Rejection",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "securityEmail"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 17
+  },
+  {
+   "entry_id": "SI.L2-3.14.2.malware-rule",
+   "control_ids": [
+    "SI.L1-3.14.2"
+   ],
+   "label": "Create Malware Filter Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 18
+  },
+  {
+   "entry_id": "SI.L2-3.14.3.safe-links",
+   "control_ids": [
+    "SI.L2-3.14.3"
+   ],
+   "label": "Create Safe Links Policy with URL Scanning",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 19
+  },
+  {
+   "entry_id": "SI.L2-3.14.3.safe-links-rule",
+   "control_ids": [
+    "SI.L2-3.14.3"
+   ],
+   "label": "Create Safe Links Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 20
+  },
+  {
+   "entry_id": "SI.L2-3.14.3.advisory-evidence",
+   "control_ids": [
+    "SI.L2-3.14.3"
+   ],
+   "label": "Microsoft Service Health and Security Advisory Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 54
+  },
+  {
+   "entry_id": "SI.L1-3.14.4.av-signatures",
+   "control_ids": [
+    "SI.L1-3.14.4"
+   ],
+   "label": "Antivirus Signature Currency via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "SI.L2-3.14.5.scan-schedule",
+   "control_ids": [
+    "SI.L1-3.14.5"
+   ],
+   "label": "Scheduled Malware Scan Configuration via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 4,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "SI.L2-3.14.6.security-alerts",
+   "control_ids": [
+    "SI.L2-3.14.6"
+   ],
+   "label": "Security Alert Monitoring Evidence via Defender",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "SI.L2-3.14.6.spam-protection",
+   "control_ids": [
+    "SI.L2-3.14.6"
+   ],
+   "label": "Anti-Spam Hosted Content Filter Policy Evidence",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 5,
+   "sequence_hint": 50
+  },
+  {
+   "entry_id": "SI.L2-3.14.6.email-protection-evidence",
+   "control_ids": [
+    "SI.L2-3.14.6"
+   ],
+   "label": "Defender for Office 365 / Exchange Online Protection Evidence",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 55
+  },
+  {
+   "entry_id": "SI.L2-3.14.7.threat-intel",
+   "control_ids": [
+    "SI.L2-3.14.7"
+   ],
+   "label": "Sentinel Threat Intelligence Data Connectors",
+   "engine": "az",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 51
+  },
+  {
+   "entry_id": "SI.L2-3.14.7.security-alerts-evidence",
+   "control_ids": [
+    "SI.L2-3.14.7"
+   ],
+   "label": "Security Alert and Detection Rule Evidence",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 56
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.anti-spam",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Anti-Spam Inbound Content Filter Policy",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 21
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.anti-spam-rule",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Anti-Spam Inbound Filter Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 22
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.outbound-spam",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Outbound Spam Filter Policy with User Block on Threshold",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 23
+  },
+  {
+   "entry_id": "SC.L2-3.13.15.outbound-spam-rule",
+   "control_ids": [
+    "SC.L2-3.13.15"
+   ],
+   "label": "Create Outbound Spam Filter Rule for Primary Domain",
+   "engine": "exchange",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "primaryDomain"
+   ],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 24
+  },
+  {
+   "entry_id": "AC.L1-3.1.1.ca-policy-evidence",
+   "control_ids": [
+    "AC.L1-3.1.1"
+   ],
+   "label": "Verify Conditional Access Policies Enforce Authorized Access",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AC.L1-3.1.2.rbac-evidence",
+   "control_ids": [
+    "AC.L1-3.1.2"
+   ],
+   "label": "Verify Directory Role Assignments Limit Functions",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AC.L1-3.1.20.cross-tenant-evidence",
+   "control_ids": [
+    "AC.L1-3.1.20"
+   ],
+   "label": "Verify Cross-Tenant Access Restrictions",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AC.L1-3.1.22.public-sharing-evidence",
+   "control_ids": [
+    "AC.L1-3.1.22"
+   ],
+   "label": "Verify SharePoint External Sharing Controls",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "AC.L2-3.1.17.wireless-profile-evidence",
+   "control_ids": [
+    "AC.L2-3.1.17"
+   ],
+   "label": "Verify Intune Wi-Fi Configuration Profiles Enforce WPA2/3",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "IA.L1-3.5.1.identity-evidence",
+   "control_ids": [
+    "IA.L1-3.5.1"
+   ],
+   "label": "Verify User and Device Identity Management",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "IA.L1-3.5.2.auth-methods-evidence",
+   "control_ids": [
+    "IA.L1-3.5.2"
+   ],
+   "label": "Verify Authentication Methods Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "SI.L1-3.14.1.flaw-remediation-evidence",
+   "control_ids": [
+    "SI.L1-3.14.1"
+   ],
+   "label": "Verify Defender Vulnerability Management Configuration",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 36
+  },
+  {
+   "entry_id": "SC.L1-3.13.1.conditional-access-boundary",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Collect Conditional Access Policies for Boundary Protection",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 38
+  },
+  {
+   "entry_id": "SC.L1-3.13.1.nsg-boundary-rules",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "CM.L2-3.4.1",
+    "SI.L1-3.14.1",
+    "SI.L2-3.14.6",
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2",
+    "AU.L2-3.3.3",
+    "SC.L2-3.13.10",
+    "SC.L2-3.13.6",
+    "SC.L1-3.13.5",
+    "AC.L1-3.1.1"
+   ],
+   "label": "NSG Boundary Protection Rules",
+   "engine": "az",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 39
+  },
+  {
+   "entry_id": "SI.L1-3.14.2.malware-protection-evidence",
+   "control_ids": [
+    "SI.L1-3.14.2"
+   ],
+   "label": "Verify Defender Antimalware Policy Configuration",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 37
+  },
+  {
+   "entry_id": "SI.L1-3.14.4.av-update-evidence",
+   "control_ids": [
+    "SI.L1-3.14.4"
+   ],
+   "label": "Verify Defender Automatic Update Configuration",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 38
+  },
+  {
+   "entry_id": "SI.L1-3.14.5.scan-schedule-evidence",
+   "control_ids": [
+    "SI.L1-3.14.5"
+   ],
+   "label": "Create/Verify CMMC Defender Antivirus Policy via Intune",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 39
+  },
+  {
+   "entry_id": "PE.L1-3.10.1.physical-access",
+   "control_ids": [
+    "PE.L1-3.10.1"
+   ],
+   "label": "Limit Physical Access to Organizational Systems",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 24
+  },
+  {
+   "entry_id": "PE.L1-3.10.3.visitor-escort",
+   "control_ids": [
+    "PE.L1-3.10.3"
+   ],
+   "label": "Escort Visitors and Monitor Visitor Activity",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 25
+  },
+  {
+   "entry_id": "PE.L1-3.10.4.physical-audit-log",
+   "control_ids": [
+    "PE.L1-3.10.4"
+   ],
+   "label": "Maintain Audit Logs of Physical Access",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 26
+  },
+  {
+   "entry_id": "PE.L1-3.10.5.access-device-control",
+   "control_ids": [
+    "PE.L1-3.10.5"
+   ],
+   "label": "Control and Manage Physical Access Devices",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 27
+  },
+  {
+   "entry_id": "MP.L1-3.8.3.media-sanitize",
+   "control_ids": [
+    "MP.L1-3.8.3"
+   ],
+   "label": "Sanitize or Destroy Media Before Disposal or Reuse",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 17
+  },
+  {
+   "entry_id": "MA.L2-3.7.3.offsite-sanitize",
+   "control_ids": [
+    "MA.L2-3.7.3"
+   ],
+   "label": "Sanitize Equipment Removed for Off-Site Maintenance",
+   "engine": "manual_gate",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": false,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "MP.L2-3.8.7.removable-media-intune",
+   "control_ids": [
+    "MP.L2-3.8.7"
+   ],
+   "label": "Verify Intune Removable Storage Restriction Policy",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 21
+  },
+  {
+   "entry_id": "MP.L2-3.8.8.unowned-storage-intune",
+   "control_ids": [
+    "MP.L2-3.8.8"
+   ],
+   "label": "Verify Intune Policy Prohibiting Unidentified Portable Storage",
+   "engine": "mgraph",
+   "registry": "cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": null,
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 23
+  },
+  {
+   "entry_id": "AZ-PREFLIGHT-001",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Register Required Azure Resource Providers",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "AZ-CTX-001",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Set Azure Subscription Context",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AZ-FOUND-001",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Create Azure Resource Group",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "AZ-FOUND-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "CM.L2-3.4.1"
+   ],
+   "label": "Assign CMMC L2 Azure Policy Initiative",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "AZ-FOUND-003",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SI.L1-3.14.1",
+    "SI.L2-3.14.6",
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2",
+    "AU.L2-3.3.3",
+    "CM.L2-3.4.1"
+   ],
+   "label": "Enable Microsoft Defender for Cloud (P2)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AZ-LOG-001",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2",
+    "AU.L2-3.3.3"
+   ],
+   "label": "Create Log Analytics Workspace (365-day retention)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AZ-LOG-002",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Create Immutable Log Storage Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "storageAccountName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AZ-LOG-002a",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "SC.L2-3.13.10"
+   ],
+   "label": "Assign System Managed Identity to Storage Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "storageAccountName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AZ-LOG-002b",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "SC.L2-3.13.10"
+   ],
+   "label": "Grant Storage MI Key Vault Crypto Service Encryption User Role",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "AZ-LOG-002c",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "SC.L2-3.13.10"
+   ],
+   "label": "Enable CMK Encryption on Storage Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "storageAccountName",
+    "cmkKeyName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AZ-LOG-003",
+   "control_ids": [
+    "AU.L2-3.3.1"
+   ],
+   "label": "Set Storage Container Immutability Policy (WORM)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "safe",
+   "variables_required": [
+    "resourceGroup",
+    "storageAccountName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "AZ-KV-001",
+   "control_ids": [
+    "SC.L2-3.13.10",
+    "SC.L1-3.13.1"
+   ],
+   "label": "Create Key Vault (purge-protection enabled)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "keyVaultName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "AZ-KV-002",
+   "control_ids": [
+    "SC.L2-3.13.10",
+    "AC.L1-3.1.1"
+   ],
+   "label": "Assign Key Vault Crypto Officer Role to EO Service Principal",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "keyVaultName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "AZ-KV-003",
+   "control_ids": [
+    "SC.L2-3.13.10"
+   ],
+   "label": "Create CMK Key in Key Vault (RSA-HSM 4096)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "keyVaultName",
+    "cmkKeyName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "AZ-NET-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6",
+    "SC.L1-3.13.5"
+   ],
+   "label": "Create Virtual Network",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "vnetName",
+    "vnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "AZ-NET-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6",
+    "SC.L1-3.13.5"
+   ],
+   "label": "Create Management Subnet",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName",
+    "mgmtSubnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "AZ-NET-003",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Workload Subnet",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName",
+    "workloadSubnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "AZ-NET-004",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create AzureBastionHost Subnet",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName",
+    "bastionSubnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "AZ-NET-005",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create AzureFirewall Subnet",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName",
+    "firewallSubnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "AZ-NSG-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L1-3.13.5"
+   ],
+   "label": "Create Network Security Group",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "AZ-NSG-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L1-3.13.5",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Add NSG Rule \u2014 Deny All Inbound",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "AZ-NSG-003",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L1-3.13.5"
+   ],
+   "label": "Add NSG Rule \u2014 Deny All Outbound",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 17
+  },
+  {
+   "entry_id": "AZ-NSG-004",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L1-3.13.5"
+   ],
+   "label": "Add NSG Rule \u2014 Allow Bastion Inbound",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "bastionSubnetCidr"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 18
+  },
+  {
+   "entry_id": "AZ-NSG-005",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Associate NSG with Workload Subnet",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 19
+  },
+  {
+   "entry_id": "AZ-NW-001",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "SC.L1-3.13.1"
+   ],
+   "label": "Create Network Watcher",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 20
+  },
+  {
+   "entry_id": "AZ-NW-002",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Enable NSG Flow Logs to Log Analytics",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "storageAccountName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 22
+  },
+  {
+   "entry_id": "AZ-FW-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Firewall Public IP",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 25
+  },
+  {
+   "entry_id": "AZ-FW-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Azure Firewall",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "vnetName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 26
+  },
+  {
+   "entry_id": "AZ-BAS-001",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Create Bastion Public IP",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 27
+  },
+  {
+   "entry_id": "AZ-BAS-002",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Create Azure Bastion Host",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vnetName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 28
+  },
+  {
+   "entry_id": "AZ-PE-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Private Endpoint for Key Vault",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "keyVaultName",
+    "vnetName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 29
+  },
+  {
+   "entry_id": "AZ-PE-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Private Endpoint for Storage Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "storageAccountName",
+    "vnetName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 30
+  },
+  {
+   "entry_id": "AZ-AUTO-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Create Automation Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "automationAccountName",
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 31
+  },
+  {
+   "entry_id": "AZ-AUTO-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Assign System Managed Identity to Automation Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "automationAccountName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 32
+  },
+  {
+   "entry_id": "AZ-AUTO-003",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "AC.L1-3.1.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Grant Automation MI RBAC Roles (Security Reader, LAR on LAW, SBDC on Storage, KV Crypto User on KV)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 33
+  },
+  {
+   "entry_id": "AZ-SEN-001",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.3"
+   ],
+   "label": "Onboard Sentinel to Log Analytics Workspace",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AZ-SEN-002",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Enable Sentinel Azure Activity Data Connector",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "subscriptionId",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 1
+  },
+  {
+   "entry_id": "AZ-SEN-003",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Enable Sentinel Microsoft Defender for Cloud Data Connector",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AZ-SEN-004",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Enable Sentinel Azure Key Vault Data Connector",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 3
+  },
+  {
+   "entry_id": "AZ-SEN-005",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "SI.L2-3.14.6"
+   ],
+   "label": "Create Sentinel CMMC Analytics Rule - Privileged Identity Changes",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 4
+  },
+  {
+   "entry_id": "AZ-SEN-006",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "SI.L2-3.14.6"
+   ],
+   "label": "Create Sentinel CMMC Analytics Rule - Malware Detection",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 5
+  },
+  {
+   "entry_id": "AZ-SEN-007",
+   "control_ids": [
+    "AU.L2-3.3.2",
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.3"
+   ],
+   "label": "Create Sentinel CMMC Analytics Rule - Excessive Failed Logins",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AZ-SEN-008",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "SI.L1-3.14.1"
+   ],
+   "label": "Create Sentinel CMMC Analytics Rule - Unauthorized Resource Deletion",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "AZ-VM-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "CM.L2-3.4.1"
+   ],
+   "label": "Create Workload VM (no public IP, system managed identity)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location",
+    "vnetName",
+    "vmName",
+    "vmImage",
+    "vmSize",
+    "keyVaultName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 34
+  },
+  {
+   "entry_id": "AZ-VM-002",
+   "control_ids": [
+    "SC.L2-3.13.10",
+    "SC.L2-3.13.16"
+   ],
+   "label": "Enable VM Disk Encryption (CMK via Key Vault)",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vmName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 35
+  },
+  {
+   "entry_id": "AZ-VM-003",
+   "control_ids": [
+    "CM.L2-3.4.1",
+    "CM.L2-3.4.2"
+   ],
+   "label": "Assign DISA STIG Policy to VM",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "vmName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 36
+  },
+  {
+   "entry_id": "AZ-VM-004",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "CM.L2-3.4.1"
+   ],
+   "label": "Install Microsoft Defender for Endpoint VM Extension",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vmName",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 37
+  },
+  {
+   "entry_id": "AZ-DIAG-001",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Subscription Activity Log",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": true,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 9
+  },
+  {
+   "entry_id": "AZ-DIAG-002",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Key Vault",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "keyVaultName",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "AZ-DIAG-003",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Network Security Group",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "AZ-DIAG-004",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Storage Account",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "storageAccountName",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 15
+  },
+  {
+   "entry_id": "AZ-DIAG-005",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Virtual Machine",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "vmName",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 17
+  },
+  {
+   "entry_id": "AZ-DIAG-006",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Set Diagnostic Setting \u2014 Subscription Activity Log",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 18
+  },
+  {
+   "entry_id": "AZ-ID-001",
+   "control_ids": [
+    "AC.L1-3.1.1"
+   ],
+   "label": "Break-Glass Emergency Account",
+   "engine": "mgraph",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "breakGlassUPN"
+   ],
+   "azure_tier": "none",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "AZ-ID-002",
+   "control_ids": [
+    "AC.L1-3.1.1",
+    "AC.L2-3.1.5"
+   ],
+   "label": "Operator Admin Account",
+   "engine": "mgraph",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "operatorUPN"
+   ],
+   "azure_tier": "none",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 11
+  },
+  {
+   "entry_id": "AZ-ID-003",
+   "control_ids": [
+    "AC.L1-3.1.1",
+    "SC.L1-3.13.1"
+   ],
+   "label": "EO Automation Service Principal",
+   "engine": "mgraph",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "appId"
+   ],
+   "azure_tier": "none",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "AZ-ID-004",
+   "control_ids": [
+    "AC.L1-3.1.1"
+   ],
+   "label": "Security Defaults Disabled",
+   "engine": "mgraph",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": "none",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 13
+  },
+  {
+   "entry_id": "AZ-ID-005",
+   "control_ids": [
+    "AC.L2-3.1.5",
+    "AC.L2-3.1.7"
+   ],
+   "label": "PIM Eligible Role Assignment for Operator",
+   "engine": "mgraph",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": "none",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "AZ-FOUND-004",
+   "control_ids": [
+    "CM.L2-3.4.2",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Resource Group CanNotDelete Lock",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "AZ-DNS-001",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Private DNS Zone: Key Vault",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 21
+  },
+  {
+   "entry_id": "AZ-DNS-002",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Private DNS Zone: Blob Storage",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "foundation",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 23
+  },
+  {
+   "entry_id": "AZ-DIAG-007",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Entra ID Diagnostic Settings",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 6
+  },
+  {
+   "entry_id": "AZ-DIAG-008",
+   "control_ids": [
+    "AU.L2-3.3.1",
+    "AU.L2-3.3.2"
+   ],
+   "label": "Create Entra ID Diagnostic Settings",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": true,
+   "idempotency": "evidence-only",
+   "variables_required": [],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 7
+  },
+  {
+   "entry_id": "AZ-SEN-009",
+   "control_ids": [
+    "SI.L1-3.14.1",
+    "AU.L2-3.3.1"
+   ],
+   "label": "Sentinel CMMC 2.0 Content Hub Solution",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 10
+  },
+  {
+   "entry_id": "AZ-BOUNDARY-001",
+   "control_ids": [
+    "SC.L1-3.13.1"
+   ],
+   "label": "Verify Network Security Group Boundary Rules",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 0
+  },
+  {
+   "entry_id": "AZ-SUBNET-001",
+   "control_ids": [
+    "SC.L1-3.13.5"
+   ],
+   "label": "Verify VNet Subnet Segmentation",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": false,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "evidence-only",
+   "variables_required": [
+    "resourceGroup"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 0,
+   "sequence_hint": 2
+  },
+  {
+   "entry_id": "AZ-MON-001",
+   "control_ids": [
+    "AU.L2-3.3.4"
+   ],
+   "label": "Create Azure Monitor Action Group for CISO Alerts",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "cisoEmail",
+    "resourceGroup"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 14
+  },
+  {
+   "entry_id": "AZ-LOG-004",
+   "control_ids": [
+    "AU.L2-3.3.8"
+   ],
+   "label": "Apply CanNotDelete Lock to Sentinel Log Analytics Workspace",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 16
+  },
+  {
+   "entry_id": "AZ-FW-000",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Create Azure Firewall Policy with Threat Intel Deny Mode",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "location"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 24
+  },
+  {
+   "entry_id": "AZ-KV-004",
+   "control_ids": [
+    "SC.L2-3.13.10"
+   ],
+   "label": "Restrict Key Vault Network Access to Azure Services Only",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "keyVaultName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 8
+  },
+  {
+   "entry_id": "AZ-SEN-010",
+   "control_ids": [
+    "SI.L2-3.14.7"
+   ],
+   "label": "Enable Sentinel UEBA for Anomalous Behavior Detection",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "subscriptionId",
+    "resourceGroup",
+    "lawWorkspaceName"
+   ],
+   "azure_tier": "sentinel",
+   "module": null,
+   "layer_hint": 7,
+   "sequence_hint": 12
+  },
+  {
+   "entry_id": "AZ-FW-003",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Azure Firewall - Deallocate",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "firewallName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 27
+  },
+  {
+   "entry_id": "AZ-FW-004",
+   "control_ids": [
+    "SC.L1-3.13.1",
+    "SC.L2-3.13.6"
+   ],
+   "label": "Azure Firewall - Allocate",
+   "engine": "az",
+   "registry": "infra-cmmc-l2-commands",
+   "has_set": true,
+   "has_get": true,
+   "manual_only": false,
+   "idempotency": "get-then-set",
+   "variables_required": [
+    "resourceGroup",
+    "firewallName",
+    "vnetName",
+    "publicIpName"
+   ],
+   "azure_tier": "full",
+   "module": null,
+   "layer_hint": 6,
+   "sequence_hint": 28
+  }
+ ]
+}

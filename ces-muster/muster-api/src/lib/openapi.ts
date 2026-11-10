@@ -67,6 +67,7 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Remediate', description: 'Sprint 5 slice: Stamper / AdminOps run requests with the engine gates (HELD, simulator-first, DP-1 cost, DP-2 two-person), approval, simulated execution, human verification' },
       { name: 'Plan', description: 'Sprint 4 slice: remediation action items generated from gaps (priority = SPRS weight) and the POA&M register (poam_prohibited flagged)' },
       { name: 'Assess', description: 'Sprint 3/4 slice: persisted readiness assessment runs (one SPRS), per-requirement results, gap analysis and audited human overrides' },
       { name: 'Onboard', description: 'Sprint 3 slice: organisations, customer Microsoft 365 tenant registrations and the compliance scope (assets + versioned CUI boundary)' },
@@ -201,6 +202,21 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             status: { type: 'string', enum: ['planned', 'in_progress', 'on_hold', 'closed'] },
             start_date: { type: 'string', format: 'date', nullable: true },
             target_date: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        RemediationRun: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, module: { type: 'string', enum: ['stamper', 'adminops'] }, mode: { type: 'string', enum: ['simulate', 'live'] },
+            action_id: { type: 'string', nullable: true }, requirement_id: { type: 'string', nullable: true },
+            entry_ids: { type: 'array', items: { type: 'string' }, description: 'Stamper registry entry ids' }, op_id: { type: 'string', nullable: true, description: 'AdminOps operation id (A-01 …)' }, parameters: { type: 'object', nullable: true },
+            justification: { type: 'string' },
+            status: { type: 'string', enum: ['requested', 'approved', 'rejected', 'blocked', 'queued', 'running', 'succeeded', 'failed', 'verified', 'cancelled'], readOnly: true },
+            gates: { type: 'array', readOnly: true, items: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, ok: { type: 'boolean' }, note: { type: 'string' }, blocking: { type: 'boolean' } } } },
+            cost_estimate: { type: 'integer', readOnly: true }, requires_approval: { type: 'boolean', readOnly: true },
+            requested_by: { type: 'string', readOnly: true }, requested_at: { type: 'string', format: 'date-time', readOnly: true }, approved_by: { type: 'string', nullable: true, readOnly: true }, approved_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, rejection_reason: { type: 'string', nullable: true },
+            started_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, finished_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, result: { type: 'object', nullable: true, readOnly: true },
+            verified_by: { type: 'string', nullable: true, readOnly: true }, verified_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, verification_notes: { type: 'string', nullable: true },
           },
         },
         PlanAction: {
@@ -459,6 +475,37 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/engagements/{engagementId}/remediation/summary': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Remediation tracking: action and run counts, pending approval / verification, registry sizes', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/registry/stamper': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Stamper command-registry index (223 entries; ?control= / ?q=)', parameters: [...[pathParam('engagementId', 'Engagement id')], { name: 'control', in: 'query', schema: { type: 'string' } }, { name: 'q', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/registry/adminops': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'AdminOps operations catalogue (95; ?domain=A-H / ?practice=)', parameters: [...[pathParam('engagementId', 'Engagement id')], { name: 'domain', in: 'query', schema: { type: 'string' } }, { name: 'practice', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Runs, newest first (?module= / ?status=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('RemediationRun') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Remediate'], security: bearer, summary: 'Request a run (Stamper: bhd_operator only; AdminOps: prime/sub/bhd). Gates evaluated and recorded; blocked runs are kept, not refused', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('RemediationRun')), responses: { 201: json(ref('RemediationRun'), 'Created'), 404: err('Not found'), 422: err('Validation / unknown entry or operation (403 STAMPER_BHD_ONLY for customers)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'One run with its registry entries / operation', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/approve': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'DP-2 approval by a different person (Stamper: second BHD operator; AdminOps: senior_approver or BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_REQUESTED / SOD_SAME_PERSON (403 when not an approver for this module)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/reject': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Reject with a reason', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['reason'], properties: { reason: { type: 'string' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_REJECTABLE (403 NOT_APPROVER)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/execute': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Execute an approved run: simulate records the step plan (tenant never touched); live is queued for the tenant runner (Sprint 5)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun'), 'Simulated'), 202: json(ref('RemediationRun'), 'Queued (live)'), 409: err('RUN_NOT_APPROVED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/verify': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Task verification by a person; a verified run closes its plan action', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['verified', 'notes'], properties: { verified: { type: 'boolean' }, notes: { type: 'string' } } }), responses: { 200: json({ type: 'object', properties: { run: ref('RemediationRun'), action: ref('PlanAction') } }), 409: err('RUN_NOT_FINISHED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/cancel': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Cancel (requester or BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_CANCELLABLE (403 NOT_REQUESTER)'), ...common } },
+      },
       '/api/engagements/{engagementId}/plan/summary': {
         get: { tags: ['Plan'], security: bearer, summary: 'Plan overview: action / POA&M counts, overdue, next due, projected SPRS', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json(ref('PlanSummary')), 404: err('Not found'), ...common } },
       },

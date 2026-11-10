@@ -56,6 +56,9 @@ export type StaticRouteId =
   | 'plan/overview'
   | 'plan/actions'
   | 'plan/poam'
+  | 'remediate/overview'
+  | 'remediate/stamper'
+  | 'remediate/adminops'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -236,6 +239,9 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'plan/overview': ['Plan', 'Planning Overview'],
   'plan/actions': ['Plan', 'Action Management', 'All Action Items'],
   'plan/poam': ['Plan', 'POA&M Planning', 'POA&M Items'],
+  'remediate/overview': ['Remediate', 'Remediation Overview', 'Remediation Dashboard'],
+  'remediate/stamper': ['Remediate', 'Configuration Management – Stamper', 'Configuration Overview'],
+  'remediate/adminops': ['Remediate', 'Administrative Operations – AdminOps', 'AdminOps Overview'],
   muster: ['Muster'],
   'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
   'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],

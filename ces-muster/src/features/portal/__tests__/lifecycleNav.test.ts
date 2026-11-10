@@ -103,8 +103,8 @@ describe('routes', () => {
     expect(routeTitle(r)).toEqual(['Assess', 'Discovery', 'Sync Status']);
     expect(routeTitle('lc/plan/planning-overview')).toEqual(['Plan', 'Planning Overview']);
     expect(routesFor(signedIn('it_security_admin')).has(r)).toBe(true);
-    expect(routesFor(signedIn('it_security_admin')).has('module/stamper')).toBe(false);
-    expect(routesFor(signedIn('bhd_operator')).has('module/stamper')).toBe(true);
+    expect(routesFor(signedIn('it_security_admin')).has('remediate/stamper')).toBe(false);
+    expect(routesFor(signedIn('bhd_operator')).has('remediate/stamper')).toBe(true);
   });
 
   it('the offline viewer keeps the Muster-only navigation', () => {

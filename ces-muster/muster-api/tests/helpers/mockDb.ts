@@ -108,6 +108,7 @@ export function createMockDb() {
     assessmentResult: makeModel(),
     planAction: makeModel(),
     poamItem: makeModel(),
+    remediationRun: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the

@@ -92,6 +92,7 @@ model Tenant {
   assessment_results AssessmentResult[]
   plan_actions       PlanAction[]
   poam_items         PoamItem[]
+  remediation_runs   RemediationRun[]
 
   @@map("tenants")
 }
@@ -154,6 +155,7 @@ model Engagement {
   assessment_runs  AssessmentRun[]
   plan_actions     PlanAction[]
   poam_items       PoamItem[]
+  remediation_runs RemediationRun[]
 
   @@map("engagements")
 }
@@ -670,6 +672,7 @@ model PlanAction {
   engagement Engagement     @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
   run        AssessmentRun? @relation(fields: [run_id], references: [id], onDelete: SetNull)
   poam_items PoamItem[]
+  remediation_runs RemediationRun[]
 
   @@index([engagement_id, status])
   @@map("plan_actions")
@@ -701,4 +704,70 @@ model PoamItem {
 
   @@index([engagement_id, status])
   @@map("poam_items")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 5 slice "Remediate" (migration 018_remediation_runs, 2026-11-10):
+// Stamper / AdminOps run requests with gates, approval, execution, verification.
+// ---------------------------------------------------------------------------
+
+enum RemediationModule {
+  stamper
+  adminops
+}
+
+enum RunMode {
+  simulate
+  live
+}
+
+enum RunStatus {
+  requested
+  approved
+  rejected
+  blocked
+  queued
+  running
+  succeeded
+  failed
+  verified
+  cancelled
+}
+
+model RemediationRun {
+  id                 String            @id @default(uuid())
+  tenant_id          String
+  engagement_id      String
+  module             RemediationModule
+  mode               RunMode           @default(simulate)
+  action_id          String?
+  requirement_id     String?
+  entry_ids          String[]          @default([])
+  op_id              String?
+  parameters         Json?
+  justification      String
+  status             RunStatus         @default(requested)
+  gates              Json
+  cost_estimate      Int               @default(0)
+  requires_approval  Boolean           @default(true)
+  requested_by       String
+  requested_at       DateTime          @default(now()) @db.Timestamptz
+  approved_by        String?
+  approved_at        DateTime?         @db.Timestamptz
+  rejection_reason   String?
+  started_at         DateTime?         @db.Timestamptz
+  finished_at        DateTime?         @db.Timestamptz
+  result             Json?
+  verified_by        String?
+  verified_at        DateTime?         @db.Timestamptz
+  verification_notes String?
+  updated_at         DateTime          @default(now()) @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  action     PlanAction? @relation(fields: [action_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("remediation_runs")
 }

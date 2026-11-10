@@ -48,6 +48,7 @@ import LifecycleScaffoldPage from '@/features/portal/pages/LifecycleScaffoldPage
 import { CustomerTenantsPage, OrganizationsPage, ScopePage } from '@/features/portal/pages/onboard/OnboardPages';
 import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/assess/AssessPages';
 import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/pages/plan/PlanPages';
+import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
 import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
@@ -466,6 +467,13 @@ export default function App() {
         return <PlanActionsPage viewer={viewer} />;
       case 'plan/poam':
         return <PoamPage viewer={viewer} />;
+      // Sprint 5 slice "Remediate".
+      case 'remediate/overview':
+        return <RemediationOverviewPage viewer={viewer} go={go} />;
+      case 'remediate/stamper':
+        return <StamperPage viewer={viewer} />;
+      case 'remediate/adminops':
+        return <AdminOpsPage viewer={viewer} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':
