@@ -21,6 +21,7 @@ import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { assessApi, STATUS_LABEL, STATUS_TONE, type AssessmentResult, type AssessmentRun, type EngineJob, type GapAnalysis, type RequirementStatus } from './assessApi';
 import { failureText } from '../onboard/onboardApi';
+import { csvSafe } from '../../requirementCsvData';
 
 const PRACTICE = new Map(REQUIREMENTS.map((r) => [r.control_id, r.practice]));
 const FAMILY_NAME = new Map(REQUIREMENTS.map((r) => [r.family, r.family_name]));
@@ -291,7 +292,7 @@ export function GapAnalysisPage({ viewer }: { viewer: Viewer }) {
   const families = useMemo(() => [...new Set((data?.gaps ?? []).map((g) => g.family))].sort(), [data]);
   const exportCsv = () => {
     const head = ['requirement_id', 'family', 'weight', 'status', 'engine_status', 'confidence', 'fixable', 'fix_entry_ids', 'override_by', 'override_reason', 'practice'];
-    const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const esc = (v: unknown) => `"${csvSafe(String(v ?? '')).replace(/"/g, '""')}"`; // csvSafe: no formula injection
     const csv = [head.join(','), ...shown.map((g) => [g.requirement_id, g.family, g.weight, g.status, g.engine_status, g.confidence, g.fixable, g.fix_entry_ids.join(' '), g.override_by, g.override_reason, PRACTICE.get(g.requirement_id)].map(esc).join(','))].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));

@@ -23,6 +23,7 @@ import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
 import { assessApi, type AssessmentRun } from '../assess/assessApi';
+import { csvSafe } from '../../requirementCsvData';
 import {
   ACTION_STATUS_LABEL, ACTION_STATUS_TONE, ACTION_STATUSES, planApi, POAM_STATUS_LABEL, POAM_STATUSES, PRIORITIES, PRIORITY_TONE, ymd,
   type ActionStatus, type Milestone, type PlanAction, type PlanActionInput, type PlanSummary, type PoamItem, type PoamInput, type PoamStatus, type Priority,
@@ -309,7 +310,7 @@ export function PoamPage({ viewer }: { viewer: Viewer }) {
   };
   const exportCsv = () => {
     const head = ['requirement_id', 'weight', 'poam_eligible', 'weakness', 'mitigation', 'milestones', 'scheduled_completion', 'responsible', 'resources', 'status'];
-    const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const esc = (v: unknown) => `"${csvSafe(String(v ?? '')).replace(/"/g, '""')}"`; // csvSafe: no formula injection
     const csv = [head.join(','), ...rows.map((p) => [p.requirement_id, p.weight, p.poam_allowed ? 'yes' : 'NO', p.weakness, p.mitigation, (p.milestones ?? []).map((m) => `${m.done ? '[x]' : '[ ]'} ${m.title}${m.due_date ? ` (${m.due_date})` : ''}`).join('; '), ymd(p.scheduled_completion), p.responsible, p.resources, p.status].map(esc).join(','))].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));

@@ -77,7 +77,8 @@ const reqParam = z.object({ requirementId: reqId }).passthrough();
 const fmtQuery = z.object({ format: z.enum(['json', 'md', 'csv']).default('json') });
 
 const byDesc = (k: string) => (a: Record<string, Date | string>, b: Record<string, Date | string>) => +new Date(b[k]) - +new Date(a[k]);
-const csv = (head: string[], rows: unknown[][]) => [head.join(','), ...rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+const csvSafe = (s: string) => (/^[=+\-@\t\r]/.test(s) ? `'${s}` : s); // no spreadsheet formula injection
+const csv = (head: string[], rows: unknown[][]) => [head.join(','), ...rows.map((r) => r.map((v) => `"${csvSafe(String(v ?? '')).replace(/"/g, '""')}"`).join(','))].join('\n');
 
 export function createPrepareRouter(db: Db) {
   const r = Router({ mergeParams: true });

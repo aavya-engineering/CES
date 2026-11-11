@@ -65,9 +65,14 @@ import { PLATFORM_ROLE_MATRIX, PLATFORM_ONLY_ROLES, type LifecycleAction, type L
 export interface ActionRules { approve?: RegExp[]; execute?: RegExp[]; admin?: RegExp[]; /** Paths that are reads despite POST (exports, validators). */ view?: RegExp[] }
 const MATRIX_ROLES = new Set<string>([...PLATFORM_ONLY_ROLES, 'bhd_operator', 'assessor_read_only']);
 
-export function actionFor(method: string, path: string, rules: ActionRules = {}): LifecycleAction {
+/** Express routers here are not strict/case-sensitive, so `…/approve/` and `…/APPROVE` reach the same handler as
+ *  `…/approve`. Classify (and resolve scopes) on a canonical path, or the guard would call them `edit`. */
+export const canonicalPath = (path: string) => (path.replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/').toLowerCase();
+
+export function actionFor(method: string, rawPath: string, rules: ActionRules = {}): LifecycleAction {
   const m = method.toUpperCase();
   if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return 'view';
+  const path = canonicalPath(rawPath);
   const hit = (list?: RegExp[]) => !!list?.some((re) => re.test(path));
   if (hit(rules.view)) return 'view';
   if (hit(rules.admin)) return 'admin';
@@ -77,11 +82,11 @@ export function actionFor(method: string, path: string, rules: ActionRules = {})
 }
 
 /** `scopeOrFn` may resolve to several scopes: the action passes when ANY of them allows it (the route then applies its own module-specific rule). */
-export function requireAction(scopeOrFn: LifecycleScope | ((req: Request) => LifecycleScope | LifecycleScope[]), rules: ActionRules = {}) {
+export function requireAction(scopeOrFn: LifecycleScope | ((req: Request, path: string) => LifecycleScope | LifecycleScope[]), rules: ActionRules = {}) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const role = req.user?.role;
     if (!role || !MATRIX_ROLES.has(role)) { next(); return; } // engine roles: requireRole() decides
-    const resolved = typeof scopeOrFn === 'function' ? scopeOrFn(req) : scopeOrFn;
+    const resolved = typeof scopeOrFn === 'function' ? scopeOrFn(req, canonicalPath(req.path)) : scopeOrFn;
     const scopes = Array.isArray(resolved) ? resolved : [resolved];
     const action = actionFor(req.method, req.path, rules);
     const ok = scopes.some((scope) => (PLATFORM_ROLE_MATRIX[scope]?.[role as keyof typeof PLATFORM_ROLE_MATRIX[typeof scope]] ?? []).includes(action));

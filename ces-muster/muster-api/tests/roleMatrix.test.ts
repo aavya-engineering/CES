@@ -34,6 +34,12 @@ describe('actionFor', () => {
     expect(actionFor('POST', '/evaluate', { execute: [/^\/evaluate$/] })).toBe('execute');
     expect(actionFor('POST', '/nist-catalog/validate', { view: [/\/validate$/] })).toBe('view');
   });
+  it('classifies on a canonical path — trailing slash, double slash, upper case cannot downgrade approve/execute to edit', () => {
+    expect(actionFor('POST', '/runs/x/approve/', { approve: [/\/approve$/] })).toBe('approve');
+    expect(actionFor('POST', '/runs/x/APPROVE', { approve: [/\/approve$/] })).toBe('approve');
+    expect(actionFor('POST', '/runs//x//execute//', { execute: [/\/execute$/] })).toBe('execute');
+    expect(actionFor('PATCH', '/x/results/AC.L1-3.1.1/', { approve: [/\/results\/[^/]+$/] })).toBe('approve');
+  });
 });
 
 describe('platform roles are held to the matrix the UI shows', () => {
@@ -46,6 +52,12 @@ describe('platform roles are held to the matrix the UI shows', () => {
     expect(await denied('org_admin', 'POST', `${E}/evidence/items`, {})).toBe('evidence:edit');
     expect(await denied('org_admin', 'POST', `${E}/plan/actions`, {})).toBe('plan:edit');
     expect(await denied('org_admin', 'POST', `${E}/scope/boundaries/${ID}/confirm`, {})).toBe('passed(500)'); // onboard: VEA → allowed past the guard (fails later only because no DB here)
+  });
+  it('path normalisation: the same denials hold with a trailing slash or upper-case segment (security review A1)', async () => {
+    expect(await denied('it_security_admin', 'PATCH', `${E}/assessments/${ID}/results/AC.L1-3.1.1/`, { status: 'met', reason: 'x' })).toBe('assess:approve');
+    expect(await denied('it_security_admin', 'POST', `${E}/monitor/findings/${ID}/RESOLVE`, {})).toBe('monitor:approve');
+    expect(await denied('compliance_manager', 'POST', `${E}/scope/boundaries/${ID}/confirm/`, {})).toBe('onboard:approve');
+    expect(await denied('compliance_manager', 'POST', `${E}/remediation/runs/`, { module: 'adminops' })).toBe('remediate.adminops:execute');
   });
   it('evidence_reviewer approves evidence but never edits it; senior_approver approves plan/monitor/adminops, never executes', async () => {
     expect(await denied('evidence_reviewer', 'POST', `${E}/evidence/items`, {})).toBe('evidence:edit');

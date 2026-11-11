@@ -87,9 +87,14 @@ export const TEMPLATE_HEADER = ['control_id', 'title', 'family', 'priority', 'de
 const CUSTOM_ID = /^[A-Z][A-Z0-9.-]{1,29}$/;
 const FAMILY_CODES = ['AC', 'AT', 'AU', 'CM', 'IA', 'IR', 'MA', 'MP', 'PS', 'PE', 'RA', 'CA', 'SC', 'SI'];
 
+/** A cell starting with = + - @ or a tab/CR is prefixed with an apostrophe so spreadsheets never evaluate it (CSV injection). */
+export function csvSafe(s: string): string {
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
+
 function cell(v: unknown): string {
-  const s = v == null ? '' : String(v);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  const s = csvSafe(v == null ? '' : String(v));
+  return /[",\n\r']/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 export function requirementsCsv(rows: readonly RequirementRow[], metaOf: (id: string) => RequirementMeta | null): string {

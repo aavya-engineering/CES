@@ -126,10 +126,11 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/plan', express.json({ limit: PLAN_BODY_LIMIT }), createPlanRouter());
 
   // Sprint 6: evidence uploads carry base64 content (≤ 10 MB) — parsed with a larger limit before the global parser.
-  app.use('/api/engagements/:engagementId/evidence', express.json({ limit: '15mb' }));
+  app.use('/api/engagements/:engagementId/evidence', bearerAuth, express.json({ limit: '15mb' }));
   // Runner results carry up to 50 captures × 2 MB (base64) — the global 100 kb limit would 413 them.
-  app.use('/api/engagements/:engagementId/remediation', express.json({ limit: '140mb' }));
-  app.use('/api/engagements/:engagementId/assessments', express.json({ limit: '140mb' })); // discovery runner results: envelope + captures
+  // bearerAuth runs before the large parsers so an unauthenticated client cannot make the API parse 140 MB.
+  app.use('/api/engagements/:engagementId/remediation', bearerAuth, express.json({ limit: '140mb' }));
+  app.use('/api/engagements/:engagementId/assessments', bearerAuth, express.json({ limit: '140mb' })); // discovery runner results: envelope + captures
   app.use(express.json());
 
   // Auth (keep as-is)
@@ -153,18 +154,18 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/customer-tenants', bearerAuth, requireAction('onboard', { view: [/\/test-connection$/] }), createCustomerTenantsRouter(db));
   app.use('/api/engagements/:engagementId/scope', bearerAuth, requireAction('onboard', { approve: [/\/boundaries\/[^/]+\/confirm$/] }), createScopeRouter(db));
   // Sprint 3/4 slice "Assess": persisted readiness runs, gap analysis, human overrides.
-  app.use('/api/engagements/:engagementId/assessments', bearerAuth, requireAction((req) => (req.path.startsWith('/runner') || /\/jobs\/[^/]+\/(claim|result)$/.test(req.path) ? 'remediate.stamper' : 'assess'), { execute: [/^\/run$/, /\/claim$/, /\/result$/], approve: [/\/results\/[^/]+$/] }), createAssessmentsRouter(db, { live }));
+  app.use('/api/engagements/:engagementId/assessments', bearerAuth, requireAction((req, path) => (path.startsWith('/runner') || /\/jobs\/[^/]+\/(claim|result)$/.test(path) ? 'remediate.stamper' : 'assess'), { execute: [/^\/run$/, /\/claim$/, /\/result$/], approve: [/\/results\/[^/]+$/] }), createAssessmentsRouter(db, { live }));
   // Sprint 4 slice "Plan": action items from gaps, POA&M register.
   app.use('/api/engagements/:engagementId/plan', bearerAuth, requireAction('plan') /* generate / from-actions derive records, they touch no tenant → edit */, createPlanActionsRouter(db));
   // Sprint 5 slice "Remediate": Stamper / AdminOps run requests with gates, approval, verification.
-  app.use('/api/engagements/:engagementId/remediation', bearerAuth, requireAction((req) => {
+  app.use('/api/engagements/:engagementId/remediation', bearerAuth, requireAction((req, path) => {
     // Scope by what the request names: the runner protocol and Stamper are BHD-only; a new run says its module;
     // an action on an existing run (approve / execute / verify …) is allowed when any remediate scope allows it —
     // the route then applies the module-specific rule (Stamper → BHD, AdminOps → senior approver / BHD).
     const m = (req.body as { module?: string } | undefined)?.module;
-    if (req.path.startsWith('/runner') || /\/(claim|result)$/.test(req.path)) return 'remediate.stamper';
-    if (req.path === '/runs' && req.method === 'POST') return m === 'stamper' ? 'remediate.stamper' : 'remediate.adminops';
-    if (/^\/runs\/[^/]+\//.test(req.path)) return ['remediate.stamper', 'remediate.adminops', 'remediate.tracking'];
+    if (path.startsWith('/runner') || /\/(claim|result)$/.test(path)) return 'remediate.stamper';
+    if (path === '/runs' && req.method === 'POST') return m === 'stamper' ? 'remediate.stamper' : 'remediate.adminops';
+    if (/^\/runs\/[^/]+\//.test(path)) return ['remediate.stamper', 'remediate.adminops', 'remediate.tracking'];
     return 'remediate.tracking';
   }, { execute: [/^\/runs$/, /\/execute$/, /\/claim$/, /\/result$/], approve: [/\/approve$/, /\/reject$/] }), createRemediationRouter(db));
   // Sprint 6 slice "Collect Evidence": items (≤10 MB inline), validation, SoD review, requests.
