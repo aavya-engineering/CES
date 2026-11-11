@@ -76,7 +76,7 @@ function RunDrawer({ eid, run, viewer, onChanged, onClose }: { eid: string; run:
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { remediationApi.run(eid, run.id).then((r) => r.ok && setDetail(r.data)); }, [eid, run.id]);
   const group = detail.module === 'stamper' ? 'configuration-management-stamper' : 'administrative-operations-adminops';
-  const me = isSignedIn(viewer) ? viewer.role : '';
+  const me = viewer.kind === 'signed-in' ? viewer.sub ?? '' : ''; // user id, as stored in requested_by
   const act = async (what: string, fn: () => Promise<{ ok: true; data: unknown } | { ok: false; status: number; degraded: boolean; error?: string }>, msg: string) => {
     setBusy(what);
     setError(null);

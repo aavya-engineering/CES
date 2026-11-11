@@ -92,7 +92,8 @@ export type LifecycleRouteId = `lc/${string}`;
 export type RouteId = StaticRouteId | LifecycleRouteId;
 
 /** Who is looking: offline (no account) or a signed-in role. */
-export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string };
+/** `sub` is the signed-in user's id — what the API stores in requested_by / created_by / built_by (SoD hints compare against it). */
+export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string; sub?: string | null };
 
 export interface NavItem {
   label: string;

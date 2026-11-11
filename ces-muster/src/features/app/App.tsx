@@ -230,7 +230,7 @@ export default function App() {
   // UI-02: portal route, mirrored in the URL hash (#/shared/requirements,
   // #/muster/discovery) so the back button and deep links work.
   const viewer: Viewer =
-    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId } : { kind: 'offline' };
+    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId, sub: account.sub } : { kind: 'offline' };
   const resolveRoute = useCallback(
     (wanted: RouteId | null): RouteId => (wanted && routesFor(viewer).has(wanted) ? wanted : defaultRoute(viewer)),
     // eslint-disable-next-line react-hooks/exhaustive-deps

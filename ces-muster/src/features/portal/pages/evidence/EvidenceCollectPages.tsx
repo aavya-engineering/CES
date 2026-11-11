@@ -172,7 +172,7 @@ function ItemDrawer({ eid, item, cat, viewer, onChanged, onEdit, onVersion, onCl
   const [error, setError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   useEffect(() => { evidenceApi.item(eid, item.id).then((r) => r.ok && setDetail(r.data)); }, [eid, item.id]);
-  const me = isSignedIn(viewer) ? viewer.role : '';
+  const me = viewer.kind === 'signed-in' ? viewer.sub ?? '' : ''; // user id, as stored in created_by
   const editor = canEdit(viewer, 'evidence-collection');
   const reviewer = canApprove(viewer);
   const archetype = cat.archetypes.find((a) => a.code === detail.archetype_code);
