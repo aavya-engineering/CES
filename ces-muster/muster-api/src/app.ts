@@ -24,6 +24,7 @@ import { createMonitorRouter } from './routes/monitor.js';
 import { createPrepareRouter } from './routes/prepare.js';
 import { createAdminRouter } from './routes/admin.js';
 import { createMonitorScheduler } from './services/monitorScheduler.js';
+import { bearerAuth, requireAction } from './middleware/auth.js';
 import { createOnboardChecklistRouter, createSystemsRouter } from './routes/systems.js';
 import { createSessionsRouter } from './routes/sessions.js';
 import { createActionsRouter } from './routes/actions.js';
@@ -146,27 +147,37 @@ export function createApp(opts: AppOptions = {}) {
   // Parties sub-resource of engagements (mergeParams picks up :engagementId)
   app.use('/api/engagements/:engagementId/parties', createPartiesRouter(db));
   // Sprint 3 slice "Onboard" (2026-11-10): organisations, customer M365 tenants, compliance scope.
-  app.use('/api/organizations', createOrganizationsRouter(db));
-  app.use('/api/customer-tenants', createCustomerTenantsRouter(db));
-  app.use('/api/engagements/:engagementId/scope', createScopeRouter(db));
+  // Review I3 (2026-11-11): the platform-role matrix is enforced here, per lifecycle scope, before each router.
+  app.use('/api/organizations', bearerAuth, requireAction('onboard'), createOrganizationsRouter(db));
+  app.use('/api/customer-tenants', bearerAuth, requireAction('onboard', { view: [/\/test-connection$/] }), createCustomerTenantsRouter(db));
+  app.use('/api/engagements/:engagementId/scope', bearerAuth, requireAction('onboard', { approve: [/\/boundaries\/[^/]+\/confirm$/] }), createScopeRouter(db));
   // Sprint 3/4 slice "Assess": persisted readiness runs, gap analysis, human overrides.
-  app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, { live }));
+  app.use('/api/engagements/:engagementId/assessments', bearerAuth, requireAction('assess', { execute: [/^\/run$/], approve: [/\/results\/[^/]+$/] }), createAssessmentsRouter(db, { live }));
   // Sprint 4 slice "Plan": action items from gaps, POA&M register.
-  app.use('/api/engagements/:engagementId/plan', createPlanActionsRouter(db));
+  app.use('/api/engagements/:engagementId/plan', bearerAuth, requireAction('plan') /* generate / from-actions derive records, they touch no tenant → edit */, createPlanActionsRouter(db));
   // Sprint 5 slice "Remediate": Stamper / AdminOps run requests with gates, approval, verification.
-  app.use('/api/engagements/:engagementId/remediation', createRemediationRouter(db));
+  app.use('/api/engagements/:engagementId/remediation', bearerAuth, requireAction((req) => {
+    // Scope by what the request names: the runner protocol and Stamper are BHD-only; a new run says its module;
+    // an action on an existing run (approve / execute / verify …) is allowed when any remediate scope allows it —
+    // the route then applies the module-specific rule (Stamper → BHD, AdminOps → senior approver / BHD).
+    const m = (req.body as { module?: string } | undefined)?.module;
+    if (req.path.startsWith('/runner') || /\/(claim|result)$/.test(req.path)) return 'remediate.stamper';
+    if (req.path === '/runs' && req.method === 'POST') return m === 'stamper' ? 'remediate.stamper' : 'remediate.adminops';
+    if (/^\/runs\/[^/]+\//.test(req.path)) return ['remediate.stamper', 'remediate.adminops', 'remediate.tracking'];
+    return 'remediate.tracking';
+  }, { execute: [/^\/runs$/, /\/execute$/, /\/claim$/, /\/result$/], approve: [/\/approve$/, /\/reject$/] }), createRemediationRouter(db));
   // Sprint 6 slice "Collect Evidence": items (≤10 MB inline), validation, SoD review, requests.
-  app.use('/api/engagements/:engagementId/evidence', createEvidenceRouter(db));
+  app.use('/api/engagements/:engagementId/evidence', bearerAuth, requireAction('evidence', { approve: [/\/review$/], view: [/\/nist-catalog\/validate$/] }), createEvidenceRouter(db));
   // Sprint 6 slice "Monitor": findings derived from the programme's records, trends, activity.
-  app.use('/api/engagements/:engagementId/monitor', createMonitorRouter(db));
+  app.use('/api/engagements/:engagementId/monitor', bearerAuth, requireAction('monitor', { approve: [/\/resolve$/, /\/escalate$/] }) /* evaluate re-derives findings, touches no tenant → edit */, createMonitorRouter(db));
   // Sprint 6 slice "Prepare": readiness checklist, SSP statements, evidence packages, assessor workspace, sign-offs, reports.
-  app.use('/api/engagements/:engagementId/prepare', createPrepareRouter(db));
+  app.use('/api/engagements/:engagementId/prepare', bearerAuth, requireAction('prepare', { approve: [/\/approve$/, /\/sign-off$/, /\/sign-offs$/], view: [/\/export$/, /\/validate$/] }), createPrepareRouter(db));
   // Administration (tenant settings, access requests / reviews, health) and Onboard leftovers (systems registry, checklist).
   const monitorScheduler = createMonitorScheduler({ db, intervalMs: parseInt(process.env.MONITOR_SCHEDULER_INTERVAL_MS ?? '900000', 10), log: logger });
   app.locals.monitorScheduler = monitorScheduler;
-  app.use('/api/admin', createAdminRouter(db, { schedulerStatus: monitorScheduler.status }));
-  app.use('/api/engagements/:engagementId/systems', createSystemsRouter(db));
-  app.use('/api/engagements/:engagementId/onboard', createOnboardChecklistRouter(db));
+  app.use('/api/admin', bearerAuth, requireAction('admin', { approve: [/\/decide$/, /\/complete$/] }), createAdminRouter(db, { schedulerStatus: monitorScheduler.status }));
+  app.use('/api/engagements/:engagementId/systems', bearerAuth, requireAction('onboard'), createSystemsRouter(db));
+  app.use('/api/engagements/:engagementId/onboard', bearerAuth, requireAction('onboard'), createOnboardChecklistRouter(db));
   // Individual party read + sub self-only guard
   app.use('/api/parties', createPartyRouter(db));
   // Party actions (mergeParams picks up :id from parent path)
