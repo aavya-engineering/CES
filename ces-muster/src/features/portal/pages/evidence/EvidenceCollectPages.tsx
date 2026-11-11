@@ -82,8 +82,8 @@ function Validation({ v }: { v: ValidationReport }) {
 }
 
 // ====================================================================== item form (new / edit / new version)
-function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype, onSaved, onClose }: { eid: string; cat: Catalogue; initial: EvidenceItem | null; mode: 'new' | 'edit' | 'version'; presetRequirement?: string; presetArchetype?: string | null; onSaved: (m: string) => void; onClose: () => void }) {
-  const [f, setF] = useState<EvidenceInput>(initial ? { title: initial.title, description: initial.description, requirement_ids: initial.requirement_ids, archetype_code: initial.archetype_code, form: initial.form, kind: initial.kind, source: initial.source, owner: initial.owner, classification: initial.classification, period_start: initial.period_start?.slice(0, 10) ?? null, period_end: initial.period_end?.slice(0, 10) ?? null, retention_until: initial.retention_until?.slice(0, 10) ?? null, metadata: initial.metadata } : { title: '', requirement_ids: presetRequirement ? [presetRequirement] : [], archetype_code: presetArchetype ?? null, kind: 'document', source: 'upload', classification: 'internal', metadata: {} });
+function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype, presetDefinition, onSaved, onClose }: { eid: string; cat: Catalogue; initial: EvidenceItem | null; mode: 'new' | 'edit' | 'version'; presetRequirement?: string; presetArchetype?: string | null; presetDefinition?: string | null; onSaved: (m: string) => void; onClose: () => void }) {
+  const [f, setF] = useState<EvidenceInput>(initial ? { title: initial.title, description: initial.description, requirement_ids: initial.requirement_ids, archetype_code: initial.archetype_code, form: initial.form, kind: initial.kind, source: initial.source, owner: initial.owner, classification: initial.classification, period_start: initial.period_start?.slice(0, 10) ?? null, period_end: initial.period_end?.slice(0, 10) ?? null, retention_until: initial.retention_until?.slice(0, 10) ?? null, metadata: initial.metadata } : { title: '', requirement_ids: presetRequirement ? [presetRequirement] : [], archetype_code: presetArchetype ?? null, kind: 'document', source: 'upload', classification: 'internal', metadata: {}, definition_id: presetDefinition ?? null });
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +109,7 @@ function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype,
       footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="evidence-form" className="btn btn-primary" disabled={busy || !(f.requirement_ids?.length) || !f.title} data-testid="evidence-submit">{busy ? 'Saving…' : mode === 'edit' ? 'Save' : mode === 'version' ? 'Create version' : 'Add evidence'}</button></>}>
       <form id="evidence-form" onSubmit={submit}>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
+        {mode === 'new' && <label className="form-row">NIST catalog definition<input className="input" value={f.definition_id ?? ''} onChange={(e) => set('definition_id', e.target.value.trim() || null)} placeholder="e.g. AC.L2-3.1.1#E01 (optional)" pattern="^[A-Z]{2}\.L[12]-3\.[0-9]{1,2}\.[0-9]{1,2}#E[0-9]{2}$" title="A BHD catalog row id — requirement, objectives and form are filled from it" data-testid="evidence-definition" /><span className="hint">Filing against a catalog row makes this evidence count for that NIST examine object and its assessment objectives (Collect Evidence › NIST catalog).</span></label>}
         <label className="form-row">Title *<input className="input" value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} placeholder="e.g. Entra user list export — November 2026" data-testid="evidence-title" /></label>
         <label className="form-row">Requirements *
           <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -307,7 +308,11 @@ export function EvidenceCollectPage({ viewer }: { viewer: Viewer }) {
   const cat = useLoader<Catalogue>(eng.id ? () => evidenceApi.catalog(eng.id) : null, [eng.id]);
   const requests = useLoader<EvidenceRequest[]>(eng.id ? () => evidenceApi.requests(eng.id) : null, [eng.id]);
   const runs = useLoader<AssessmentRun[]>(eng.id ? () => assessApi.runs(eng.id) : null, [eng.id]);
-  const [adding, setAdding] = useState<{ requirement?: string; archetype?: string | null; request?: EvidenceRequest } | null>(null);
+  const [adding, setAdding] = useState<{ requirement?: string; archetype?: string | null; definition_id?: string | null; request?: EvidenceRequest } | null>(() => {
+    // Handed over from the NIST catalog page ("Collect this"): open the form on that definition.
+    try { const raw = localStorage.getItem('ces.evidence.preset'); if (raw) { localStorage.removeItem('ces.evidence.preset'); const p = JSON.parse(raw) as { requirement?: string; definition_id?: string }; return { requirement: p.requirement, definition_id: p.definition_id ?? null }; } } catch { /* ignore */ }
+    return null;
+  });
   const [genBusy, setGenBusy] = useState(false);
   const [assignee, setAssignee] = useState('');
   const [due, setDue] = useState('');
@@ -355,7 +360,7 @@ export function EvidenceCollectPage({ viewer }: { viewer: Viewer }) {
                 <td>{editor && q.status === 'open' && <><button type="button" className="row-btn" onClick={() => setAdding({ requirement: q.requirement_id, archetype: q.archetype_code, request: q })} data-testid={`request-fulfil-${q.id}`}>Provide</button> <button type="button" className="row-btn" onClick={async () => { await evidenceApi.updateRequest(eng.id, q.id, { status: 'cancelled' }); requests.reload(); }}>Cancel</button></>}</td></tr>); })}</tbody></table></div>
         )}
       </section>
-      {adding && eng.id && cat.data && <ItemForm eid={eng.id} cat={cat.data} initial={null} mode="new" presetRequirement={adding.requirement} presetArchetype={adding.archetype} onSaved={async (m) => { if (adding.request) { const list = await evidenceApi.items(eng.id, { requirement: adding.request.requirement_id }); const newest = list.ok ? list.data[0] : null; if (newest) await linkRequest(adding.request, newest); } await saved(m); }} onClose={() => setAdding(null)} />}
+      {adding && eng.id && cat.data && <ItemForm eid={eng.id} cat={cat.data} initial={null} mode="new" presetRequirement={adding.requirement} presetArchetype={adding.archetype} presetDefinition={adding.definition_id} onSaved={async (m) => { if (adding.request) { const list = await evidenceApi.items(eng.id, { requirement: adding.request.requirement_id }); const newest = list.ok ? list.data[0] : null; if (newest) await linkRequest(adding.request, newest); } await saved(m); }} onClose={() => setAdding(null)} />}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
   );

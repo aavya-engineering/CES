@@ -50,6 +50,7 @@ import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/
 import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/pages/plan/PlanPages';
 import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
 import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
+import { EvidenceCatalogPage as NistEvidenceCatalogPage } from '@/features/portal/pages/evidence/EvidenceCatalogPage';
 import { MonitorActivityPage, MonitorFindingsPage, MonitorOverviewPage } from '@/features/portal/pages/monitor/MonitorPages';
 import { AssessorWorkspacePage, PackagesPage, PrepareOverviewPage, ReportsPage, SspPage } from '@/features/portal/pages/prepare/PreparePages';
 import { AccessManagementPage, OnboardingChecklistPage, SettingsPage, SystemHealthPage, SystemsRegistryPage } from '@/features/portal/pages/admin/AdminSettingsPages';
@@ -485,6 +486,8 @@ export default function App() {
         return <EvidenceExplorerPage viewer={viewer} />;
       case 'evidence/collect':
         return <EvidenceCollectPage viewer={viewer} />;
+      case 'evidence/catalog':
+        return <NistEvidenceCatalogPage viewer={viewer} go={go} />;
       // Sprint 6 slice "Monitor".
       case 'monitor/overview':
         return <MonitorOverviewPage viewer={viewer} go={go} />;

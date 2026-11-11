@@ -62,6 +62,7 @@ export type StaticRouteId =
   | 'evidence/overview'
   | 'evidence/explorer'
   | 'evidence/collect'
+  | 'evidence/catalog'
   | 'monitor/overview'
   | 'monitor/findings'
   | 'monitor/activity'
@@ -261,6 +262,7 @@ export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   'evidence/overview': ['Collect Evidence', 'Evidence Overview', 'Evidence Dashboard'],
   'evidence/explorer': ['Collect Evidence', 'Evidence Explorer', 'All Evidence'],
   'evidence/collect': ['Collect Evidence', 'Evidence Collection', 'Upload Evidence'],
+  'evidence/catalog': ['Collect Evidence', 'Standard Evidence Catalog', 'NIST Evidence Catalog'],
   'monitor/overview': ['Monitor', 'Monitoring Overview', 'Compliance Dashboard'],
   'monitor/findings': ['Monitor', 'Alerts & Notifications', 'Active Alerts'],
   'monitor/activity': ['Monitor', 'Audit & Activity', 'Compliance Event History'],

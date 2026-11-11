@@ -33,7 +33,7 @@ export interface EvidenceItem {
   run_id: string | null; version: number; supersedes_id: string | null; retention_until: string | null; created_by: string | null; created_at: string; updated_at: string;
   related_versions?: EvidenceItem[];
 }
-export type EvidenceInput = Partial<Pick<EvidenceItem, 'title' | 'description' | 'requirement_ids' | 'objective_ids' | 'archetype_code' | 'form' | 'kind' | 'source' | 'file_name' | 'content_type' | 'metadata' | 'collected_at' | 'period_start' | 'period_end' | 'owner' | 'classification' | 'run_id' | 'retention_until'>> & { content_base64?: string | null };
+export type EvidenceInput = Partial<Pick<EvidenceItem, 'title' | 'description' | 'requirement_ids' | 'objective_ids' | 'archetype_code' | 'form' | 'kind' | 'source' | 'file_name' | 'content_type' | 'metadata' | 'collected_at' | 'period_start' | 'period_end' | 'owner' | 'classification' | 'run_id' | 'retention_until'>> & { content_base64?: string | null; definition_id?: string | null };
 
 export interface EvidenceRequest { id: string; requirement_id: string; archetype_code: string | null; title: string; instructions: string | null; assignee: string | null; due_date: string | null; status: 'open' | 'submitted' | 'fulfilled' | 'cancelled'; evidence_item_id: string | null; created_at: string }
 export interface Coverage { requirement_id: string; required: number; covered: number; pending: number; missing: string[]; recommended: number; items: number; state: 'covered' | 'partial' | 'missing' | 'none_required' }
@@ -48,7 +48,18 @@ export interface EvidenceSummary {
 }
 
 const base = (eid: string) => `/api/engagements/${eid}/evidence`;
+/** BHD evidence catalog (per NIST SP 800-171A examine object / assessment objective). */
+export interface CatalogDefinition { definition_id: string; requirement_id: string; nist_ref: string; examine_index: number; examine_text: string; form_id: string; form_title: string; emx_ids: string[]; objective_ids: string[]; tier: 'must_have' | 'nice_to_have'; production: 'signal' | 'capture' | 'rendered' | 'attested'; collection_guidance?: string; status: string }
+export type CatalogState = 'covered' | 'pending' | 'missing' | 'undefined';
+export interface CatalogRequirementRow { requirement_id: string; nist_ref: string; examine_total: number; examine_defined: number; examine_covered: number; objectives_total: number; objectives_covered: number }
+export interface CatalogOverview { releases: { release: number; date: string; catalog_version: string; definitions: number }[]; definitions: number; requirements: CatalogRequirementRow[] }
+export interface CatalogRequirement { requirement_id: string; nist_ref: string; requirement_text: string | null; examine: { examine_index: number; examine_text: string; definition: CatalogDefinition | null; items: { id: string; status: string; title?: string }[]; state: CatalogState }[]; objectives: { objective_id: string; statement: string; bucket: string; definitions: string[]; items: { id: string; status: string }[]; state: Exclude<CatalogState, 'undefined'> }[]; summary: Omit<CatalogRequirementRow, 'requirement_id' | 'nist_ref'> }
+export interface CatalogFinding { row: number; definition_id: string | null; severity: 'fix' | 'tidy'; code: string; message: string; suggested_fix?: string }
+
 export const evidenceApi = {
+  nistCatalog: (eid: string) => api.get<CatalogOverview>(`${base(eid)}/nist-catalog`),
+  nistRequirement: (eid: string, requirementId: string) => api.get<CatalogRequirement>(`${base(eid)}/nist-catalog/${requirementId}`),
+  nistValidate: (eid: string, rows: unknown[]) => api.post<{ findings: CatalogFinding[]; ok: number; total: number }>(`${base(eid)}/nist-catalog/validate`, { rows }),
   summary: (eid: string) => api.get<EvidenceSummary>(`${base(eid)}/summary`),
   catalog: (eid: string) => api.get<Catalogue>(`${base(eid)}/catalog`),
   coverage: (eid: string) => api.get<Coverage[]>(`${base(eid)}/coverage`),
