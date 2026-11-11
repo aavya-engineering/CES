@@ -7,7 +7,8 @@
 // Removing or altering this notice is prohibited (17 U.S.C. 1202). Ref: BHD-CES-MUSTER-2026A
 // See LICENSE and TERMS.md.
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { authApi } from '@/shared/api/adminApi';
 import { MoonIcon, SunIcon } from '@/features/auth/icons';
 import { TimingProvider } from '@/features/timer/TimingContext';
 import TimerBar from '@/features/timer/TimerBar';
@@ -229,8 +230,19 @@ export default function App() {
 
   // UI-02: portal route, mirrored in the URL hash (#/shared/requirements,
   // #/muster/discovery) so the back button and deep links work.
-  const viewer: Viewer =
-    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId, sub: account.sub } : { kind: 'offline' };
+  // Module visibility for this tenant (Administration › Settings › Modules): fetched once per sign-in; undefined = everything shown.
+  const [modules, setModules] = useState<Record<string, boolean> | undefined>(undefined);
+  const accountSub = account.kind === 'signed-in' ? account.sub : null;
+  useEffect(() => {
+    if (!accountSub) { setModules(undefined); return; }
+    let live = true;
+    void authApi.me().then((r) => { if (live && r.ok && r.data.modules) setModules(r.data.modules); });
+    return () => { live = false; };
+  }, [accountSub]);
+  const viewer: Viewer = useMemo(() =>
+    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId, sub: account.sub, modules } : { kind: 'offline' },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [account.kind, account.kind === 'signed-in' ? account.roleId : '', accountSub, modules]);
   const resolveRoute = useCallback(
     (wanted: RouteId | null): RouteId => (wanted && routesFor(viewer).has(wanted) ? wanted : defaultRoute(viewer)),
     // eslint-disable-next-line react-hooks/exhaustive-deps

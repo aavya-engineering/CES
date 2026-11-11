@@ -10,7 +10,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { db } from '../lib/prisma.js';
+import { db, withTenant } from '../lib/prisma.js';
+import { DEFAULT_SETTINGS } from './admin.js';
 import { mintToken } from '../lib/jwt.js';
 import { bearerAuth } from '../middleware/auth.js';
 import { randomBytes } from 'node:crypto';
@@ -106,8 +107,13 @@ router.post('/login', async (req, res, next) => {
 
 // RBAC-01: the caller's claims plus what their role may do (additive: the
 // claim fields are unchanged at the top level).
-router.get('/me', bearerAuth, (req, res) => {
-  res.json({ ...req.user, permissions: permissionsFor(req.user!.role) });
+router.get('/me', bearerAuth, async (req, res, next) => {
+  try {
+    // Module visibility for this tenant (Administration › Settings › Modules) — the portal hides sections, the API keeps enforcing.
+    const row = await withTenant(req.user!.tenant_id, (t) => t.tenantSettings.findUnique({ where: { tenant_id: req.user!.tenant_id } }), req.app.locals.db ?? db).catch(() => null);
+    const modules = { ...DEFAULT_SETTINGS.modules, ...(((row as { modules?: unknown } | null)?.modules as object) ?? {}) };
+    res.json({ ...req.user, permissions: permissionsFor(req.user!.role), modules });
+  } catch (e) { next(e); }
 });
 
 // RBAC-01: the role/permission catalogue for the Roles screen. Signed-in users

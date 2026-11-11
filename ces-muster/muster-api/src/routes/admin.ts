@@ -58,13 +58,18 @@ export const DEFAULT_SETTINGS = {
   notifications: { alert_min_severity: 'high', digest: 'daily', recipients: [] as string[] },
   security: { password_min_length: 14, session_ttl_hours: 12, require_mfa_note: 'MFA is enforced by the identity provider (Entra ID Conditional Access); CES sign-in is email + password behind it.', ip_allowlist: [] as string[] },
   retention: { evidence_days: 2555, audit_days: 2555, package_days: 2555 },
+  // Module visibility: false hides the section from the portal's navigation for every role in this tenant
+  // (demo / phased roll-out). The API keeps enforcing the role matrix — hidden is not disallowed. Administration cannot be hidden.
+  modules: { onboard: true, assess: true, plan: true, remediate: true, evidence: true, monitor: true, prepare: true },
 };
+export const HIDEABLE_MODULES = Object.keys(DEFAULT_SETTINGS.modules) as (keyof typeof DEFAULT_SETTINGS.modules)[];
 const settingsSchema = z.object({
   organization: z.object({ display_name: z.string().trim().max(200), timezone: z.string().trim().max(64), locale: z.string().trim().max(16), support_contact: z.string().trim().max(254) }).partial(),
   system: z.object({ monitoring_cadence_hours: z.number().int().min(1).max(168), evidence_currency_days: z.number().int().min(30).max(1095), session_idle_minutes: z.number().int().min(5).max(480) }).partial(),
   notifications: z.object({ alert_min_severity: z.enum(['critical', 'high', 'medium', 'low', 'info']), digest: z.enum(['off', 'daily', 'weekly']), recipients: z.array(z.string().trim().email()).max(20) }).partial(),
   security: z.object({ password_min_length: z.number().int().min(8).max(64), session_ttl_hours: z.number().int().min(1).max(72), require_mfa_note: z.string().trim().max(500), ip_allowlist: z.array(z.string().trim().regex(/^\d{1,3}(\.\d{1,3}){3}(\/\d{1,2})?$/)).max(50) }).partial(),
   retention: z.object({ evidence_days: z.number().int().min(365).max(3650), audit_days: z.number().int().min(365).max(3650), package_days: z.number().int().min(365).max(3650) }).partial(),
+  modules: z.object({ onboard: z.boolean(), assess: z.boolean(), plan: z.boolean(), remediate: z.boolean(), evidence: z.boolean(), monitor: z.boolean(), prepare: z.boolean() }).strict().partial(),
 }).partial();
 
 const requestSchema = z.object({ subject_email: z.string().trim().email(), requested_role: z.enum(ROLES as unknown as [string, ...string[]]), engagement_id: z.string().uuid().optional().nullable(), justification: z.string().trim().min(10).max(2000) });

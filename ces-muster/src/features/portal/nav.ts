@@ -93,7 +93,7 @@ export type RouteId = StaticRouteId | LifecycleRouteId;
 
 /** Who is looking: offline (no account) or a signed-in role. */
 /** `sub` is the signed-in user's id — what the API stores in requested_by / created_by / built_by (SoD hints compare against it). */
-export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string; sub?: string | null };
+export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string; sub?: string | null; /** Tenant module visibility from /auth/me: a section set to false is hidden for every role (Administration never is). Hidden ≠ allowed — the API still enforces the matrix. */ modules?: Record<string, boolean> };
 
 export interface NavItem {
   label: string;
@@ -141,10 +141,11 @@ function itemFor(section: LifecycleSection, path: string, label: string, groupLa
 }
 
 /** Lifecycle sections for a signed-in role (sidebar order = lifecycle order). */
-export function lifecycleNavFor(role: string): NavSection[] {
+export function lifecycleNavFor(role: string, modules?: Record<string, boolean>): NavSection[] {
   const out: NavSection[] = [];
   for (const section of LIFECYCLE_NAV) {
     if (!canView(role, section.key)) continue;
+    if (section.key !== 'admin' && section.key !== 'shared' && modules?.[section.key] === false) continue; // tenant hid this module
     const items: NavItem[] = [];
     for (const group of section.groups) {
       if (!canView(role, section.key, group.key)) continue;
@@ -171,7 +172,7 @@ export function navFor(viewer: Viewer): NavSection[] {
   sections.push({ id: 'home', label: 'Home', icon: 'home', route: 'home', items: [] });
 
   if (isSignedIn(viewer) && toPlatformRole(viewer.role)) {
-    sections.push(...lifecycleNavFor(viewer.role));
+    sections.push(...lifecycleNavFor(viewer.role, viewer.modules));
     return sections;
   }
   // Signed in with a role the matrix does not know: Home and the public Shared Foundation only.

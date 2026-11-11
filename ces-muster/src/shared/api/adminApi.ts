@@ -100,6 +100,8 @@ async function authRequest<T>(method: 'GET' | 'POST', path: string, body?: unkno
 
 export const authApi = {
   roles: () => authRequest<{ roles: RoleInfo[]; permissions: PermissionInfo[] }>('GET', '/roles'),
+  /** Who am I + this tenant's module visibility (Administration › Settings › Modules). */
+  me: () => authRequest<{ sub: string; role: string; tenant_id: string; modules: Record<string, boolean> }>('GET', '/me'),
   changePassword: (current_password: string, new_password: string) =>
     authRequest<{ token: string }>('POST', '/change-password', { current_password, new_password }),
 };

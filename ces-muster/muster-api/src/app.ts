@@ -136,6 +136,7 @@ export function createApp(opts: AppOptions = {}) {
   // Auth (keep as-is)
   // S1.9: forgot / reset password (decision D3).
   app.use('/auth', createPasswordResetRouter(db as unknown as ResetDb, createMailer()));
+  app.locals.db = db; // /auth/me reads tenant settings through the injected client (tests use mockDb)
   app.use('/auth', authRouter);
 
   app.use('/api/users', createUsersRouter(db as unknown as UsersDb));
