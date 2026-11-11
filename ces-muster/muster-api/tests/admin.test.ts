@@ -76,7 +76,7 @@ describe('access requests and reviews', () => {
     expect((await call('POST', `/api/admin/access/requests/${q.id}/decide`, 'it_security_admin', { decision: 'approved', notes: 'self-approval attempt' }, 'cis-1')).status).toBe(403);
     const d = await (await call('POST', `/api/admin/access/requests/${q.id}/decide`, 'org_admin', { decision: 'approved', notes: 'Approved by CISO' })).json();
     expect(d.status).toBe('approved');
-    expect(d.note).toMatch(/platform administrator/);
+    expect(d.note).toMatch(/Access management/);
     const list = await (await call('GET', '/api/admin/access/requests', 'sub')).json();
     expect(list).toHaveLength(1);
   });
@@ -122,5 +122,36 @@ describe('health, systems, onboarding checklist', () => {
     expect(before.ready).toBe(false);
     expect((await call('DELETE', `/api/engagements/${ENG_A}/systems/${s.id}`, 'evidence_reviewer')).status).toBe(403);
     expect((await call('DELETE', `/api/engagements/${ENG_A}/systems/${s.id}`, 'prime')).status).toBe(204);
+  });
+});
+
+describe('org-scoped user administration', () => {
+  it('org_admin creates / changes / resets accounts in its own tenant only, never platform or BHD roles; SoD and last-admin guards; fulfils an approved request', async () => {
+    expect((await call('POST', '/api/admin/access/users', 'compliance_manager', { email: 'x@contoso.com', role: 'evidence_reviewer' })).status).toBe(403);
+    expect((await call('POST', '/api/admin/access/users', 'org_admin', { email: 'x@contoso.com', role: 'platform_admin' })).status).toBe(422);
+    expect((await call('POST', '/api/admin/access/users', 'org_admin', { email: 'x@contoso.com', role: 'bhd_operator' })).status).toBe(422);
+    const q = await (await call('POST', '/api/admin/access/requests', 'it_security_admin', { subject_email: 'new@contoso.com', requested_role: 'evidence_reviewer', justification: 'Joins the compliance team as reviewer' }, 'cis-1')).json();
+    expect((await call('POST', '/api/admin/access/users', 'org_admin', { email: 'new@contoso.com', role: 'evidence_reviewer', access_request_id: q.id })).status).toBe(409); // not approved yet
+    await call('POST', `/api/admin/access/requests/${q.id}/decide`, 'org_admin', { decision: 'approved', notes: 'Approved by CISO' });
+    expect((await call('POST', '/api/admin/access/users', 'org_admin', { email: 'new@contoso.com', role: 'senior_approver', access_request_id: q.id })).status).toBe(409); // role must match
+    const made = await (await call('POST', '/api/admin/access/users', 'org_admin', { email: 'new@contoso.com', display_name: 'New Reviewer', role: 'evidence_reviewer', access_request_id: q.id })).json();
+    expect(made.user).toMatchObject({ email: 'new@contoso.com', role: 'evidence_reviewer' });
+    expect(made.temporary_password).toHaveLength(made.temporary_password.length); // returned once
+    expect(made.user.password_hash).toBeUndefined();
+    expect(db.accessRequest._records[0].status).toBe('fulfilled');
+    expect(db.user._records.find((u) => u.email === 'new@contoso.com')!.tenant_id).toBe(TENANT_A);
+    expect((await call('POST', '/api/admin/access/users', 'org_admin', { email: 'new@contoso.com', role: 'evidence_reviewer' })).status).toBe(409); // EMAIL_TAKEN
+    // change role, disable; guards
+    const changed = await (await call('PATCH', `/api/admin/access/users/${made.user.id}`, 'org_admin', { role: 'senior_approver' })).json();
+    expect(changed.role).toBe('senior_approver');
+    expect((await (await call('PATCH', '/api/admin/access/users/org_admin-1', 'org_admin', { disabled: true })).json()).code).toBe('SOD_SAME_PERSON');
+    expect((await (await call('PATCH', '/api/admin/access/users/org_admin-1', 'bhd_operator', { role: 'compliance_manager' })).json()).code).toBe('LAST_ORG_ADMIN');
+    await db.user.create({ data: { id: 'pa-1', tenant_id: TENANT_A, email: 'pa@contoso.com', role: 'platform_admin', password_hash: 'x' } });
+    expect((await call('PATCH', '/api/admin/access/users/pa-1', 'org_admin', { disabled: true })).status).toBe(403); // NOT_ORG_SCOPED
+    await db.user.create({ data: { id: 'other-1', tenant_id: '00000000-aaaa-0000-0000-000000000002', email: 'o@fabrikam.com', role: 'org_admin', password_hash: 'x' } });
+    expect((await call('PATCH', '/api/admin/access/users/other-1', 'org_admin', { disabled: true })).status).toBe(404); // other tenant invisible
+    const reset = await (await call('POST', `/api/admin/access/users/${made.user.id}/reset-password`, 'org_admin')).json();
+    expect(reset.temporary_password).toBeTruthy();
+    expect(db.auditEvent._records.map((a) => a.action)).toEqual(expect.arrayContaining(['user.created', 'user.role_changed', 'user.password_reset']));
   });
 });

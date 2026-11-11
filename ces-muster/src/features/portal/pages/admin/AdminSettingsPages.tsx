@@ -44,6 +44,9 @@ export const adminApi = {
   settings: () => api.get<Settings>('/api/admin/settings'),
   saveSettings: (body: Partial<Settings>) => api.put<Settings>('/api/admin/settings', body),
   users: () => api.get<TenantUser[]>('/api/admin/access/users'),
+  createUser: (body: { email: string; display_name?: string; role: string; access_request_id?: string }) => api.post<{ user: TenantUser; temporary_password: string }>('/api/admin/access/users', body),
+  updateUser: (id: string, body: { role?: string; display_name?: string | null; disabled?: boolean }) => api.patch<TenantUser>(`/api/admin/access/users/${id}`, body),
+  resetPassword: (id: string) => api.post<{ temporary_password: string }>(`/api/admin/access/users/${id}/reset-password`),
   requests: () => api.get<AccessRequest[]>('/api/admin/access/requests'),
   request: (body: { subject_email: string; requested_role: string; justification: string }) => api.post<AccessRequest>('/api/admin/access/requests', body),
   decide: (id: string, decision: string, notes: string) => api.post<AccessRequest & { note?: string }>(`/api/admin/access/requests/${id}/decide`, { decision, notes }),
@@ -158,7 +161,16 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
   const users = useLoader<TenantUser[]>(() => adminApi.users(), []);
   const requests = useLoader<AccessRequest[]>(() => adminApi.requests(), []);
   const reviews = useLoader<AccessReview[]>(() => adminApi.reviews(), []);
-  const [tab, setTab] = useState<'policies' | 'requests' | 'reviews'>('requests');
+  const [tab, setTab] = useState<'policies' | 'requests' | 'reviews' | 'users'>('requests');
+  const [newUser, setNewUser] = useState<{ email: string; display_name: string; role: string; access_request_id?: string } | null>(null);
+  const [tempPw, setTempPw] = useState<{ email: string; password: string } | null>(null);
+  const [confirmUser, setConfirmUser] = useState<{ u: TenantUser; action: 'disable' | 'enable' | 'reset' } | null>(null);
+  const [roleEdit, setRoleEdit] = useState<{ u: TenantUser; role: string } | null>(null);
+  const manager = ['org_admin', 'bhd_operator'].includes(role(viewer));
+  const GRANTABLE = ['org_admin', 'compliance_manager', 'it_security_admin', 'evidence_reviewer', 'senior_approver', 'assessor_read_only'];
+  const createUser = async (e: FormEvent) => { e.preventDefault(); if (!newUser) return; const r = await adminApi.createUser({ email: newUser.email, display_name: newUser.display_name || undefined, role: newUser.role, access_request_id: newUser.access_request_id }); if (r.ok) { setTempPw({ email: r.data.user.email, password: r.data.temporary_password }); setNewUser(null); users.reload(); requests.reload(); } else setErr(failureText(r)); };
+  const saveRole = async () => { if (!roleEdit) return; const r = await adminApi.updateUser(roleEdit.u.id, { role: roleEdit.role }); if (r.ok) { setToast(`${roleEdit.u.email} is now ${roleEdit.role}.`); setRoleEdit(null); users.reload(); } else setErr(failureText(r)); };
+  const runUserAction = async () => { if (!confirmUser) return; const { u, action } = confirmUser; const r = action === 'reset' ? await adminApi.resetPassword(u.id) : await adminApi.updateUser(u.id, { disabled: action === 'disable' }); if (r.ok) { if (action === 'reset') setTempPw({ email: u.email, password: (r.data as { temporary_password: string }).temporary_password }); else setToast(`${u.email} ${action}d.`); setConfirmUser(null); users.reload(); } else setErr(failureText(r)); };
   const [subject, setSubject] = useState('');
   const [reqRole, setReqRole] = useState('evidence_reviewer');
   const [just, setJust] = useState('');
@@ -181,7 +193,7 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
     <div className="pg" data-testid="page-admin-access">
       <PageHeader icon="roles" title="Access management" lede="Who may do what: the role matrix the platform enforces, requests for new or changed access decided by a second person, and periodic access reviews where every account is attested by someone other than its owner — the evidence assessors ask for under AC.L2-3.1.1 / 3.1.2." />
       {(users.error || requests.error || reviews.error || err) && <p className="note" data-tone="bad" role="alert">{users.error ?? requests.error ?? reviews.error ?? err}</p>}
-      <div className="toolbar" role="tablist">{([['requests', 'Access requests'], ['reviews', 'Access reviews'], ['policies', 'RBAC policies']] as const).map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={`btn ${tab === k ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab(k)} data-testid={`access-tab-${k}`}>{l}</button>)}</div>
+      <div className="toolbar" role="tablist">{([['requests', 'Access requests'], ['users', 'Users'], ['reviews', 'Access reviews'], ['policies', 'RBAC policies']] as const).map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={`btn ${tab === k ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab(k)} data-testid={`access-tab-${k}`}>{l}</button>)}</div>
       {tab === 'policies' && <section className="card card-pad"><LifecycleAccessMatrix /></section>}
       {tab === 'requests' && (
         <>
@@ -193,10 +205,50 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
             </div>
             <label className="form-row">Justification *<input className="input" value={just} onChange={(e) => setJust(e.target.value)} required minLength={10} /></label>
             <button type="submit" className="btn btn-primary" disabled={!subject || just.length < 10}>Submit request</button>
-            <p className="hint" style={{ marginTop: 8 }}>Approval is recorded here; the role itself is set by a platform administrator under Users (platform_admin only), after which the request is marked fulfilled.</p>
+            <p className="hint" style={{ marginTop: 8 }}>A second person (organisation administrator or BHD) decides. Once approved, the organisation administrator creates the account or changes the role under the Users tab; the request is then marked fulfilled automatically.</p>
           </form>
           {requests.data && requests.data.length === 0 && <Empty>No access request.</Empty>}
-          {requests.data && requests.data.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="access-requests"><thead><tr><th scope="col">For</th><th scope="col">Role</th><th scope="col">Justification</th><th scope="col">Requested</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{requests.data.map((q) => <tr key={q.id}><td><strong>{q.subject_email}</strong></td><td>{q.requested_role}</td><td className="hint" style={{ maxWidth: 320 }}>{q.justification}</td><td className="hint">{q.requested_by}<br />{fmt(q.created_at)}</td><td><span className="pill" data-tone={q.status === 'open' ? 'warn' : q.status === 'rejected' ? 'bad' : 'good'}>{q.status}</span>{q.decided_by && <div className="hint">{q.decided_by}: {q.decision_notes}</div>}</td><td>{admin && q.status !== 'rejected' && q.status !== 'fulfilled' && <button type="button" className="row-btn" onClick={() => { setDeciding(q); setDecision(q.status === 'approved' ? 'fulfilled' : 'approved'); }}>Decide</button>}</td></tr>)}</tbody></table></div>}
+          {requests.data && requests.data.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="access-requests"><thead><tr><th scope="col">For</th><th scope="col">Role</th><th scope="col">Justification</th><th scope="col">Requested</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{requests.data.map((q) => <tr key={q.id}><td><strong>{q.subject_email}</strong></td><td>{q.requested_role}</td><td className="hint" style={{ maxWidth: 320 }}>{q.justification}</td><td className="hint">{q.requested_by}<br />{fmt(q.created_at)}</td><td><span className="pill" data-tone={q.status === 'open' ? 'warn' : q.status === 'rejected' ? 'bad' : 'good'}>{q.status}</span>{q.decided_by && <div className="hint">{q.decided_by}: {q.decision_notes}</div>}</td><td>{admin && q.status === 'open' && <button type="button" className="row-btn" onClick={() => { setDeciding(q); setDecision('approved'); }}>Decide</button>}{manager && q.status === 'approved' && GRANTABLE.includes(q.requested_role) && <button type="button" className="row-btn" onClick={() => { setTab('users'); setNewUser({ email: q.subject_email, display_name: '', role: q.requested_role, access_request_id: q.id }); }}>Create account</button>}{admin && q.status === 'approved' && !GRANTABLE.includes(q.requested_role) && <button type="button" className="row-btn" onClick={() => { setDeciding(q); setDecision('fulfilled'); }}>Mark fulfilled</button>}</td></tr>)}</tbody></table></div>}
+        </>
+      )}
+      {tab === 'users' && (
+        <>
+          <div className="toolbar"><span className="hint grow">Accounts of this organisation. Platform and BHD accounts are managed by a platform administrator and are not listed as editable here.</span>{manager && <button type="button" className="btn btn-primary" onClick={() => setNewUser({ email: '', display_name: '', role: 'evidence_reviewer' })} data-testid="user-add">Add user</button>}</div>
+          {users.data && users.data.length === 0 && <Empty>No account yet.</Empty>}
+          {users.data && users.data.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="org-users"><thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Last sign-in</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{users.data.map((u) => { const editable = manager && GRANTABLE.includes(u.role); return (
+            <tr key={u.id}><td><strong>{u.display_name ?? u.email}</strong>{u.display_name && <div className="hint">{u.email}</div>}</td><td><code>{u.role}</code></td><td className="hint">{u.last_login_at ? fmt(u.last_login_at) : 'never'}</td><td><span className="pill" data-tone={u.disabled ? 'bad' : 'good'}>{u.disabled ? 'disabled' : 'active'}</span></td>
+            <td>{editable && <RowActions label={`Actions for ${u.email}`} actions={[
+              { label: 'Change role', onSelect: () => setRoleEdit({ u, role: u.role }) },
+              { label: 'Reset password', onSelect: () => setConfirmUser({ u, action: 'reset' }) },
+              { label: u.disabled ? 'Enable' : 'Disable', onSelect: () => setConfirmUser({ u, action: u.disabled ? 'enable' : 'disable' }), tone: u.disabled ? undefined : 'danger' },
+            ]} />}</td></tr>); })}</tbody></table></div>}
+          {newUser && (
+            <Drawer title={newUser.access_request_id ? 'Create the approved account' : 'Add a user'} onClose={() => setNewUser(null)} footer={<><button type="button" className="btn btn-secondary" onClick={() => setNewUser(null)}>Cancel</button><button type="submit" form="org-user-form" className="btn btn-primary" disabled={!newUser.email}>Create</button></>}>
+              <form id="org-user-form" onSubmit={createUser} className="form-grid-2" data-testid="org-user-form">
+                <label className="form-row">E-mail *<input className="input" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required readOnly={!!newUser.access_request_id} /></label>
+                <label className="form-row">Role *<select className="select" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} disabled={!!newUser.access_request_id}>{GRANTABLE.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+                <label className="form-row">Display name<input className="input" value={newUser.display_name} onChange={(e) => setNewUser({ ...newUser, display_name: e.target.value })} /></label>
+                <p className="hint">A one-time password is shown once after creation; the person must change it at first sign-in. {newUser.access_request_id ? 'E-mail and role come from the approved request and cannot be changed here.' : 'Platform administrator and BHD operator roles cannot be granted here.'}</p>
+              </form>
+            </Drawer>
+          )}
+          {roleEdit && (
+            <ConfirmDialog title={`Change role — ${roleEdit.u.email}`} confirmLabel="Change role" onConfirm={() => void saveRole()} onCancel={() => setRoleEdit(null)}>
+              <label className="form-row">New role<select className="select" value={roleEdit.role} onChange={(e) => setRoleEdit({ ...roleEdit, role: e.target.value })}>{GRANTABLE.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+              <p className="hint">Takes effect at the person's next sign-in. The change is audited; the last enabled organisation administrator cannot be demoted.</p>
+            </ConfirmDialog>
+          )}
+          {confirmUser && (
+            <ConfirmDialog title={confirmUser.action === 'reset' ? `Reset password — ${confirmUser.u.email}` : `${confirmUser.action === 'disable' ? 'Disable' : 'Enable'} ${confirmUser.u.email}`} confirmLabel={confirmUser.action === 'reset' ? 'Reset password' : confirmUser.action === 'disable' ? 'Disable account' : 'Enable account'} onConfirm={() => void runUserAction()} onCancel={() => setConfirmUser(null)}>
+              <p>{confirmUser.action === 'reset' ? 'A new one-time password will be shown once; the person must change it at first sign-in.' : confirmUser.action === 'disable' ? 'The person can no longer sign in. Their records and audit history stay.' : 'The person can sign in again with their existing password.'}</p>
+            </ConfirmDialog>
+          )}
+          {tempPw && (
+            <ConfirmDialog title={`One-time password for ${tempPw.email}`} confirmLabel="I have passed it on" onConfirm={() => setTempPw(null)} onCancel={() => setTempPw(null)}>
+              <p>Shown once — it is not stored anywhere readable. Share it over a channel you trust; the person must change it at first sign-in.</p>
+              <p><code data-testid="temp-password" style={{ fontSize: 18, userSelect: 'all' }}>{tempPw.password}</code></p>
+            </ConfirmDialog>
+          )}
         </>
       )}
       {tab === 'reviews' && (

@@ -54,6 +54,17 @@ jobs:
       - name: Build + test (full aggregate)
         run: npm test
 
+      # Muster platform (not a root workspace — own lockfiles): the portal SPA and
+      # muster-api, typecheck + unit suites. Added 2026-11-11; until then the
+      # lifecycle platform was never exercised by CI.
+      - name: Muster portal — install, typecheck, test
+        run: cd ces-muster && npm ci && npx tsc --noEmit -p tsconfig.json && npm test
+      - name: muster-api — install, generate Prisma client, typecheck, test
+        run: cd ces-muster/muster-api && npm ci && npx prisma generate && npx tsc --noEmit -p tsconfig.json && npm test
+        env:
+          JWT_SECRET: ci-only-not-a-secret
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
       # MG-04 parity harness: regenerate Planner goldens for the scrubbed fixture(s)
       # headlessly and fail on any byte difference from the committed goldens.
       # A Planner change that alters plan output must update the goldens in the

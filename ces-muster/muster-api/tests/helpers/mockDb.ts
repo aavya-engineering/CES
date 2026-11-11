@@ -59,6 +59,10 @@ function makeModel<T extends Record<string, unknown>>(initial: T[] = []) {
       return records[idx];
     },
 
+    async count({ where }: { where?: Record<string, unknown> } = {}): Promise<number> {
+      return records.filter((r) => !where || matches(r, where)).length;
+    },
+
     async updateMany({
       where,
       data,

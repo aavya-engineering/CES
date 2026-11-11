@@ -32,7 +32,8 @@
     "test:stamper": "npm test -w ces-stamper",
     "test:eo": "npm test -w ces-eo",
     "test:ao": "npm test -w ces-ao",
-    "test:fe": "npm test -w ces-planner -- run"
+    "test:fe": "npm test -w ces-planner -- run",
+    "test:muster": "cd ces-muster && npm test && cd muster-api && npm test"
   },
   "overrides": {
     "@azure/msal-node": "^7.0.3"

@@ -27,6 +27,8 @@ import { validate } from '../middleware/validate.js';
 import { withTenant } from '../lib/prisma.js';
 import { audit } from '../lib/audit.js';
 import { ROLES } from '../lib/permissions.js';
+import bcrypt from 'bcryptjs';
+import { temporaryPassword } from '../lib/passwords.js';
 import STAMPER_INDEX from '../vendored/ces-registry/stamper-index.json';
 import ADMINOPS_INDEX from '../vendored/ces-registry/adminops-index.json';
 
@@ -40,6 +42,14 @@ const user = (req: Request) => req.user!;
 const tx = (req: Request, db: Db, fn: (t: Db) => Promise<any>): Promise<any> => withTenant(user(req).tenant_id, fn, db);
 const notFound = (res: Response) => res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' });
 const isOrgAdmin = (req: Request) => ['org_admin', 'compliance_manager', 'bhd_operator'].includes(user(req).role);
+/** Org-scoped user administration (2026-11-11): the organisation administrator (or BHD) manages the
+ *  customer's own accounts inside their tenant. Roles they may grant: the customer roles and the C3PAO
+ *  read-only role — never platform_admin (PB-01 fence) and never bhd_operator (BHD's identity). */
+const ORG_GRANTABLE_ROLES = ['org_admin', 'compliance_manager', 'it_security_admin', 'evidence_reviewer', 'senior_approver', 'assessor_read_only'] as const;
+const isUserManager = (req: Request) => ['org_admin', 'bhd_operator'].includes(user(req).role);
+const orgCreateSchema = z.object({ email: z.string().trim().toLowerCase().email(), display_name: z.string().trim().min(1).max(120).optional(), role: z.enum(ORG_GRANTABLE_ROLES), access_request_id: z.string().uuid().optional() });
+const userIdParam = z.object({ id: z.string().min(1).max(64) }).passthrough();
+const orgPatchSchema = z.object({ role: z.enum(ORG_GRANTABLE_ROLES).optional(), display_name: z.string().trim().min(1).max(120).nullable().optional(), disabled: z.boolean().optional() }).refine((b) => Object.keys(b).length > 0, { message: 'nothing to change' });
 const STARTED_AT = Date.now();
 
 export const DEFAULT_SETTINGS = {
@@ -101,6 +111,63 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
     } catch (e) { next(e); }
   });
 
+  r.post('/access/users', bearerAuth, requireRole(...ADMIN), validate(orgCreateSchema), async (req, res, next) => {
+    try {
+      if (!isUserManager(req)) { res.status(403).json({ error: 'Accounts are created by the organisation administrator or BHD', code: 'NOT_ORG_ADMIN' }); return; }
+      const body = req.body as z.infer<typeof orgCreateSchema>;
+      if (await db.user.findUnique({ where: { email: body.email } })) { res.status(409).json({ error: 'A user with this email already exists', code: 'EMAIL_TAKEN' }); return; }
+      let request: { id: string; status: string; subject_email: string; requested_role: string } | null = null;
+      if (body.access_request_id) {
+        request = await tx(req, db, (t) => t.accessRequest.findUnique({ where: { id: body.access_request_id } }));
+        if (!request || request.status !== 'approved') { res.status(409).json({ error: 'The access request must be approved first', code: 'REQUEST_NOT_APPROVED' }); return; }
+        if (request.subject_email.toLowerCase() !== body.email || request.requested_role !== body.role) { res.status(409).json({ error: 'Email and role must match the approved request', code: 'REQUEST_MISMATCH' }); return; }
+      }
+      const temp = temporaryPassword();
+      const password_hash = await bcrypt.hash(temp, 10);
+      const row = await db.user.create({ data: { email: body.email, display_name: body.display_name ?? null, role: body.role, tenant_id: user(req).tenant_id, party_id: null, password_hash, must_change_password: true } });
+      await audit(db, { action: 'user.created', actor: user(req), target_type: 'user', target_id: row.id, tenant_id: user(req).tenant_id, detail: { email: row.email, role: row.role, via: 'org_admin', access_request_id: request?.id ?? null } }, { strict: true });
+      if (request) { const rid = request.id; await tx(req, db, (t) => t.accessRequest.update({ where: { id: rid }, data: { status: 'fulfilled', updated_at: new Date() } })); }
+      res.status(201).json({ user: publicUser(row), temporary_password: temp });
+    } catch (e) { next(e); }
+  });
+
+  r.patch('/access/users/:id', bearerAuth, requireRole(...ADMIN), validate(userIdParam, 'params'), validate(orgPatchSchema), async (req, res, next) => {
+    try {
+      if (!isUserManager(req)) { res.status(403).json({ error: 'Accounts are changed by the organisation administrator or BHD', code: 'NOT_ORG_ADMIN' }); return; }
+      const target = await db.user.findUnique({ where: { id: req.params.id } });
+      if (!target || target.tenant_id !== user(req).tenant_id) return notFound(res);
+      if (!(ORG_GRANTABLE_ROLES as readonly string[]).includes(target.role)) { res.status(403).json({ error: 'Platform and BHD accounts are managed by a platform administrator', code: 'NOT_ORG_SCOPED' }); return; }
+      const change = req.body as z.infer<typeof orgPatchSchema>;
+      if (target.id === user(req).sub && ((change.role !== undefined && change.role !== target.role) || change.disabled === true)) { res.status(409).json({ error: 'Separation of duties: you cannot change your own role or disable yourself', code: 'SOD_SAME_PERSON' }); return; }
+      const losesOrgAdmin = target.role === 'org_admin' && !target.disabled_at && ((change.role !== undefined && change.role !== 'org_admin') || change.disabled === true);
+      if (losesOrgAdmin && (await db.user.count({ where: { tenant_id: user(req).tenant_id, role: 'org_admin', disabled_at: null } })) <= 1) { res.status(409).json({ error: 'This is the last enabled organisation administrator', code: 'LAST_ORG_ADMIN' }); return; }
+      const data: Record<string, unknown> = {};
+      if (change.role !== undefined) data.role = change.role;
+      if (change.display_name !== undefined) data.display_name = change.display_name;
+      if (change.disabled !== undefined) data.disabled_at = change.disabled ? new Date() : null;
+      const row = await db.user.update({ where: { id: target.id }, data });
+      const events: [string, Record<string, unknown>][] = [];
+      if (change.role !== undefined && change.role !== target.role) events.push(['user.role_changed', { from: target.role, to: change.role }]);
+      if (change.disabled !== undefined && change.disabled !== !!target.disabled_at) events.push([change.disabled ? 'user.disabled' : 'user.enabled', {}]);
+      if (change.display_name !== undefined && change.display_name !== target.display_name) events.push(['user.renamed', {}]);
+      for (const [action, detail] of events) await audit(db, { action, actor: user(req), target_type: 'user', target_id: target.id, tenant_id: user(req).tenant_id, detail: { email: target.email, via: 'org_admin', ...detail } }, { strict: true });
+      res.json(publicUser(row));
+    } catch (e) { next(e); }
+  });
+
+  r.post('/access/users/:id/reset-password', bearerAuth, requireRole(...ADMIN), validate(userIdParam, 'params'), async (req, res, next) => {
+    try {
+      if (!isUserManager(req)) { res.status(403).json({ error: 'Passwords are reset by the organisation administrator or BHD', code: 'NOT_ORG_ADMIN' }); return; }
+      const target = await db.user.findUnique({ where: { id: req.params.id } });
+      if (!target || target.tenant_id !== user(req).tenant_id) return notFound(res);
+      if (!(ORG_GRANTABLE_ROLES as readonly string[]).includes(target.role)) { res.status(403).json({ error: 'Platform and BHD accounts are managed by a platform administrator', code: 'NOT_ORG_SCOPED' }); return; }
+      const temp = temporaryPassword();
+      await db.user.update({ where: { id: target.id }, data: { password_hash: await bcrypt.hash(temp, 10), must_change_password: true } });
+      await audit(db, { action: 'user.password_reset', actor: user(req), target_type: 'user', target_id: target.id, tenant_id: user(req).tenant_id, detail: { email: target.email, via: 'org_admin' } }, { strict: true });
+      res.json({ temporary_password: temp });
+    } catch (e) { next(e); }
+  });
+
   r.get('/access/requests', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       const rows = await tx(req, db, (t) => t.accessRequest.findMany({ where: { tenant_id: user(req).tenant_id } }));
@@ -126,7 +193,7 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
       const body = req.body as z.infer<typeof decideSchema>;
       const row = await tx(req, db, (t) => t.accessRequest.update({ where: { id: q.id }, data: { status: body.decision, decided_by: user(req).sub, decided_at: new Date(), decision_notes: body.notes, updated_at: new Date() } }));
       await audit(db, { action: `access.request.${body.decision}`, actor: user(req), target_type: 'access_request', target_id: q.id, tenant_id: user(req).tenant_id, detail: { subject_email: q.subject_email, requested_role: q.requested_role } }, { strict: true });
-      res.json({ ...row, note: body.decision === 'approved' ? 'Approved. The role itself is set by a platform administrator under Users (platform_admin only) — mark the request fulfilled once done.' : undefined });
+      res.json({ ...row, note: body.decision === 'approved' ? 'Approved. Create the account (or change the role) under Access management › Users; pass access_request_id so the request is marked fulfilled.' : undefined });
     } catch (e) { next(e); }
   });
 
