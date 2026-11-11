@@ -77,7 +77,7 @@ async function main(): Promise<number> {
     await call('sa', 'POST', `${E}/remediation/runs/${ao.id}/approve`, {});
     await call('cm', 'POST', `${E}/remediation/runs/${ao.id}/execute`, {});
     await call('cm', 'POST', `${E}/remediation/runs/${ao.id}/verify`, { verified: true, notes: 'Simulated run verified (smoke)' });
-    const st = await call('bhd1', 'POST', `${E}/remediation/runs`, { module: 'stamper', entry_ids: ['tenant:AC.L2-3.1.1.operator-discover'], justification: 'Evidence read only (smoke)' });
+    const st = await call('bhd1', 'POST', `${E}/remediation/runs`, { module: 'stamper', entry_ids: ['AC.L2-3.1.1.operator-discover'], justification: 'Evidence read only (smoke)' });
     await call('bhd2', 'POST', `${E}/remediation/runs/${st.id}/approve`, {}, [200, 409]);
     await call('cm', 'GET', `${E}/remediation/runs/${st.id}`, undefined, [404]);
 
