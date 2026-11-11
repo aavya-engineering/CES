@@ -15,6 +15,7 @@
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx scripts/seed.ts",
     "seed:dev": "bash scripts/seed-dev-users.sh",
+    "seed:dev:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/seed-dev-users.ps1",
     "catalog:check": "tsx scripts/validate-catalog-rows.ts",
     "smoke:postgres": "tsx scripts/smoke-postgres.ts",
     "seed:rls": "tsx scripts/seed-rls-fixtures.ts",
