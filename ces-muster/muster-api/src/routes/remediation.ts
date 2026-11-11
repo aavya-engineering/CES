@@ -166,11 +166,19 @@ export function createRemediationRouter(db: Db) {
     const e = await db.engagement.findUnique({ where: { id: eid(req) } });
     return e && e.tenant_id === user(req).tenant_id ? e : null;
   }
+  const isBhd = (req: Request) => user(req).role === 'bhd_operator';
+  /** Stamper is BHD-only end to end: customers never see Stamper runs (walkthrough 2026-11-04). */
+  const visible = (req: Request, run: { module: string } | null) => !!run && (run.module !== 'stamper' || isBhd(req));
   async function runOf(req: Request) {
     const run = await tx(req, db, (t) => t.remediationRun.findUnique({ where: { id: req.params.id } }));
-    return run && run.engagement_id === eid(req) && run.tenant_id === user(req).tenant_id ? run : null;
+    return run && run.engagement_id === eid(req) && run.tenant_id === user(req).tenant_id && visible(req, run) ? run : null;
   }
-  const isBhd = (req: Request) => user(req).role === 'bhd_operator';
+  /** Flip a run's status only from an expected one — the DB decides who wins a race (claim, approve, result). */
+  async function transition(req: Request, id: string, from: string | string[], data: Record<string, unknown>) {
+    const r = await tx(req, db, (t) => t.remediationRun.updateMany({ where: { id, status: Array.isArray(from) ? { in: from } : from }, data: { ...data, updated_at: new Date() } }));
+    if (!r.count) return null;
+    return tx(req, db, (t) => t.remediationRun.findUnique({ where: { id } }));
+  }
   const roles = (req: Request) => req.user?.role ?? '';
 
   // ---------------------------------------------------------------- registry
@@ -195,10 +203,11 @@ export function createRemediationRouter(db: Db) {
   r.get('/summary', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
-      const [runs, actions] = await Promise.all([
+      const [runsAll, actions] = await Promise.all([
         tx(req, db, (t) => t.remediationRun.findMany({ where: { engagement_id: eid(req) } })),
         tx(req, db, (t) => t.planAction.findMany({ where: { engagement_id: eid(req) } })),
       ]);
+      const runs = (runsAll as { module: string }[]).filter((x) => visible(req, x));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const count = (pred: (x: any) => boolean, rows: any[]) => rows.filter(pred).length;
       res.json({
@@ -225,7 +234,7 @@ export function createRemediationRouter(db: Db) {
     try {
       if (!(await engagementOf(req))) return notFound(res);
       const q = req.query as z.infer<typeof listQuery>;
-      const rows = await tx(req, db, (t) => t.remediationRun.findMany({ where: { engagement_id: eid(req), ...(q.module ? { module: q.module } : {}), ...(q.status ? { status: q.status } : {}) } }));
+      const rows = (await tx(req, db, (t) => t.remediationRun.findMany({ where: { engagement_id: eid(req), ...(q.module ? { module: q.module } : {}), ...(q.status ? { status: q.status } : {}) } }))).filter((x: { module: string }) => visible(req, x));
       rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(b.requested_at) - +new Date(a.requested_at));
       res.json(rows);
     } catch (e) { next(e); }
@@ -267,7 +276,8 @@ export function createRemediationRouter(db: Db) {
       if (run.requested_by === user(req).sub) return conflict(res, 'DP-2: the approver must be a different person from the requester', 'SOD_SAME_PERSON');
       if (run.module === 'stamper' && !isBhd(req)) { res.status(403).json({ error: 'Stamper runs are approved by a second BHD operator', code: 'STAMPER_BHD_ONLY' }); return; }
       if (run.module === 'adminops' && !(isBhd(req) || user(req).role === 'senior_approver')) { res.status(403).json({ error: 'AdminOps changes are approved by a senior approver or BHD', code: 'ADMINOPS_APPROVER' }); return; }
-      const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'approved', approved_by: user(req).sub, approved_at: new Date(), updated_at: new Date() } }));
+      const row = await transition(req, run.id, 'requested', { status: 'approved', approved_by: user(req).sub, approved_at: new Date() });
+      if (!row) return conflict(res, 'Run was decided by someone else a moment ago', 'RUN_NOT_REQUESTED');
       await audit(db, { action: 'remediation.run.approve', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { requested_by: run.requested_by } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
@@ -293,7 +303,11 @@ export function createRemediationRouter(db: Db) {
       if (run.module === 'stamper' && !isBhd(req)) { res.status(403).json({ error: 'Stamper runs are executed by BHD operators', code: 'STAMPER_BHD_ONLY' }); return; }
       if (run.status !== 'approved') return conflict(res, run.status === 'requested' ? 'Approval pending (DP-2)' : `Run is ${run.status}`, 'RUN_NOT_APPROVED');
       if (run.mode === 'live') {
-        const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'queued', started_at: new Date(), updated_at: new Date(), result: { queued: true, note: 'Waiting for the tenant runner to claim this run (GET …/remediation/runner/queue → POST …/claim → POST …/result). Nothing has been executed against the tenant yet.' } } }));
+        // Live rail re-checked at every hop (request → execute → claim): the engagement flag can be switched off in between.
+        const e = await engagementOf(req);
+        if (!e?.live_access_enabled) return conflict(res, 'Live access is no longer enabled on this engagement; the run stays approved but is not queued', 'LIVE_DISABLED');
+        const row = await transition(req, run.id, 'approved', { status: 'queued', started_at: new Date(), result: { queued: true, note: 'Waiting for the tenant runner to claim this run (GET …/remediation/runner/queue → POST …/claim → POST …/result). Nothing has been executed against the tenant yet.' } });
+        if (!row) return conflict(res, 'Run changed state a moment ago', 'RUN_NOT_APPROVED');
         await audit(db, { action: 'remediation.run.queue', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { mode: 'live' } }, { strict: true });
         res.status(202).json(row);
         return;
@@ -301,7 +315,8 @@ export function createRemediationRouter(db: Db) {
       const steps = run.module === 'stamper'
         ? run.entry_ids.map((id: string, i: number) => { const e = ENTRY.get(id); return { step: i + 1, entry_id: id, label: e?.label ?? id, kind: e?.has_set ? 'set' : 'get', engine: e?.engine ?? null, simulated: true, outcome: 'would_run' }; })
         : [{ step: 1, op_id: run.op_id, label: OP.get(run.op_id)?.title ?? run.op_id, parameters: Object.keys(run.parameters ?? {}), simulated: true, outcome: 'would_run' }];
-      const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'succeeded', started_at: new Date(), finished_at: new Date(), updated_at: new Date(), result: { simulated: true, steps, tenant_touched: false } } }));
+      const row = await transition(req, run.id, 'approved', { status: 'succeeded', started_at: new Date(), finished_at: new Date(), result: { simulated: true, steps, tenant_touched: false } });
+      if (!row) return conflict(res, 'Run changed state a moment ago', 'RUN_NOT_APPROVED');
       await audit(db, { action: 'remediation.run.execute', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { mode: 'simulate', steps: steps.length } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
@@ -354,7 +369,10 @@ export function createRemediationRouter(db: Db) {
       if (!run) return notFound(res);
       if (run.status !== 'queued' || run.mode !== 'live') return conflict(res, `Run is ${run.status}${run.mode !== 'live' ? ' (simulate runs never reach the runner)' : ''}`, 'RUN_NOT_QUEUED');
       const runner = (req.body as z.infer<typeof claimSchema>).runner;
-      const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: { status: 'running', updated_at: new Date(), result: { ...(run.result ?? {}), queued: false, claimed_by: runner, claimed_at: new Date().toISOString() } } }));
+      const e = await engagementOf(req);
+      if (!e?.live_access_enabled) return conflict(res, 'Live access has been disabled on this engagement; the run is not handed out', 'LIVE_DISABLED');
+      const row = await transition(req, run.id, 'queued', { status: 'running', result: { ...(run.result ?? {}), queued: false, claimed_by: runner, claimed_at: new Date().toISOString() } });
+      if (!row) return conflict(res, 'Another runner claimed this run first', 'RUN_NOT_QUEUED');
       await audit(db, { action: 'remediation.run.claim', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { runner, module: run.module } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
@@ -367,6 +385,9 @@ export function createRemediationRouter(db: Db) {
       if (!run) return notFound(res);
       if (run.status !== 'running') return conflict(res, `Run is ${run.status}; results are accepted only for a running run`, 'RUN_NOT_RUNNING');
       const body = req.body as z.infer<typeof resultSchema>;
+      // Take the run out of `running` first so a duplicate/late result is refused and never files evidence twice.
+      const taken = await transition(req, run.id, 'running', { status: body.outcome, finished_at: new Date() });
+      if (!taken) return conflict(res, 'A result was already recorded for this run', 'RUN_NOT_RUNNING');
       const captures = body.captures.map((c) => ({
         ref: c.ref, content: Buffer.from(c.content, c.encoding), content_type: c.content_type,
         requirement_ids: c.requirement_ids.length ? c.requirement_ids : run.requirement_id ? [run.requirement_id] : [],
@@ -376,7 +397,7 @@ export function createRemediationRouter(db: Db) {
       const evidence_ids = captures.length ? await createCaptureItems(db, { actor: user(req), engagementId: eid(req), source: run.module, label, captures, remediationRunId: run.id }) : [];
       const now = new Date();
       const row = await tx(req, db, (t) => t.remediationRun.update({ where: { id: run.id }, data: {
-        status: body.outcome, finished_at: now, updated_at: now,
+        updated_at: now,
         result: { ...(run.result ?? {}), simulated: false, tenant_touched: true, runner: body.runner, summary: body.summary, steps: body.steps, evidence_ids, execution_results: body.execution_results ?? null, held: body.steps.filter((s) => s.outcome === 'held').length },
       } }));
       await audit(db, { action: 'remediation.run.result', actor: user(req), target_type: 'remediation_run', target_id: run.id, tenant_id: user(req).tenant_id, detail: { outcome: body.outcome, runner: body.runner, steps: body.steps.length, captures: evidence_ids.length } }, { strict: true });

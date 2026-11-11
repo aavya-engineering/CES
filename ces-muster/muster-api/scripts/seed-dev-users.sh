@@ -26,6 +26,12 @@ echo "Seeding dev users (password for all: $PW)"
 seed admin@bhd.local               "Blue Heron Defense"     platform_admin
 seed operator@bhd.local            "Blue Heron Defense"     bhd_operator
 seed operator2@bhd.local           "Blue Heron Defense"     bhd_operator
+# Decision pending with BHD (doc 43, I12): every route scopes by the user's tenant, so a BHD
+# operator must hold an account INSIDE the customer tenant to approve/run Stamper there. Until a
+# cross-tenant BHD role exists, the dev seed gives Contoso two BHD operators and a runner identity.
+seed bhd-ops1@contoso.local        "Contoso Defense (demo)" bhd_operator
+seed bhd-ops2@contoso.local        "Contoso Defense (demo)" bhd_operator
+seed runner@contoso.local          "Contoso Defense (demo)" bhd_operator
 seed orgadmin@contoso.local        "Contoso Defense (demo)" org_admin
 seed compliance@contoso.local      "Contoso Defense (demo)" compliance_manager
 seed itsec@contoso.local           "Contoso Defense (demo)" it_security_admin

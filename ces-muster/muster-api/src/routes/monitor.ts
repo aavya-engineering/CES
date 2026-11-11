@@ -97,7 +97,7 @@ export function createMonitorRouter(db: Db) {
     try {
       const f = await findingOf(req); if (!f) return notFound(res);
       const row = await tx(req, db, (t) => t.monitorFinding.update({ where: { id: f.id }, data: { status: 'acknowledged', acknowledged_by: user(req).sub, acknowledged_at: new Date(), notes: (req.body as { notes: string }).notes } }));
-      await audit(db, { action: 'monitor.finding.ack', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { key: f.key } });
+      await audit(db, { action: 'monitor.finding.ack', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { engagement_id: eid(req), key: f.key } });
       res.json(row);
     } catch (e) { next(e); }
   });
@@ -105,7 +105,7 @@ export function createMonitorRouter(db: Db) {
     try {
       const f = await findingOf(req); if (!f) return notFound(res);
       const row = await tx(req, db, (t) => t.monitorFinding.update({ where: { id: f.id }, data: { status: 'resolved', resolved_by: user(req).sub, resolved_at: new Date(), resolution: (req.body as { resolution: string }).resolution } }));
-      await audit(db, { action: 'monitor.finding.resolve', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { key: f.key } }, { strict: true });
+      await audit(db, { action: 'monitor.finding.resolve', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { engagement_id: eid(req), key: f.key } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
   });
@@ -114,7 +114,7 @@ export function createMonitorRouter(db: Db) {
       const f = await findingOf(req); if (!f) return notFound(res);
       const body = req.body as z.infer<typeof escalateSchema>;
       const row = await tx(req, db, (t) => t.monitorFinding.update({ where: { id: f.id }, data: { status: 'escalated', escalated_to: body.to, notes: body.notes ?? f.notes ?? null } }));
-      await audit(db, { action: 'monitor.finding.escalate', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { key: f.key, to: body.to } }, { strict: true });
+      await audit(db, { action: 'monitor.finding.escalate', actor: user(req), target_type: 'monitor_finding', target_id: f.id, tenant_id: user(req).tenant_id, detail: { engagement_id: eid(req), key: f.key, to: body.to } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
   });
@@ -133,7 +133,13 @@ export function createMonitorRouter(db: Db) {
     try {
       if (!(await engagementOf(req))) return notFound(res);
       const q = req.query as unknown as z.infer<typeof activityQuery>;
-      const rows = await db.auditEvent.findMany({ where: { tenant_id: user(req).tenant_id } });
+      // Scoped to this engagement's objects (never the whole tenant's audit log), newest first, bounded.
+      const e = eid(req);
+      const rows = (await db.auditEvent.findMany({ where: { tenant_id: user(req).tenant_id }, orderBy: { at: 'desc' }, take: Math.max(q.limit * 4, 400) })).filter((a: { target_id: string | null; detail: unknown }) => {
+        if (a.target_id === e) return true;
+        const d = a.detail as { engagement_id?: string } | null;
+        return !!d && typeof d === 'object' && d.engagement_id === e;
+      });
       const out = rows.filter((a: { action: string; actor_user_id: string | null; target_type: string | null }) => !q.q || `${a.action} ${a.actor_user_id ?? ''} ${a.target_type ?? ''}`.toLowerCase().includes(q.q.toLowerCase()));
       const at = (a: { at?: Date; created_at?: Date }) => +new Date(a.at ?? a.created_at ?? 0);
       // Stable: same-millisecond events keep insertion order (newest last → shown first).

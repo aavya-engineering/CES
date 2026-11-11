@@ -126,6 +126,8 @@ export function createApp(opts: AppOptions = {}) {
 
   // Sprint 6: evidence uploads carry base64 content (≤ 10 MB) — parsed with a larger limit before the global parser.
   app.use('/api/engagements/:engagementId/evidence', express.json({ limit: '15mb' }));
+  // Runner results carry up to 50 captures × 2 MB (base64) — the global 100 kb limit would 413 them.
+  app.use('/api/engagements/:engagementId/remediation', express.json({ limit: '140mb' }));
   app.use(express.json());
 
   // Auth (keep as-is)

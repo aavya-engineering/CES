@@ -16,6 +16,7 @@ function matches(record: Record<string, unknown>, where: Record<string, unknown>
   return Object.entries(where).every(([k, v]) => {
     const stored = record[k];
     if (v === null) return stored == null; // match both null and undefined
+    if (v && typeof v === 'object' && !(v instanceof Date) && 'in' in (v as object)) return ((v as { in: unknown[] }).in).includes(stored);
     return stored === v;
   });
 }

@@ -90,7 +90,7 @@ describe('Stamper runs (BHD only)', () => {
     expect(run.cost_estimate).toBe(4);
     expect((await call('POST', `/runs/${run.id}/execute`, 'bhd_operator', undefined, 'op-vaibhav')).status).toBe(409);         // approval pending
     expect((await (await call('POST', `/runs/${run.id}/approve`, 'bhd_operator', undefined, 'op-vaibhav')).json()).code).toBe('SOD_SAME_PERSON');
-    expect((await call('POST', `/runs/${run.id}/approve`, 'senior_approver')).status).toBe(403);                                 // customers never approve Stamper
+    expect((await call('POST', `/runs/${run.id}/approve`, 'senior_approver')).status).toBe(404);                                 // customers never see (let alone approve) Stamper runs
     const approved = await (await call('POST', `/runs/${run.id}/approve`, 'bhd_operator', undefined, 'op-sunny')).json();
     expect(approved).toMatchObject({ status: 'approved', approved_by: 'op-sunny' });
     const done = await (await call('POST', `/runs/${run.id}/execute`, 'bhd_operator', undefined, 'op-vaibhav')).json();
@@ -98,7 +98,8 @@ describe('Stamper runs (BHD only)', () => {
     expect(done.result).toMatchObject({ simulated: true, tenant_touched: false });
     expect(done.result.steps).toHaveLength(2);
     expect(done.result.steps[0].kind).toBe('set');
-    const detail = await (await call('GET', `/runs/${run.id}`, 'assessor_read_only')).json();
+    expect((await call('GET', `/runs/${run.id}`, 'assessor_read_only')).status).toBe(404); // Stamper runs are invisible to customers and assessors
+    const detail = await (await call('GET', `/runs/${run.id}`, 'bhd_operator', undefined, 'op-vaibhav')).json();
     expect(detail.entries[0].entry_id).toBe(SET_ENTRY.entry_id);
     const v = await (await call('POST', `/runs/${run.id}/verify`, 'bhd_operator', { verified: true, notes: 'Policy visible in the tenant after the run' }, 'op-vaibhav')).json();
     expect(v.run.status).toBe('verified');
@@ -137,6 +138,19 @@ describe('Stamper runs (BHD only)', () => {
     expect(claimed.status).toBe('running');
     expect(claimed.result.claimed_by).toBe('bhd-win-01');
     expect((await call('POST', `/runs/${live.id}/claim`, 'bhd_operator', { runner: 'bhd-win-02' }, 'runner:bhd-win-02')).status).toBe(409); // claimed once
+    // Two runners racing for the same queued run: the status-guarded update lets exactly one win.
+    const race = await (await call('POST', '/runs', 'bhd_operator', { module: 'stamper', mode: 'live', entry_ids: [GET_ENTRY.entry_id], justification: 'Second live read for the race test' }, 'op-a')).json();
+    await call('POST', `/runs/${race.id}/approve`, 'bhd_operator', undefined, 'op-b');
+    await call('POST', `/runs/${race.id}/execute`, 'bhd_operator', undefined, 'op-a');
+    const both = await Promise.all([1, 2].map((n) => call('POST', `/runs/${race.id}/claim`, 'bhd_operator', { runner: `bhd-win-0${n}` }, `runner:bhd-win-0${n}`)));
+    expect(both.map((r) => r.status).sort()).toEqual([200, 409]);
+    // Live access switched off after queueing → the runner is not handed the run.
+    const off = await (await call('POST', '/runs', 'bhd_operator', { module: 'stamper', mode: 'live', entry_ids: [GET_ENTRY.entry_id], justification: 'Live read, access later revoked' }, 'op-a')).json();
+    await call('POST', `/runs/${off.id}/approve`, 'bhd_operator', undefined, 'op-b');
+    await call('POST', `/runs/${off.id}/execute`, 'bhd_operator', undefined, 'op-a');
+    await db.engagement.update({ where: { id: ENG_A }, data: { live_access_enabled: false } });
+    expect((await (await call('POST', `/runs/${off.id}/claim`, 'bhd_operator', { runner: 'bhd-win-01' }, 'runner:bhd-win-01')).json()).code).toBe('LIVE_DISABLED');
+    await db.engagement.update({ where: { id: ENG_A }, data: { live_access_enabled: true } });
     expect((await call('POST', `/runs/${live.id}/result`, 'bhd_operator', { outcome: 'succeeded', summary: 'x', runner: 'bhd-win-01' })).status).toBe(422); // summary too short
     const done = await (await call('POST', `/runs/${live.id}/result`, 'bhd_operator', {
       outcome: 'succeeded', runner: 'bhd-win-01', summary: 'Get-MgPolicy… returned 3 conditional access policies',

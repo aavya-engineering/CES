@@ -60,17 +60,37 @@ export interface BufferCaptureInput {
 
 const defaultRead = (abs: string): Buffer | null => (existsSync(abs) ? readFileSync(abs) : null);
 
+/** Published archetypes + mappings so a capture is filed under a real EMX archetype (else the item could never pass validation). */
+async function publishedCatalogue(db: Db): Promise<{ archetypes: { code: string; acceptable_forms?: string[] }[]; mappings: { control_id: string; archetype_code: string; mapping_type: string }[] }> {
+  const rows: { kind: string; data: unknown }[] = await db.sharedItem.findMany({ where: { status: 'published' } });
+  const pick = <T,>(kind: string) => rows.filter((x) => x.kind === kind).map((x) => x.data as T);
+  return { archetypes: pick('archetype'), mappings: pick('mapping') };
+}
+
+/** Best archetype for a capture: a required mapping of one of its requirements, else a recommended one, else none (a person picks it). */
+function archetypeFor(requirementIds: string[], cat: Awaited<ReturnType<typeof publishedCatalogue>>): { code: string | null; form: string | null } {
+  const forReq = cat.mappings.filter((m) => requirementIds.includes(m.control_id));
+  const m = forReq.find((x) => x.mapping_type === 'required') ?? forReq[0];
+  if (!m) return { code: null, form: null };
+  const a = cat.archetypes.find((x) => x.code === m.archetype_code);
+  const forms = a?.acceptable_forms ?? [];
+  const form = forms.find((f) => /export|capture|configuration|setting|log/i.test(f)) ?? forms[0] ?? null;
+  return { code: m.archetype_code, form };
+}
+
 /** Core: one draft evidence item per capture; SHA-256 always, content inline up to maxInlineBytes. */
 export async function createCaptureItems(db: Db, input: BufferCaptureInput): Promise<string[]> {
   const maxInline = input.maxInlineBytes ?? 1024 * 1024;
   const ids: string[] = [];
+  const cat = await publishedCatalogue(db);
   for (const c of input.captures) {
     const requirement_ids = [...new Set(c.requirement_ids)].sort();
     const entries = c.entries ?? [];
     const inline = c.content.byteLength <= maxInline;
+    const arch = archetypeFor(requirement_ids, cat);
     const item: { id: string } = await withTenant(input.actor.tenant_id, (t: Db) => t.evidenceItem.create({ data: {
       tenant_id: input.actor.tenant_id, engagement_id: input.engagementId,
-      requirement_ids, objective_ids: [...new Set(c.objective_ids ?? [])].sort(), archetype_code: 'configuration_export', form: 'export',
+      requirement_ids, objective_ids: [...new Set(c.objective_ids ?? [])].sort(), archetype_code: arch.code, form: arch.form,
       title: `${entries[0] ?? requirement_ids[0] ?? path.basename(c.ref)} — ${input.source} capture`,
       description: `${input.label}. ${c.note ?? `Capture for ${requirement_ids.join(', ') || 'the run'}.`}`,
       kind: 'config_capture', source: input.source,
