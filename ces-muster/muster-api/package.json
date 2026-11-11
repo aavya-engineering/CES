@@ -16,6 +16,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:dev": "bash scripts/seed-dev-users.sh",
     "catalog:check": "tsx scripts/validate-catalog-rows.ts",
+    "smoke:postgres": "tsx scripts/smoke-postgres.ts",
     "seed:rls": "tsx scripts/seed-rls-fixtures.ts",
     "mu": "tsx src/cli/bin.ts",
     "seed:ces-shared": "tsx scripts/seed-ces-shared.ts",
