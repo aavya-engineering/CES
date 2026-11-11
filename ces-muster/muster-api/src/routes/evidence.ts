@@ -131,7 +131,7 @@ export function createEvidenceRouter(db: Db) {
   r.get('/nist-catalog', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
-      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }));
+      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } }));
       const cat = loadCatalog();
       res.json({ releases: cat.releases, definitions: cat.definitions.length, requirements: catalogSummary(items, cat) });
     } catch (e) { next(e); }
@@ -139,7 +139,7 @@ export function createEvidenceRouter(db: Db) {
   r.get('/nist-catalog/:requirementId', bearerAuth, requireRole(...READ), validate(z.object({ requirementId: reqId }).passthrough(), 'params'), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
-      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }));
+      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } }));
       res.json(requirementCoverage((req.params as { requirementId: string }).requirementId, items));
     } catch (e) { next(e); }
   });
@@ -156,7 +156,7 @@ export function createEvidenceRouter(db: Db) {
   r.get('/coverage', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
-      const [cat, items] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }))]);
+      const [cat, items] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } }))]);
       res.json(coverage(CONTROL_REFS.map((c) => c.control_id), cat, items));
     } catch (e) { next(e); }
   });
@@ -164,7 +164,7 @@ export function createEvidenceRouter(db: Db) {
   r.get('/summary', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
-      const [cat, items, requests] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } })), tx(req, db, (t) => t.evidenceRequest.findMany({ where: { engagement_id: eid(req) } }))]);
+      const [cat, items, requests] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } })), tx(req, db, (t) => t.evidenceRequest.findMany({ where: { engagement_id: eid(req) } }))]);
       const cov = coverage(CONTROL_REFS.map((c) => c.control_id), cat, items);
       const by = (key: string, keys: readonly string[], rows: Record<string, unknown>[]) => Object.fromEntries(keys.map((k) => [k, rows.filter((x) => x[key] === k).length]));
       const soon = new Date(Date.now() + 30 * 86_400_000);
@@ -182,7 +182,7 @@ export function createEvidenceRouter(db: Db) {
     try {
       if (!(await engagementOf(req))) return notFound(res);
       const q = req.query as z.infer<typeof listQuery>;
-      const rows = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req), ...(q.status ? { status: q.status } : {}), ...(q.source ? { source: q.source } : {}) } }));
+      const rows = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req), ...(q.status ? { status: q.status } : {}), ...(q.source ? { source: q.source } : {}) }, omit: { content: true } }));
       const out = rows.filter((i: { requirement_ids: string[]; archetype_code: string | null; title: string; file_name: string | null }) =>
         (!q.requirement || i.requirement_ids.includes(q.requirement)) && (!q.archetype || i.archetype_code === q.archetype) && (!q.q || `${i.title} ${i.file_name ?? ''} ${i.requirement_ids.join(' ')}`.toLowerCase().includes(q.q.toLowerCase())));
       out.sort((a: { updated_at: Date }, b: { updated_at: Date }) => +new Date(b.updated_at) - +new Date(a.updated_at));
@@ -228,7 +228,7 @@ export function createEvidenceRouter(db: Db) {
     try {
       const it = await itemOf(req);
       if (!it) return notFound(res);
-      const versions = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }));
+      const versions = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } }));
       const chain = versions.filter((v: { id: string; supersedes_id: string | null }) => v.id === it.supersedes_id || v.supersedes_id === it.id).map(strip);
       res.json({ ...strip(it), related_versions: chain });
     } catch (e) { next(e); }
@@ -358,7 +358,7 @@ export function createEvidenceRouter(db: Db) {
         const gaps = new Set(results.filter((x: { status: string }) => x.status !== 'met').map((x: { requirement_id: string }) => x.requirement_id));
         reqIds = reqIds.filter((id) => gaps.has(id));
       }
-      const [cat, items, existing] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } })), tx(req, db, (t) => t.evidenceRequest.findMany({ where: { engagement_id: eid(req) } }))]);
+      const [cat, items, existing] = await Promise.all([catalogue(), tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } })), tx(req, db, (t) => t.evidenceRequest.findMany({ where: { engagement_id: eid(req) } }))]);
       const open = new Set(existing.filter((q: { status: string }) => q.status === 'open' || q.status === 'submitted').map((q: { requirement_id: string; archetype_code: string | null }) => `${q.requirement_id}|${q.archetype_code}`));
       const created: unknown[] = [];
       for (const c of coverage(reqIds.filter((id) => REQ_IDS.has(id)), cat, items)) {

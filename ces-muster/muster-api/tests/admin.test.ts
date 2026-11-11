@@ -91,9 +91,14 @@ describe('access requests and reviews', () => {
     expect((await call('POST', `/api/admin/access/reviews/${rv.id}/complete`, 'org_admin')).status).toBe(409);
     await call('POST', `/api/admin/access/reviews/${rv.id}/decide`, 'org_admin', { user_id: 'cis-1', decision: 'keep' });
     await call('POST', `/api/admin/access/reviews/${rv.id}/decide`, 'org_admin', { user_id: 'cm-1', decision: 'change_role', note: 'Now senior approver' });
+    const stillOpen = await (await call('POST', `/api/admin/access/reviews/${rv.id}/complete`, 'org_admin')).json();
+    expect(stillOpen.code).toBe('REVIEW_INCOMPLETE'); // the completer's own account is not attested yet
+    expect(stillOpen.error).toMatch(/your own account/);
+    await call('POST', `/api/admin/access/reviews/${rv.id}/decide`, 'bhd_operator', { user_id: 'org_admin-1', decision: 'keep' }); // BHD attests the admin
     const done = await (await call('POST', `/api/admin/access/reviews/${rv.id}/complete`, 'org_admin')).json();
     expect(done.status).toBe('completed');
-    expect(done.decisions).toHaveLength(2);
+    expect(done.decisions).toHaveLength(3);
+    expect(db.auditEvent._records.filter((a) => a.action === 'access.review.decide')).toHaveLength(3);
     expect((await call('POST', `/api/admin/access/reviews/${rv.id}/decide`, 'org_admin', { user_id: 'cis-1', decision: 'remove' })).status).toBe(409);
   });
 });

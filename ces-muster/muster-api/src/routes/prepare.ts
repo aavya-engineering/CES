@@ -96,21 +96,27 @@ export function createPrepareRouter(db: Db) {
   /** Everything the readiness checklist, the SSP and the reports draw on. */
   async function gather(req: Request) {
     const e = eid(req);
-    const [runs, statements, evidence, poam, actions, boundaries, assets, orgs, tenants, packages, findings, signoffs, cat] = await Promise.all([
-      tx(req, db, (t) => t.assessmentRun.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.implementationStatement.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.poamItem.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.planAction.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.scopeBoundary.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.scopeAsset.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.organization.findMany({ where: { tenant_id: user(req).tenant_id } })),
-      tx(req, db, (t) => t.customerTenant.findMany({ where: { tenant_id: user(req).tenant_id } })),
-      tx(req, db, (t) => t.evidencePackage.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.monitorFinding.findMany({ where: { engagement_id: e } })),
-      tx(req, db, (t) => t.assessmentSignOff.findMany({ where: { engagement_id: e } })),
+    // One tenant transaction for all reads (review I8): thirteen parallel withTenant() calls each
+    // held a pooled connection and exhausted the pool under light concurrency.
+    const tenant = user(req).tenant_id;
+    const [cat, rows] = await Promise.all([
       catalogue(),
+      tx(req, db, async (t) => ({
+        runs: await t.assessmentRun.findMany({ where: { engagement_id: e } }),
+        statements: await t.implementationStatement.findMany({ where: { engagement_id: e } }),
+        evidence: await t.evidenceItem.findMany({ where: { engagement_id: e }, omit: { content: true } }),
+        poam: await t.poamItem.findMany({ where: { engagement_id: e } }),
+        actions: await t.planAction.findMany({ where: { engagement_id: e } }),
+        boundaries: await t.scopeBoundary.findMany({ where: { engagement_id: e } }),
+        assets: await t.scopeAsset.findMany({ where: { engagement_id: e } }),
+        orgs: await t.organization.findMany({ where: { tenant_id: tenant } }),
+        tenants: await t.customerTenant.findMany({ where: { tenant_id: tenant } }),
+        packages: await t.evidencePackage.findMany({ where: { engagement_id: e } }),
+        findings: await t.monitorFinding.findMany({ where: { engagement_id: e } }),
+        signoffs: await t.assessmentSignOff.findMany({ where: { engagement_id: e } }),
+      })),
     ]);
+    const { runs, statements, evidence, poam, actions, boundaries, assets, orgs, tenants, packages, findings, signoffs } = rows;
     runs.sort(byDesc('created_at'));
     const latest = runs[0] ?? null;
     const results = latest ? await tx(req, db, (t) => t.assessmentResult.findMany({ where: { run_id: latest.id } })) : [];
@@ -291,7 +297,7 @@ export function createPrepareRouter(db: Db) {
     try {
       if (!(await engagementOf(req))) return notFound(res);
       const body = req.body as z.infer<typeof packageSchema>;
-      const [items, cat] = await Promise.all([tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } })), catalogue()]);
+      const [items, cat] = await Promise.all([tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } })), catalogue()]);
       const usable = body.include_unvalidated ? items : items.filter((i: { status: string }) => i.status === 'validated');
       const { manifest, validation, picked } = buildManifest(usable, cat, { type: body.scope_type, values: body.scope_values });
       let version = 1;
@@ -319,7 +325,7 @@ export function createPrepareRouter(db: Db) {
     try {
       const p = await pkgOf(req); if (!p) return notFound(res);
       if (p.status === 'superseded') return conflict(res, 'Superseded package', 'SUPERSEDED');
-      const [items, cat] = await Promise.all([tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } })), catalogue()]);
+      const [items, cat] = await Promise.all([tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) }, omit: { content: true } })), catalogue()]);
       const live = items.filter((i: { id: string }) => p.item_ids.includes(i.id));
       const { validation } = buildManifest(live, cat, { type: p.scope_type, values: p.scope_values });
       const drift = (p.manifest.items as { id: string; sha256: string | null; status: string }[]).filter((m) => { const l = live.find((x: { id: string }) => x.id === m.id); return !l || l.sha256 !== m.sha256 || l.status !== m.status; }).map((m) => m.id);

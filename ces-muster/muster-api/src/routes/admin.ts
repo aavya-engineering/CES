@@ -226,6 +226,7 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
       const decisions = (rv.decisions as { user_id: string }[]).filter((d) => d.user_id !== body.user_id);
       decisions.push({ ...body, by: user(req).sub, at: new Date().toISOString() } as never);
       const row = await tx(req, db, (t) => t.accessReview.update({ where: { id: rv.id }, data: { decisions } }));
+      await audit(db, { action: 'access.review.decide', actor: user(req), target_type: 'access_review', target_id: rv.id, tenant_id: user(req).tenant_id, detail: { user_id: body.user_id, decision: body.decision } }, { strict: true });
       res.json(row);
     } catch (e) { next(e); }
   });
@@ -235,8 +236,10 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
       const rv = await tx(req, db, (t) => t.accessReview.findUnique({ where: { id: req.params.id } }));
       if (!rv || rv.tenant_id !== user(req).tenant_id) return notFound(res);
       const decided = new Set((rv.decisions as { user_id: string }[]).map((d) => d.user_id));
-      const pending = (rv.snapshot as { id: string }[]).filter((u) => u.id !== user(req).sub && !decided.has(u.id));
-      if (pending.length) { res.status(409).json({ error: `${pending.length} user(s) not yet attested`, code: 'REVIEW_INCOMPLETE', pending: pending.length }); return; }
+      // Everyone in the snapshot is attested — the completer included (by someone else; review I11). An
+      // organisation with a single administrator asks BHD to attest that account.
+      const pending = (rv.snapshot as { id: string }[]).filter((u) => !decided.has(u.id));
+      if (pending.length) { res.status(409).json({ error: `${pending.length} user(s) not yet attested${pending.some((u) => u.id === user(req).sub) ? ' (including your own account — another administrator or BHD attests it)' : ''}`, code: 'REVIEW_INCOMPLETE', pending: pending.length }); return; }
       const row = await tx(req, db, (t) => t.accessReview.update({ where: { id: rv.id }, data: { status: 'completed', completed_by: user(req).sub, completed_at: new Date() } }));
       await audit(db, { action: 'access.review.complete', actor: user(req), target_type: 'access_review', target_id: rv.id, tenant_id: user(req).tenant_id, detail: { decisions: (rv.decisions as unknown[]).length, remove: (rv.decisions as { decision: string }[]).filter((d) => d.decision === 'remove').length } }, { strict: true });
       res.json(row);

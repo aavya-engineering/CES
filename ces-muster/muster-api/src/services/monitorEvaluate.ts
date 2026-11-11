@@ -48,18 +48,22 @@ export async function evaluateEngagement(db: Db, ctx: EvaluateContext): Promise<
   const now = ctx.now ?? new Date();
   const e = ctx.engagement_id;
   const tx = (fn: (t: Db) => Promise<any>): Promise<any> => withTenant(ctx.tenant_id, fn, db); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [runs, actions, poam, remRuns, evidence, boundaries, assets, tenants, requests, cat] = await Promise.all([
-    tx((t) => t.assessmentRun.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.planAction.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.poamItem.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.remediationRun.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.evidenceItem.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.scopeBoundary.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.scopeAsset.findMany({ where: { engagement_id: e } })),
-    tx((t) => t.customerTenant.findMany({ where: { tenant_id: ctx.tenant_id } })),
-    tx((t) => t.evidenceRequest.findMany({ where: { engagement_id: e } })),
+  // One tenant transaction for all reads (review I8).
+  const [cat, rows] = await Promise.all([
     catalogue(db),
+    tx(async (t) => ({
+      runs: await t.assessmentRun.findMany({ where: { engagement_id: e } }),
+      actions: await t.planAction.findMany({ where: { engagement_id: e } }),
+      poam: await t.poamItem.findMany({ where: { engagement_id: e } }),
+      remRuns: await t.remediationRun.findMany({ where: { engagement_id: e } }),
+      evidence: await t.evidenceItem.findMany({ where: { engagement_id: e }, omit: { content: true } }),
+      boundaries: await t.scopeBoundary.findMany({ where: { engagement_id: e } }),
+      assets: await t.scopeAsset.findMany({ where: { engagement_id: e } }),
+      tenants: await t.customerTenant.findMany({ where: { tenant_id: ctx.tenant_id } }),
+      requests: await t.evidenceRequest.findMany({ where: { engagement_id: e } }),
+    })),
   ]);
+  const { runs, actions, poam, remRuns, evidence, boundaries, assets, tenants, requests } = rows;
   runs.sort(byDesc('created_at'));
   const resultsByRun: Record<string, unknown[]> = {};
   for (const run of runs.slice(0, 2)) resultsByRun[run.id] = await tx((t) => t.assessmentResult.findMany({ where: { run_id: run.id } }));
