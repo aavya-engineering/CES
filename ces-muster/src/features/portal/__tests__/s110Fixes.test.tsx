@@ -57,7 +57,7 @@ describe('S1.10', () => {
     const focus = vi.spyOn(HTMLElement.prototype, 'focus');
     act(() => root.render(<RowActions label="ORG-1" testId="ra" actions={[{ label: 'View', onSelect: () => {} }, { label: 'Delete', tone: 'danger', onSelect: () => {} }]} />));
     act(() => (host.querySelector('[data-testid="ra"]') as HTMLButtonElement).click());
-    await act(async () => new Promise((r) => requestAnimationFrame(() => r(null))));
+    await act(async () => new Promise<void>((r) => requestAnimationFrame(() => r())));
     expect(host.querySelector('[role="menu"]')?.textContent).toContain('Delete');
     expect(focus).toHaveBeenCalledWith({ preventScroll: true });
     focus.mockRestore();
