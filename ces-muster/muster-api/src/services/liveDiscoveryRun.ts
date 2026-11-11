@@ -39,6 +39,7 @@ import { buildDiscoveryReadinessResult, fileCaptureSink } from './discoveryEnvel
 import { defaultRegistryRoot, readRegistryVersions, postureCounts, type SimDiscoveryOutcome } from './simDiscoveryRun.js';
 import { assertNotLiveUnderTest, type LiveArea, type LiveConsentRecord, type LiveGrant } from './liveAccess.js';
 import { translateAzCliRead } from './liveAzTranslate.js';
+import { childEnv } from '../lib/childEnv.js';
 
 /** Registry engines a delegated Microsoft Graph token can serve. */
 export const GRAPH_ENGINES = new Set(['mgraph', 'powershell']);
@@ -163,7 +164,7 @@ function powershellSession(
         const started = Date.now();
         const script = [...connect, command].join('\n');
         const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
-          env: { ...process.env, ...extraEnv, [tokenEnv]: accessToken },
+          env: { ...childEnv(), ...extraEnv, [tokenEnv]: accessToken }, // API secrets never reach PowerShell (doc 49 H2)
         });
         let stdout = '';
         let stderr = '';

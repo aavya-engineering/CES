@@ -457,6 +457,7 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
       if (!job) return notFound(res);
       if (job.status !== 'running') { res.status(409).json({ error: `Job is ${job.status}; results are accepted only for a running job`, code: 'JOB_NOT_RUNNING' }); return; }
       const body = req.body as z.infer<typeof resultSchema>;
+      if (job.claimed_by && job.claimed_by !== body.runner) { res.status(409).json({ error: `Job was claimed by ${job.claimed_by}; results are accepted from that runner only`, code: 'RUNNER_MISMATCH' }); return; }
       const actor = { sub: user(req).sub, role: user(req).role, tenant_id: user(req).tenant_id };
       if (body.outcome === 'failed' || !body.envelope) {
         const row = await moveJob(req, job.id, 'running', { status: 'failed', finished_at: new Date(), error: body.error ?? 'runner reported failure', stats: body.stats ?? null });
