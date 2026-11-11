@@ -9,6 +9,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from '../lib/jwt.js';
+import { effectiveRoles } from '../lib/permissions.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -42,8 +43,55 @@ export function bearerAuth(req: Request, res: Response, next: NextFunction): voi
 
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    // Sprint 1 Foundation: a platform role acts as the engine roles it inherits (permissions.ts ROLE_INHERITS).
+    if (!req.user || !effectiveRoles(req.user.role).some((r) => roles.includes(r))) {
       res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    next();
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Lifecycle action guard (2026-11-11, review finding I3). requireRole() only
+// checks engine-role inheritance, so org_admin (→ prime) could execute AdminOps
+// or override results although the role matrix the UI shows says "view". This
+// guard enforces PLATFORM_ROLE_MATRIX server-side for the platform roles:
+//   GET/HEAD → view · POST/PATCH/PUT/DELETE → edit, unless the path matches an
+//   `approve` or `execute` pattern. Engine roles (prime, sub) have no matrix row
+//   and keep the requireRole() behaviour; platform_admin is fenced elsewhere.
+import { PLATFORM_ROLE_MATRIX, PLATFORM_ONLY_ROLES, type LifecycleAction, type LifecycleScope } from '../lib/permissions.js';
+
+export interface ActionRules { approve?: RegExp[]; execute?: RegExp[]; admin?: RegExp[]; /** Paths that are reads despite POST (exports, validators). */ view?: RegExp[] }
+const MATRIX_ROLES = new Set<string>([...PLATFORM_ONLY_ROLES, 'bhd_operator', 'assessor_read_only']);
+
+/** Express routers here are not strict/case-sensitive, so `…/approve/` and `…/APPROVE` reach the same handler as
+ *  `…/approve`. Classify (and resolve scopes) on a canonical path, or the guard would call them `edit`. */
+export const canonicalPath = (path: string) => (path.replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/').toLowerCase();
+
+export function actionFor(method: string, rawPath: string, rules: ActionRules = {}): LifecycleAction {
+  const m = method.toUpperCase();
+  if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return 'view';
+  const path = canonicalPath(rawPath);
+  const hit = (list?: RegExp[]) => !!list?.some((re) => re.test(path));
+  if (hit(rules.view)) return 'view';
+  if (hit(rules.admin)) return 'admin';
+  if (hit(rules.approve)) return 'approve';
+  if (hit(rules.execute)) return 'execute';
+  return 'edit';
+}
+
+/** `scopeOrFn` may resolve to several scopes: the action passes when ANY of them allows it (the route then applies its own module-specific rule). */
+export function requireAction(scopeOrFn: LifecycleScope | ((req: Request, path: string) => LifecycleScope | LifecycleScope[]), rules: ActionRules = {}) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const role = req.user?.role;
+    if (!role || !MATRIX_ROLES.has(role)) { next(); return; } // engine roles: requireRole() decides
+    const resolved = typeof scopeOrFn === 'function' ? scopeOrFn(req, canonicalPath(req.path)) : scopeOrFn;
+    const scopes = Array.isArray(resolved) ? resolved : [resolved];
+    const action = actionFor(req.method, req.path, rules);
+    const ok = scopes.some((scope) => (PLATFORM_ROLE_MATRIX[scope]?.[role as keyof typeof PLATFORM_ROLE_MATRIX[typeof scope]] ?? []).includes(action));
+    if (!ok) {
+      res.status(403).json({ error: `Your role (${role}) may not ${action} in ${scopes.join(' / ')}`, code: 'ROLE_MATRIX', scope: scopes[0], action });
       return;
     }
     next();

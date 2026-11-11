@@ -28,11 +28,15 @@ export function freezeEntropy(): { restore: () => void } {
   const realRandom = Math.random;
   const RealDate = globalThis.Date;
 
-  let callCount = 0;
+  // Integer-only PRNG (mulberry32). The earlier Math.sin() seed gave different
+  // low digits per platform libm (Windows vs macOS vs Linux), so the goldens
+  // only matched on the machine that generated them (2026-11-10).
+  let state = 0x2a2a2a2a;
   function seededRandom(): number {
-    callCount++;
-    const x = Math.sin(0.42 * callCount) * 10000;
-    return x - Math.floor(x);
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 
   // Freeze both Date.now() and new Date()

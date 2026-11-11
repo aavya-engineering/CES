@@ -32,9 +32,18 @@
     "test:stamper": "npm test -w ces-stamper",
     "test:eo": "npm test -w ces-eo",
     "test:ao": "npm test -w ces-ao",
-    "test:fe": "npm test -w ces-planner -- run"
+    "test:fe": "npm test -w ces-planner -- run",
+    "test:muster": "cd ces-muster && npm test && cd muster-api && npm test",
+    "sim": "cd tenant-stacksim && npm run build && node bin/stacksim.mjs scenario muster-partial && node bin/stacksim.mjs serve m365_azure --slug muster-partial --port 4390"
   },
   "overrides": {
     "@azure/msal-node": "^7.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true,
+    "better-sqlite3@12.10.0": true,
+    "fsevents": true
   }
 }

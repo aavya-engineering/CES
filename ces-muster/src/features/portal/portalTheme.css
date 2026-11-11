@@ -428,7 +428,7 @@
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 14px;
   margin-bottom: 20px;
 }
@@ -3107,9 +3107,14 @@ textarea[data-testid='req-import-text'] {
 }
 .stat-label,
 .stat-sub {
-  white-space: nowrap;
+  /* UX pass 2026-11-11: labels wrap to two lines instead of being cut mid-word
+     ("Projected after re…"); the value stays on one line. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 .stat-value {
   white-space: nowrap;
@@ -3231,3 +3236,233 @@ textarea[data-testid='req-import-text'] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── QA retest round 2 (2026-11-02): Catalog / Mapping / Rules toolbars match the
+   mockup — search and dropdowns on ONE row, "Clear Filters" as blue text at the
+   right (#42 #52 #53); numeric/version cells centred (#64). ───────────────── */
+.toolbar-inline {
+  grid-template-columns: minmax(240px, 1.6fr) repeat(auto-fit, minmax(150px, 1fr)) auto;
+  align-items: end;
+}
+.toolbar-inline .grow {
+  grid-column: auto;
+}
+.toolbar-inline > .btn.filter-clear {
+  grid-column: auto;
+  margin-top: 18px;
+}
+@media (max-width: 1100px) {
+  .toolbar-inline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar-inline .grow { grid-column: 1 / -1; }
+  .toolbar-inline > .btn.filter-clear { grid-column: -2 / -1; }
+}
+.tbl th.center,
+.tbl td.center {
+  text-align: center;
+}
+.row-menu-btn svg {
+  display: block;
+}
+/* Detail panel heading (QA retest #31) + short id (#26). */
+.detail-head-titled {
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--co-border);
+}
+.detail-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--co-text);
+}
+.detail-id {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+.detail-id-short {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--co-text-muted);
+}
+.detail-lede {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+/* 110 Requirements table bar: Export ▾ and Columns at the mockup's 36 px (QA retest #14). */
+.split-btn-sm .btn { height: 36px; min-height: 36px; }
+.split-btn-sm .split-btn-caret { width: 36px; }
+.card-bar .btn-sm { height: 36px; min-height: 36px; padding: 0 14px; font-size: 13.5px; }
+/* Filter grid: five across like the mockup at desktop widths (#11/#12). */
+@media (min-width: 1280px) {
+  .filter-card .filter-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+/* Page lede wraps in two lines like the mockup (#9, #37, #49, #59). */
+.pg-head-text { max-width: 720px; }
+.pg-lede { line-height: 1.45; }
+.methodology-fold { margin-top: 14px; }
+.methodology-fold > summary { cursor: pointer; font-weight: 600; color: var(--co-primary); }
+.methodology-fold[open] > summary { margin-bottom: 12px; }
+.methodology-fold .card { box-shadow: none; border: 0; padding: 0; }
+
+/* ── QA retest round 2, 110 Requirements "too congested" (2026-11-02): spacing
+   taken from the mockup — 16 px between cards, 20 px card padding, filter card
+   20 px padding with 16 px between search / dropdowns / controls, 16 px between
+   page blocks, table rows 44 px. ─────────────────────────────────────────── */
+.pg > * + * {
+  margin-top: 16px;
+}
+.pg-head {
+  margin-bottom: 20px;
+}
+.stats,
+.stats-4,
+.stats-5,
+.stats-6 {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stats-6 .stat,
+.stats-5 .stat,
+.stats-4 .stat {
+  padding: 18px 20px;
+  gap: 14px;
+}
+.filter-card {
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.filter-top {
+  gap: 14px;
+}
+.filter-grid,
+.filter-grid-inline {
+  gap: 16px 20px;
+}
+.filter-grid label,
+.toolbar label {
+  gap: 6px;
+}
+.card-bar {
+  padding: 16px 20px;
+  gap: 12px;
+}
+.card-bar-actions {
+  gap: 10px;
+}
+.tbl th,
+.tbl td {
+  padding: 12px 14px;
+}
+.tbl th:first-child,
+.tbl td:first-child {
+  padding-left: 20px;
+}
+.tbl th:last-child,
+.tbl td:last-child {
+  padding-right: 20px;
+}
+.pager-row {
+  padding: 14px 20px;
+}
+.pg-head-buttons {
+  gap: 12px;
+}
+.source-box {
+  padding: 10px 14px;
+}
+
+/* ---- Sprint 3 slice "Onboard" (2026-11-10): forms and check lists on the Onboard pages ---- */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+@media (max-width: 720px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
+}
+.hint {
+  font-size: 12px;
+  color: var(--co-text-muted);
+}
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.checklist li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+/* ---- Sprint 3/4 slice "Assess" (2026-11-10): weight-at-risk bars ---- */
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--co-border, #e5e7eb);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--co-primary);
+}
+.bar-fill[data-tone='good'] { background: var(--co-compliant); }
+.bar-fill[data-tone='warn'] { background: var(--co-risk); }
+.bar-fill[data-tone='bad'] { background: var(--co-violation); }
+
+/* ---- UX pass 2026-11-11: inline bars in table cells, checkbox labels on one line ---- */
+.bar-inline {
+  display: inline-block;
+  width: 88px;
+  height: 8px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+label.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--co-text-secondary);
+  white-space: nowrap;
+}
+label.check input { margin: 0; }
+
+/* ---- Collect Evidence › NIST catalog drawer (2026-11-11) ---- */
+.cat-examine { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cat-examine > li { border: 1px solid var(--co-border); border-radius: var(--portal-radius-md, 8px); padding: 10px 12px; background: var(--co-surface); }
+.cat-examine > li[data-state='covered'] { border-left: 3px solid var(--co-compliant); }
+.cat-examine > li[data-state='pending'] { border-left: 3px solid var(--co-warning, #d97706); }
+.cat-examine > li[data-state='missing'] { border-left: 3px solid var(--co-noncompliant, #dc2626); }
+.cat-examine-head { display: flex; align-items: center; gap: 10px; }
+.cat-examine-head strong { flex: 1; font-weight: 600; }
+.cat-examine-n { width: 22px; height: 22px; border-radius: 999px; background: var(--co-bg-elevated); color: var(--co-text-secondary); font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.cat-examine .hint { margin: 4px 0 0 32px; }
+.cat-examine-items { margin: 6px 0 0 32px; padding-left: 16px; font-size: 13px; }
+.cat-examine .btn-sm { margin: 6px 0 0 32px; }
+
+/* ---- UX pass 2026-11-11: a page header with several actions keeps its title on one line;
+   the action group drops below the title instead of squeezing it (SSP, Readiness). ---- */
+.pg-head-text { flex: 1 1 360px; }
+.pg-head-actions { flex: 0 1 auto; max-width: 100%; }
+@media (min-width: 1100px) {
+  .pg-head-text { min-width: 320px; }
+}
+.pg-title { overflow-wrap: anywhere; }
+
+/* Readiness: the engine / import controls get their own row under the selectors. */
+.toolbar.toolbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -6px; padding: 10px 12px; border: 1px dashed var(--co-border); border-radius: var(--portal-radius-md, 8px); background: var(--co-bg-elevated); }
+.toolbar.toolbar-actions > .grow { flex: 1 1 40px; }
+.toolbar.toolbar-actions label { flex-direction: row; }
+.toolbar.toolbar-actions label.btn { font-size: 14px; font-weight: 600; color: inherit; }
+.toolbar-actions .hint { align-self: center; }
+.toolbar.toolbar-actions .engine-error { flex-basis: 100%; order: 10; margin: 4px 0 0; white-space: normal; }
+.toolbar.toolbar-actions [data-testid='engine-run'] { flex-wrap: wrap; }

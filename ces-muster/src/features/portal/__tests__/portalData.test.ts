@@ -21,34 +21,46 @@ const offline: Viewer = { kind: 'offline' };
 const as = (role: string): Viewer => ({ kind: 'signed-in', role });
 const ids = (v: Viewer) => navFor(v).map((s) => s.id);
 
-describe('UI-02 navigation by role', () => {
-  it('platform admin: Home (counts only), CES-Shared and Platform — no customer data surfaces', () => {
-    expect(ids(as('platform_admin'))).toEqual(['home', 'shared', 'platform']);
+describe('UI-02 navigation by role (lifecycle sidebar, Sprint 1 Foundation 2026-11-10)', () => {
+  it('platform admin: Home, Shared Foundation and Administration — no customer data surfaces (BHD PB-01)', () => {
+    expect(ids(as('platform_admin'))).toEqual(['home', 'shared', 'admin']);
     const r = routesFor(as('platform_admin'));
     expect(r.has('platform/users')).toBe(true);
     expect(r.has('platform/audit')).toBe(true);
-    for (const forbidden of ['muster', 'engagements/all', 'module/stamper'] as const) expect(r.has(forbidden)).toBe(false);
+    for (const forbidden of ['muster', 'engagements/all', 'remediate/stamper', 'onboard/organizations'] as const) expect(r.has(forbidden)).toBe(false);
     expect(defaultRoute(as('platform_admin'))).toBe('home');
   });
 
-  it.each(['bhd_operator', 'prime', 'sub', 'assessor_read_only'])('%s: no Users or Audit, but Roles; lands on Home', (role) => {
+  it.each(['bhd_operator', 'prime', 'sub', 'org_admin', 'compliance_manager', 'it_security_admin'])('%s: no Users; reaches Muster; lands on Home', (role) => {
     const r = routesFor(as(role));
     expect(r.has('platform/users')).toBe(false);
-    expect(r.has('platform/audit')).toBe(false);
-    expect(r.has('platform/roles')).toBe(true);
     expect(r.has('muster')).toBe(true);
     expect(defaultRoute(as(role))).toBe('home');
   });
 
+  it('only BHD and the organisation administrator see Administration; the assessor sees Shared Foundation and Prepare only', () => {
+    expect(routesFor(as('bhd_operator')).has('platform/roles')).toBe(true);
+    expect(routesFor(as('org_admin')).has('platform/roles')).toBe(true);
+    expect(routesFor(as('compliance_manager')).has('platform/roles')).toBe(false);
+    expect(ids(as('assessor_read_only'))).toEqual(['home', 'shared', 'prepare']);
+    expect(routesFor(as('assessor_read_only')).has('muster')).toBe(false);
+  });
+
   it('offline: no Platform section, lands in Muster (the pre-portal behaviour)', () => {
     expect(ids(offline)).not.toContain('platform');
+    expect(ids(offline)).not.toContain('admin');
     expect(routesFor(offline).has('account/password')).toBe(false);
     expect(defaultRoute(offline)).toBe('muster');
   });
 
-  it('every planned item is labelled planned (never presented as working)', () => {
-    const planned = navFor(as('bhd_operator')).flatMap((s) => s.items).filter((i) => i.planned).map((i) => i.route);
-    expect(planned.sort()).toEqual(['engagements/tenants', 'shared/compat', 'shared/interfaces', 'shared/registry', 'shared/tests', 'store/adminops', 'store/integrity', 'store/passkeys', 'store/tokens']);
+  it('every item is either a built screen or a planned lifecycle scaffold (never presented as working)', () => {
+    const items = navFor(as('bhd_operator')).flatMap((s) => s.items);
+    expect(items.length).toBeGreaterThan(200);
+    for (const i of items) {
+      if (i.planned) expect(i.route.startsWith('lc/'), `${i.label} is planned so must open the scaffold`).toBe(true);
+      else expect(i.route.startsWith('lc/'), `${i.label} is built so must open a real screen`).toBe(false);
+    }
+    expect(items.filter((i) => !i.planned).length).toBeGreaterThanOrEqual(40);
   });
 
   it('hash parsing', () => {

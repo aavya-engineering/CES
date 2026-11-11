@@ -145,8 +145,23 @@ const GLYPH: Record<string, LucideIcon> = {
   '…': Clock,
 };
 
+/** Named glyphs the lifecycle pages use on PageHeader / Stat that are not nav items. */
+const PAGE: Record<string, LucideIcon> = {
+  evidence: Files,
+  '110': ListChecks,
+  settings: Settings,
+  health: Gauge,
+  systems: Database,
+  checklist: ClipboardCheck,
+  monitor: Radar,
+  prepare: FileSignature,
+  package: Folder,
+};
+
 export function GlyphIcon({ glyph, size = 24 }: { glyph: string; size?: number }) {
-  const Icon = GLYPH[glyph];
+  // Symbol glyphs first, then nav names, then page names — a name that is in
+  // none of them is a bug, and showing the raw string makes it visible in QA.
+  const Icon = GLYPH[glyph] ?? NAV[glyph] ?? PAGE[glyph];
   if (!Icon) return <span className="glyph-text">{glyph}</span>;
   return <Icon size={size} strokeWidth={1.8} aria-hidden="true" focusable="false" />;
 }

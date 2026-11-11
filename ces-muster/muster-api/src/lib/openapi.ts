@@ -67,6 +67,14 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
       { name: 'CES-Shared', description: 'The 110 NIST SP 800-171 requirements, SPRS weights, governed reference data and custom requirements' },
       { name: 'Portfolio', description: 'Home page summary' },
       { name: 'Engagements', description: 'Engagements and milestones' },
+      { name: 'Admin', description: 'Organisation administration: tenant settings, access requests and periodic access reviews, system health; Onboard systems registry and onboarding checklist' },
+      { name: 'Prepare', description: 'Sprint 6 slice: assessment readiness checklist, SSP implementation statements and export, evidence packages (frozen manifests, SoD sign-off, drift), assessor workspace and requests, sign-offs, reports' },
+      { name: 'Monitor', description: 'Sprint 6 slice: continuous monitoring of the programme — findings derived from runs, actions, POA&M, remediation, evidence, scope and tenants; ack / resolve / escalate; trend snapshots; compliance event history' },
+      { name: 'Evidence', description: 'Sprint 6 slice: evidence items validated against the published CES-Shared catalogue (archetypes, mappings, EVR rule conditions), SoD review, versions, coverage and evidence requests' },
+      { name: 'Remediate', description: 'Sprint 5 slice: Stamper / AdminOps run requests with the engine gates (HELD, simulator-first, DP-1 cost, DP-2 two-person), approval, simulated execution, human verification' },
+      { name: 'Plan', description: 'Sprint 4 slice: remediation action items generated from gaps (priority = SPRS weight) and the POA&M register (poam_prohibited flagged)' },
+      { name: 'Assess', description: 'Sprint 3/4 slice: persisted readiness assessment runs (one SPRS), per-requirement results, gap analysis and audited human overrides' },
+      { name: 'Onboard', description: 'Sprint 3 slice: organisations, customer Microsoft 365 tenant registrations and the compliance scope (assets + versioned CUI boundary)' },
       ...[
         'Parties',
         'Contracts',
@@ -200,6 +208,202 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
             target_date: { type: 'string', format: 'date', nullable: true },
           },
         },
+        MonitorFinding: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, key: { type: 'string', description: 'Stable dedupe key, e.g. plan.overdue:<action id>' },
+            category: { type: 'string', enum: ['score', 'control', 'remediation', 'plan', 'evidence', 'scope', 'tenant'] }, severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low', 'info'] },
+            title: { type: 'string' }, detail: { type: 'object', nullable: true }, requirement_id: { type: 'string', nullable: true }, target_type: { type: 'string', nullable: true }, target_id: { type: 'string', nullable: true },
+            status: { type: 'string', enum: ['open', 'acknowledged', 'escalated', 'resolved'] }, first_seen_at: { type: 'string', format: 'date-time' }, last_seen_at: { type: 'string', format: 'date-time' }, seen_count: { type: 'integer' },
+            acknowledged_by: { type: 'string', nullable: true }, resolved_by: { type: 'string', nullable: true }, resolution: { type: 'string', nullable: true }, escalated_to: { type: 'string', nullable: true }, notes: { type: 'string', nullable: true },
+          },
+        },
+        MonitorSnapshot: {
+          type: 'object',
+          properties: {
+            taken_at: { type: 'string', format: 'date-time' }, sprs_now: { type: 'integer', nullable: true }, met_count: { type: 'integer', nullable: true }, not_met_count: { type: 'integer', nullable: true },
+            open_actions: { type: 'integer' }, overdue_actions: { type: 'integer' }, open_poam: { type: 'integer' }, evidence_validated: { type: 'integer' }, evidence_pending: { type: 'integer' },
+            coverage_covered: { type: 'integer' }, coverage_missing: { type: 'integer' }, findings_open: { type: 'integer' }, findings_critical: { type: 'integer' }, by_family: { type: 'object', nullable: true },
+          },
+        },
+        EvidenceItem: {
+          type: 'object',
+          required: ['title', 'requirement_ids'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, title: { type: 'string' }, description: { type: 'string', nullable: true },
+            requirement_ids: { type: 'array', items: { type: 'string', example: 'AC.L1-3.1.1' } }, objective_ids: { type: 'array', items: { type: 'string' } },
+            archetype_code: { type: 'string', nullable: true, example: 'EMX-IAM-005' }, form: { type: 'string', nullable: true, description: 'One of the archetype acceptable_forms' },
+            kind: { type: 'string', enum: ['document', 'screenshot', 'export', 'config_capture', 'attestation', 'log', 'other'] }, source: { type: 'string', enum: ['upload', 'stamper', 'adminops', 'discovery', 'manual'] },
+            file_name: { type: 'string', nullable: true }, content_type: { type: 'string', nullable: true }, content_base64: { type: 'string', writeOnly: true, description: '≤ 10 MB; omit and set metadata.external_url for larger files' },
+            size_bytes: { type: 'integer', readOnly: true }, sha256: { type: 'string', readOnly: true }, metadata: { type: 'object', nullable: true },
+            collected_at: { type: 'string', format: 'date-time' }, period_start: { type: 'string', format: 'date', nullable: true }, period_end: { type: 'string', format: 'date', nullable: true },
+            owner: { type: 'string', nullable: true }, classification: { type: 'string', enum: ['cui', 'non_cui', 'internal'] },
+            status: { type: 'string', enum: ['draft', 'submitted', 'validated', 'rejected', 'expired', 'archived'], readOnly: true },
+            validation: { type: 'object', readOnly: true, properties: { checked_at: { type: 'string' }, passed: { type: 'boolean' }, strength: { type: 'string', enum: ['weak', 'adequate', 'strong'] }, checks: { type: 'array', items: { type: 'object' } }, rules: { type: 'array', items: { type: 'object' } }, mapping: { type: 'object' } } },
+            reviewed_by: { type: 'string', nullable: true, readOnly: true }, reviewed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, review_notes: { type: 'string', nullable: true, readOnly: true },
+            run_id: { type: 'string', nullable: true }, version: { type: 'integer', readOnly: true }, supersedes_id: { type: 'string', nullable: true, readOnly: true }, retention_until: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+        EvidenceRequest: {
+          type: 'object',
+          required: ['requirement_id', 'title'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, requirement_id: { type: 'string' }, archetype_code: { type: 'string', nullable: true }, title: { type: 'string' }, instructions: { type: 'string', nullable: true },
+            assignee: { type: 'string', nullable: true }, due_date: { type: 'string', format: 'date', nullable: true }, status: { type: 'string', enum: ['open', 'submitted', 'fulfilled', 'cancelled'] }, evidence_item_id: { type: 'string', nullable: true },
+          },
+        },
+        EvidenceCoverage: {
+          type: 'object',
+          properties: { requirement_id: { type: 'string' }, required: { type: 'integer' }, covered: { type: 'integer' }, pending: { type: 'integer' }, missing: { type: 'array', items: { type: 'string' } }, recommended: { type: 'integer' }, items: { type: 'integer' }, state: { type: 'string', enum: ['covered', 'partial', 'missing', 'none_required'] } },
+        },
+        RemediationRun: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, module: { type: 'string', enum: ['stamper', 'adminops'] }, mode: { type: 'string', enum: ['simulate', 'live'] },
+            action_id: { type: 'string', nullable: true }, requirement_id: { type: 'string', nullable: true },
+            entry_ids: { type: 'array', items: { type: 'string' }, description: 'Stamper registry entry ids' }, op_id: { type: 'string', nullable: true, description: 'AdminOps operation id (A-01 …)' }, parameters: { type: 'object', nullable: true },
+            justification: { type: 'string' },
+            status: { type: 'string', enum: ['requested', 'approved', 'rejected', 'blocked', 'queued', 'running', 'succeeded', 'failed', 'verified', 'cancelled'], readOnly: true },
+            gates: { type: 'array', readOnly: true, items: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, ok: { type: 'boolean' }, note: { type: 'string' }, blocking: { type: 'boolean' } } } },
+            cost_estimate: { type: 'integer', readOnly: true }, requires_approval: { type: 'boolean', readOnly: true },
+            requested_by: { type: 'string', readOnly: true }, requested_at: { type: 'string', format: 'date-time', readOnly: true }, approved_by: { type: 'string', nullable: true, readOnly: true }, approved_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, rejection_reason: { type: 'string', nullable: true },
+            started_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, finished_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, result: { type: 'object', nullable: true, readOnly: true },
+            verified_by: { type: 'string', nullable: true, readOnly: true }, verified_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true }, verification_notes: { type: 'string', nullable: true },
+          },
+        },
+        PlanAction: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, run_id: { type: 'string', nullable: true, readOnly: true }, requirement_id: { type: 'string', nullable: true, example: 'IA.L2-3.5.3' },
+            family: { type: 'string', nullable: true, readOnly: true }, weight: { type: 'integer', readOnly: true }, title: { type: 'string' }, description: { type: 'string', nullable: true },
+            source: { type: 'string', enum: ['gap', 'manual'], readOnly: true }, fix_kind: { type: 'string', enum: ['registry', 'manual'] }, fix_entry_ids: { type: 'array', items: { type: 'string' } },
+            priority: { type: 'string', enum: ['critical', 'high', 'medium', 'low'], description: 'Defaults from SPRS weight: 5 critical, 3 high, 1 medium' },
+            status: { type: 'string', enum: ['open', 'in_progress', 'blocked', 'done', 'wont_fix'] }, owner: { type: 'string', nullable: true }, due_date: { type: 'string', format: 'date', nullable: true },
+            effort_hours: { type: 'integer', nullable: true }, depends_on: { type: 'array', items: { type: 'string', format: 'uuid' } }, sequence: { type: 'integer', nullable: true }, notes: { type: 'string', nullable: true },
+            closed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
+        PoamItem: {
+          type: 'object',
+          required: ['requirement_id', 'weakness'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, action_id: { type: 'string', nullable: true }, requirement_id: { type: 'string', example: 'MP.L2-3.8.3' }, weight: { type: 'integer', readOnly: true },
+            poam_allowed: { type: 'boolean', readOnly: true, description: 'false for sprs-weights.json poam_prohibited requirements' },
+            weakness: { type: 'string' }, mitigation: { type: 'string', nullable: true },
+            milestones: { type: 'array', nullable: true, items: { type: 'object', properties: { title: { type: 'string' }, due_date: { type: 'string', format: 'date', nullable: true }, done: { type: 'boolean' } } } },
+            scheduled_completion: { type: 'string', format: 'date', nullable: true }, responsible: { type: 'string', nullable: true }, resources: { type: 'string', nullable: true },
+            status: { type: 'string', enum: ['open', 'ongoing', 'completed', 'risk_accepted'] }, completed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
+        PlanSummary: {
+          type: 'object',
+          properties: {
+            latest_run: { type: 'object', nullable: true, properties: { id: { type: 'string' }, sprs_now: { type: 'integer' }, created_at: { type: 'string', format: 'date-time' } } },
+            actions: { type: 'object', properties: { total: { type: 'integer' }, by_status: { type: 'object' }, by_priority: { type: 'object' }, overdue: { type: 'integer' }, weight_open: { type: 'integer' } } },
+            poam: { type: 'object', properties: { total: { type: 'integer' }, by_status: { type: 'object' }, prohibited: { type: 'integer' } } },
+            sprs_if_all_actions_done: { type: 'integer', nullable: true, description: 'PROJECTION' },
+            next_due: { type: 'array', items: { type: 'object' } },
+          },
+        },
+        AssessmentRun: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, engagement_id: { type: 'string', format: 'uuid' },
+            source: { type: 'string', enum: ['readiness_result', 'delivery_artifact', 'manual', 'engine_run'] }, schema_version: { type: 'string', nullable: true }, label: { type: 'string', nullable: true },
+            sprs_now: { type: 'integer', description: 'computeSprs over the current statuses (FCA conservative: only met passes)' },
+            sprs_after: { type: 'integer', nullable: true, description: 'PROJECTION: registry-fixable gaps flipped to met' },
+            met_count: { type: 'integer' }, partial_count: { type: 'integer' }, not_met_count: { type: 'integer' }, unknown_count: { type: 'integer' },
+            engine: { type: 'object', nullable: true }, generated_at: { type: 'string', format: 'date-time', nullable: true }, delivery_artifact_id: { type: 'string', nullable: true },
+            by_family: { type: 'array', items: { type: 'object', properties: { family: { type: 'string' }, name: { type: 'string' }, total: { type: 'integer' }, met: { type: 'integer' }, partial: { type: 'integer' }, not_met: { type: 'integer' }, unknown: { type: 'integer' }, deduction: { type: 'integer' } } } },
+          },
+        },
+        AssessmentResult: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, run_id: { type: 'string', format: 'uuid' }, requirement_id: { type: 'string', example: 'IA.L2-3.5.3' }, family: { type: 'string' }, weight: { type: 'integer' },
+            status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'] }, engine_status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'], description: 'What the engine derived; kept when a human overrides status' },
+            confidence: { type: 'string', nullable: true }, objective_ids: { type: 'array', items: { type: 'string' } }, ran_entry_ids: { type: 'array', items: { type: 'string' } },
+            fixable: { type: 'string', enum: ['registry', 'manual'], nullable: true }, fix_entry_ids: { type: 'array', items: { type: 'string' } },
+            override_by: { type: 'string', nullable: true }, override_at: { type: 'string', format: 'date-time', nullable: true }, override_reason: { type: 'string', nullable: true }, notes: { type: 'string', nullable: true },
+          },
+        },
+        ReadinessResultRecord: {
+          type: 'object',
+          required: ['schema_version', 'observations'],
+          description: 'The readiness-result record the SPA / ces-tester writes (schema 1.0.0 or 1.1.0). Extra fields are kept.',
+          properties: {
+            schema_version: { type: 'string', enum: ['readiness-result/1.0.0', 'readiness-result/1.1.0'] },
+            label: { type: 'string' },
+            manifest: { type: 'object' },
+            observations: { type: 'array', items: { type: 'object', required: ['control_id', 'derived_posture'], properties: { control_id: { type: 'string' }, objective_ids: { type: 'array', items: { type: 'string' } }, confidence: { type: 'string', enum: ['high', 'medium', 'low', 'unknown'] }, ran_entry_ids: { type: 'array', items: { type: 'string' } }, derived_posture: { type: 'string', enum: ['met', 'not_met', 'partial', 'unknown'] } } } },
+            derived: { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: { requirement_id: { type: 'string' }, weight: { type: 'integer' }, fix_entry_ids: { type: 'array', items: { type: 'string' } }, fixable: { type: 'string', enum: ['registry', 'manual'] } } } } } },
+            provenance: { type: 'object', properties: { engine: { type: 'object', properties: { name: { type: 'string' }, version: { type: 'string' } } }, generated_at: { type: 'string', format: 'date-time' } } },
+          },
+        },
+        GapAnalysis: {
+          type: 'object',
+          properties: {
+            run_id: { type: 'string', format: 'uuid' }, sprs_now: { type: 'integer' }, sprs_after: { type: 'integer', nullable: true },
+            gap_count: { type: 'integer' }, deduction_total: { type: 'integer' }, registry_fixable: { type: 'integer' }, registry_fixable_weight: { type: 'integer' },
+            gaps: { type: 'array', items: ref('AssessmentResult') },
+          },
+        },
+        Organization: {
+          type: 'object',
+          required: ['legal_name'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            legal_name: { type: 'string' }, dba_name: { type: 'string', nullable: true },
+            uei: { type: 'string', nullable: true, description: '12 alphanumeric' }, cage: { type: 'string', nullable: true, description: '5 alphanumeric' },
+            website: { type: 'string', nullable: true }, address: { type: 'string', nullable: true },
+            primary_contact_name: { type: 'string', nullable: true }, primary_contact_email: { type: 'string', format: 'email', nullable: true },
+            contract_clauses: { type: 'array', items: { type: 'string', enum: ['DFARS 252.204-7012', 'DFARS 252.204-7019', 'DFARS 252.204-7020', 'DFARS 252.204-7021', 'FAR 52.204-21'] } },
+            status: { type: 'string', enum: ['active', 'inactive'] }, notes: { type: 'string', nullable: true },
+          },
+        },
+        CustomerTenant: {
+          type: 'object',
+          required: ['display_name'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            organization_id: { type: 'string', format: 'uuid', nullable: true },
+            display_name: { type: 'string' }, entra_tenant_id: { type: 'string', format: 'uuid', nullable: true }, primary_domain: { type: 'string', nullable: true },
+            cloud: { type: 'string', enum: ['gcc_high', 'gcc', 'commercial'] },
+            app_registration_id: { type: 'string', format: 'uuid', nullable: true }, certificate_thumbprint: { type: 'string', nullable: true, description: 'SHA-1, 40 hex' },
+            status: { type: 'string', enum: ['registered', 'consented', 'live_enabled', 'disabled'] },
+            connection_status: { type: 'string', nullable: true, readOnly: true }, connection_tested_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+            notes: { type: 'string', nullable: true },
+          },
+        },
+        ConnectionTest: {
+          type: 'object',
+          properties: {
+            tenant: ref('CustomerTenant'),
+            connection_status: { type: 'string', enum: ['prerequisites_complete', 'prerequisites_missing'] },
+            checks: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, ok: { type: 'boolean' }, note: { type: 'string' } } } },
+          },
+        },
+        ScopeAsset: {
+          type: 'object',
+          required: ['name', 'asset_type', 'category'],
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true },
+            name: { type: 'string' }, asset_type: { type: 'string' },
+            category: { type: 'string', enum: ['cui', 'security_protection', 'contractor_risk_managed', 'specialized', 'out_of_scope'], description: 'CMMC L2 scoping category' },
+            location: { type: 'string', nullable: true }, owner: { type: 'string', nullable: true }, external_provider: { type: 'boolean' }, notes: { type: 'string', nullable: true },
+          },
+        },
+        ScopeBoundary: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', readOnly: true }, version: { type: 'integer', readOnly: true },
+            status: { type: 'string', enum: ['draft', 'confirmed', 'superseded'], readOnly: true },
+            narrative: { type: 'string', nullable: true },
+            data_flows: { type: 'array', nullable: true, items: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' }, data: { type: 'string' }, protection: { type: 'string' } } } },
+            asset_count: { type: 'integer', readOnly: true }, confirmed_by: { type: 'string', nullable: true, readOnly: true }, confirmed_at: { type: 'string', format: 'date-time', nullable: true, readOnly: true },
+          },
+        },
         Milestone: {
           type: 'object',
           properties: {
@@ -323,6 +527,247 @@ export function buildOpenApiSpec(env: NodeJS.ProcessEnv = process.env): OpenAPIV
 
       '/api/portfolio': { get: { tags: ['Portfolio'], security: bearer, summary: 'Home page: engagement portfolio (counts only for platform_admin)', responses: { 200: json({ type: 'object' }), ...common } } },
 
+      '/api/admin/settings': {
+        get: { tags: ['Admin'], security: bearer, summary: 'Tenant settings (organisation, system, notifications, security, retention) merged over defaults', responses: { 200: json({ type: 'object' }), ...common } },
+        put: { tags: ['Admin'], security: bearer, summary: 'Update one or more sections (org_admin / compliance_manager / BHD); versioned and audited', requestBody: body({ type: 'object', properties: { organization: { type: 'object' }, system: { type: 'object' }, notifications: { type: 'object' }, security: { type: 'object' }, retention: { type: 'object' } } }), responses: { 200: json({ type: 'object' }), 422: err('Validation (403 NOT_ORG_ADMIN)'), ...common } },
+      },
+      '/api/admin/access/users': {
+        get: { tags: ['Admin'], security: bearer, summary: 'Users of the caller’s tenant without secrets (for reviews and requests)', responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Admin'], security: bearer, summary: 'Org-scoped: organisation administrator (or BHD) creates an account in its own tenant — customer roles and assessor_read_only only, never platform_admin / bhd_operator; returns a one-time password once; access_request_id marks an approved request fulfilled', requestBody: body({ type: 'object', required: ['email', 'role'], properties: { email: { type: 'string' }, display_name: { type: 'string' }, role: { type: 'string', enum: ['org_admin', 'compliance_manager', 'it_security_admin', 'evidence_reviewer', 'senior_approver', 'assessor_read_only'] }, access_request_id: { type: 'string', format: 'uuid' } } }), responses: { 201: json({ type: 'object' }, 'Created'), 409: err('EMAIL_TAKEN / REQUEST_NOT_APPROVED / REQUEST_MISMATCH (403 NOT_ORG_ADMIN)'), 422: err('Validation'), ...common } },
+      },
+      '/api/admin/access/users/{id}': {
+        patch: { tags: ['Admin'], security: bearer, summary: 'Org-scoped: change role / display name, disable or enable (SoD: not yourself; the last enabled org_admin is protected; platform and BHD accounts refused)', parameters: [pathParam('id', 'User id')], requestBody: body({ type: 'object', properties: { role: { type: 'string' }, display_name: { type: 'string' }, disabled: { type: 'boolean' } } }), responses: { 200: json({ type: 'object' }), 404: err('Not found (403 NOT_ORG_SCOPED)'), 409: err('SOD_SAME_PERSON / LAST_ORG_ADMIN'), ...common } },
+      },
+      '/api/admin/access/users/{id}/reset-password': {
+        post: { tags: ['Admin'], security: bearer, summary: 'Org-scoped: new one-time password, returned once; must be changed at first sign-in', parameters: [pathParam('id', 'User id')], responses: { 200: json({ type: 'object' }), 404: err('Not found (403 NOT_ORG_SCOPED)'), ...common } },
+      },
+      '/api/admin/access/requests': {
+        get: { tags: ['Admin'], security: bearer, summary: 'Access requests, newest first', responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Admin'], security: bearer, summary: 'Request a role for someone (platform_admin not requestable)', requestBody: body({ type: 'object', required: ['subject_email', 'requested_role', 'justification'], properties: { subject_email: { type: 'string' }, requested_role: { type: 'string' }, engagement_id: { type: 'string' }, justification: { type: 'string' } } }), responses: { 201: json({ type: 'object' }, 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/admin/access/requests/{id}/decide': { post: { tags: ['Admin'], security: bearer, summary: 'Approve / reject / mark fulfilled (org admin or BHD; not your own request)', parameters: [pathParam('id', 'Id')], requestBody: body({ type: 'object', required: ['decision', 'notes'], properties: { decision: { type: 'string', enum: ['approved', 'rejected', 'fulfilled'] }, notes: { type: 'string' } } }), responses: { 200: json({ type: 'object' }), 409: err('SOD_SAME_PERSON (403 NOT_ORG_ADMIN)'), ...common } } },
+      '/api/admin/access/reviews': {
+        get: { tags: ['Admin'], security: bearer, summary: 'Access reviews, newest first', responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Admin'], security: bearer, summary: 'Start a periodic access review (snapshot of every user)', requestBody: body({ type: 'object', required: ['title'], properties: { title: { type: 'string' } } }), responses: { 201: json({ type: 'object' }, 'Created'), ...common } },
+      },
+      '/api/admin/access/reviews/{id}/decide': { post: { tags: ['Admin'], security: bearer, summary: 'Attest one user: keep / remove / change_role (never yourself)', parameters: [pathParam('id', 'Id')], requestBody: body({ type: 'object', required: ['user_id', 'decision'], properties: { user_id: { type: 'string' }, decision: { type: 'string', enum: ['keep', 'remove', 'change_role'] }, note: { type: 'string' } } }), responses: { 200: json({ type: 'object' }), 409: err('SOD_SAME_PERSON / REVIEW_CLOSED'), ...common } } },
+      '/api/admin/access/reviews/{id}/complete': { post: { tags: ['Admin'], security: bearer, summary: 'Complete the review once every other user is attested (audited)', parameters: [pathParam('id', 'Id')], responses: { 200: json({ type: 'object' }), 409: err('REVIEW_INCOMPLETE'), ...common } } },
+      '/api/admin/health': { get: { tags: ['Admin'], security: bearer, summary: 'Service, database, record counts, background jobs, integration status', responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/systems': {
+        get: { tags: ['Admin'], security: bearer, summary: 'System & environment registry of an engagement', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Admin'], security: bearer, summary: 'Register a system / environment / infrastructure / cloud resource', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['name'], properties: { name: { type: 'string' }, kind: { type: 'string', enum: ['system', 'environment', 'infrastructure', 'cloud_resource'] }, environment: { type: 'string' }, hosting: { type: 'string' }, description: { type: 'string' }, owner: { type: 'string' }, handles_cui: { type: 'boolean' }, scope_asset_id: { type: 'string' }, attributes: { type: 'object' } } }), responses: { 201: json({ type: 'object' }, 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/systems/{id}': {
+        patch: { tags: ['Admin'], security: bearer, summary: 'Update a system record', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], requestBody: body({ type: 'object' }), responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+        delete: { tags: ['Admin'], security: bearer, summary: 'Delete a system record', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/onboard/checklist': { get: { tags: ['Admin'], security: bearer, summary: 'Onboarding checklist: organisation / tenant / engagement readiness (computed)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/readiness': { get: { tags: ['Prepare'], security: bearer, summary: 'Assessment readiness checklist (15 computed items with counts and routes) and outstanding items', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/ssp/statements': { get: { tags: ['Prepare'], security: bearer, summary: '110 requirements with run status, validated evidence and the implementation statement', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/ssp/statements/generate-drafts': { post: { tags: ['Prepare'], security: bearer, summary: 'Draft statements for requirements without one (marked generated_draft; must be edited and approved)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' } } }, 'Created'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/ssp/statements/{requirementId}': { put: { tags: ['Prepare'], security: bearer, summary: 'Upsert a statement (version++, approval reset)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('requirementId', 'Requirement id')], requestBody: body({ type: 'object', required: ['status'], properties: { status: { type: 'string', enum: ['implemented', 'partially_implemented', 'planned', 'alternative', 'not_applicable'] }, statement: { type: 'string' }, responsible_role: { type: 'string' }, systems: { type: 'array', items: { type: 'string' } }, evidence_item_ids: { type: 'array', items: { type: 'string' } } } }), responses: { 200: json({ type: 'object' }), 422: err('Validation'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/ssp/statements/{requirementId}/approve': { post: { tags: ['Prepare'], security: bearer, summary: 'Approve a statement (drafts with the [DRAFT] marker are refused)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('requirementId', 'Requirement id')], responses: { 200: json({ type: 'object' }), 409: err('STATEMENT_IS_DRAFT'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/ssp/export': { get: { tags: ['Prepare'], security: bearer, summary: 'The SSP document (organisation, boundary, assets, SPRS, statements by family, POA&M) as JSON or Markdown', parameters: [...[pathParam('engagementId', 'Engagement id')], { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'md', 'csv'] } }], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/packages': {
+        get: { tags: ['Prepare'], security: bearer, summary: 'Evidence packages, newest first (manifest omitted)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Prepare'], security: bearer, summary: 'Build a package: frozen manifest of validated evidence for a scope, validated against the required mappings', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['name'], properties: { name: { type: 'string' }, scope_type: { type: 'string', enum: ['all', 'requirement', 'family', 'objective'] }, scope_values: { type: 'array', items: { type: 'string' } }, include_unvalidated: { type: 'boolean' }, run_id: { type: 'string' }, supersedes_id: { type: 'string' } } }), responses: { 201: json({ type: 'object' }, 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/prepare/packages/{id}': { get: { tags: ['Prepare'], security: bearer, summary: 'One package with its manifest', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/packages/{id}/validate': { post: { tags: ['Prepare'], security: bearer, summary: 'Re-validate against the live items (drift in hash / status drops a signed-off package back to draft)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], responses: { 200: json({ type: 'object' }), 409: err('SUPERSEDED'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/packages/{id}/sign-off': { post: { tags: ['Prepare'], security: bearer, summary: 'Sign off a validated package (senior_approver / compliance_manager / BHD; never the builder)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], requestBody: body({ type: 'object', required: ['notes'], properties: { notes: { type: 'string' } } }), responses: { 200: json({ type: 'object' }), 409: err('SOD_SAME_PERSON / NOT_VALIDATED (403 NOT_SIGNER)'), ...common } } },
+      '/api/engagements/{engagementId}/prepare/packages/{id}/export': { get: { tags: ['Prepare'], security: bearer, summary: 'Package manifest as JSON (with download base) or CSV', parameters: [...[pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'md', 'csv'] } }], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/assessor/overview': { get: { tags: ['Prepare'], security: bearer, summary: 'Read-only workspace for the C3PAO: per requirement — assessed status, statement, validated evidence (hash, reviewer, in signed package), POA&M', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/assessor/requests': {
+        get: { tags: ['Prepare'], security: bearer, summary: 'Assessor questions, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Prepare'], security: bearer, summary: 'Ask a question (assessor_read_only-inheriting roles or BHD)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['question'], properties: { question: { type: 'string' }, requirement_id: { type: 'string' }, package_id: { type: 'string' } } }), responses: { 201: json({ type: 'object' }, 'Created'), ...common } },
+      },
+      '/api/engagements/{engagementId}/prepare/assessor/requests/{id}/answer': { post: { tags: ['Prepare'], security: bearer, summary: 'Answer with optional evidence items (customer roles / BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], requestBody: body({ type: 'object', required: ['answer'], properties: { answer: { type: 'string' }, evidence_item_ids: { type: 'array', items: { type: 'string' } } } }), responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/assessor/requests/{id}/close': { post: { tags: ['Prepare'], security: bearer, summary: 'Close a question', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/prepare/sign-offs': {
+        get: { tags: ['Prepare'], security: bearer, summary: 'Sign-offs, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+        post: { tags: ['Prepare'], security: bearer, summary: 'Record a sign-off (internal_review / evidence_completeness / gap_closure / package / final); final approval needs every checklist item green', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['kind', 'decision', 'notes'], properties: { kind: { type: 'string' }, decision: { type: 'string', enum: ['approved', 'rejected'] }, notes: { type: 'string' }, package_id: { type: 'string' }, run_id: { type: 'string' } } }), responses: { 201: json({ type: 'object' }, 'Created'), 409: err('CHECKLIST_INCOMPLETE (403 NOT_SIGNER)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/prepare/reports/{kind}': { get: { tags: ['Prepare'], security: bearer, summary: 'readiness | coverage | gaps | sprs | poam | evidence-inventory as JSON, CSV or Markdown', parameters: [...[pathParam('engagementId', 'Engagement id')], pathParam('kind', 'Report kind'), { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'md', 'csv'] } }], responses: { 200: json({ type: 'object' }), 404: err('Unknown kind'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/evaluate': { post: { tags: ['Monitor'], security: bearer, summary: 'Derive findings from the engagement records (idempotent; clears findings that disappeared), expire year-old validated evidence, take a snapshot', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object', properties: { created: { type: 'integer' }, updated: { type: 'integer' }, cleared: { type: 'integer' }, expired_evidence: { type: 'integer' }, open: { type: 'integer' }, snapshot: ref('MonitorSnapshot') } }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/summary': { get: { tags: ['Monitor'], security: bearer, summary: 'Open findings by severity / category, latest and previous snapshot', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings': { get: { tags: ['Monitor'], security: bearer, summary: 'Findings, most severe first (?status= ?category= ?severity=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('MonitorFinding') }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/ack': { post: { tags: ['Monitor'], security: bearer, summary: 'Acknowledge with notes', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['notes'], properties: { notes: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/resolve': { post: { tags: ['Monitor'], security: bearer, summary: 'Resolve with a resolution (audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['resolution'], properties: { resolution: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/findings/{id}/escalate': { post: { tags: ['Monitor'], security: bearer, summary: 'Escalate to a named person / role', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Finding id')], requestBody: body({ type: 'object', required: ['to'], properties: { to: { type: 'string' }, notes: { type: 'string' } } }), responses: { 200: json(ref('MonitorFinding')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/monitor/snapshots': { get: { tags: ['Monitor'], security: bearer, summary: 'Trend snapshots, oldest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('MonitorSnapshot') }), ...common } } },
+      '/api/engagements/{engagementId}/monitor/activity': { get: { tags: ['Monitor'], security: bearer, summary: 'Compliance event history: the tenant audit trail, newest first (?q= ?limit=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/summary': { get: { tags: ['Evidence'], security: bearer, summary: 'Counts by status / source, coverage totals, pending review, expiring, open requests', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/catalog': { get: { tags: ['Evidence'], security: bearer, summary: 'Published CES-Shared archetypes, requirement→archetype mappings and EVR rules', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/nist-catalog': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'BHD evidence catalog — 110 rows: examine objects defined / evidenced and objectives covered per requirement (catalog is vendored reference data, schema-validated at load)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/nist-catalog/{requirementId}': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'One requirement: every NIST SP 800-171A examine object (definition, items, state covered|pending|missing|undefined) and every assessment objective with its coverage', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('requirementId', 'Requirement id, e.g. AC.L1-3.1.1')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/nist-catalog/validate': {
+        post: { tags: ['Evidence'], security: bearer, summary: "Check a batch of catalog rows (BHD contractor batches) — schema, NIST text word for word, one form id, objective ids belong to the requirement; returns fix / tidy findings with suggested fixes. Nothing is stored.", parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['rows'], properties: { rows: { type: 'array', items: { type: 'object' } } } }), responses: { 200: json({ type: 'object' }), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/coverage': { get: { tags: ['Evidence'], security: bearer, summary: 'Per requirement: required archetypes covered / pending / missing', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceCoverage') }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'Evidence items (no content); ?requirement= ?status= ?source= ?archetype= ?q=', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceItem') }), ...common } },
+        post: { tags: ['Evidence'], security: bearer, summary: 'Add evidence (draft, validated at once). prime / sub / bhd_operator', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('EvidenceItem')), responses: { 201: json(ref('EvidenceItem'), 'Created'), 413: err('TOO_LARGE'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/items/{id}': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'One item with its related versions', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Evidence'], security: bearer, summary: 'Edit metadata (draft / submitted / rejected only); re-validated', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body(ref('EvidenceItem')), responses: { 200: json(ref('EvidenceItem')), 409: err('IMMUTABLE'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/items/{id}/content': { get: { tags: ['Evidence'], security: bearer, summary: 'Download the stored file (audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: { description: 'The file' }, 409: err('NO_CONTENT'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/validate': { post: { tags: ['Evidence'], security: bearer, summary: 'Re-run the built-in checks and EVR rule conditions', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json({ type: 'object' }), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/submit': { post: { tags: ['Evidence'], security: bearer, summary: 'Submit for review (blocking checks must pass)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), 409: err('NOT_DRAFT'), 422: err('VALIDATION_FAILED'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/review': { post: { tags: ['Evidence'], security: bearer, summary: 'Approve / reject (evidence_reviewer or BHD; never the submitter — SoD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body({ type: 'object', required: ['decision', 'notes'], properties: { decision: { type: 'string', enum: ['approve', 'reject'] }, notes: { type: 'string' } } }), responses: { 200: json(ref('EvidenceItem')), 409: err('NOT_SUBMITTED / SOD_SAME_PERSON (403 NOT_REVIEWER)'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/new-version': { post: { tags: ['Evidence'], security: bearer, summary: 'Create version n+1 (previous archived)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], requestBody: body(ref('EvidenceItem')), responses: { 201: json(ref('EvidenceItem'), 'Created'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/items/{id}/archive': { post: { tags: ['Evidence'], security: bearer, summary: 'Archive (retention)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Item id')], responses: { 200: json(ref('EvidenceItem')), ...common } } },
+      '/api/engagements/{engagementId}/evidence/requests': {
+        get: { tags: ['Evidence'], security: bearer, summary: 'Evidence requests, soonest due first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('EvidenceRequest') }), ...common } },
+        post: { tags: ['Evidence'], security: bearer, summary: 'Ask a person for a specific archetype by a date', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('EvidenceRequest')), responses: { 201: json(ref('EvidenceRequest'), 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/evidence/requests/generate': { post: { tags: ['Evidence'], security: bearer, summary: 'One request per missing required archetype (optionally only for the gaps of a run)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', properties: { requirement_ids: { type: 'array', items: { type: 'string' } }, only_gaps_of_run: { type: 'string', format: 'uuid' }, assignee: { type: 'string' }, due_date: { type: 'string', format: 'date' } } }), responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, requests: { type: 'array', items: ref('EvidenceRequest') } } }, 'Created'), ...common } } },
+      '/api/engagements/{engagementId}/evidence/requests/{id}': { patch: { tags: ['Evidence'], security: bearer, summary: 'Update a request', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Request id')], requestBody: body(ref('EvidenceRequest')), responses: { 200: json(ref('EvidenceRequest')), 404: err('Not found'), ...common } } },
+      '/api/engagements/{engagementId}/remediation/summary': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Remediation tracking: action and run counts, pending approval / verification, registry sizes', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/registry/stamper': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Stamper command-registry index (223 entries; ?control= / ?q=)', parameters: [...[pathParam('engagementId', 'Engagement id')], { name: 'control', in: 'query', schema: { type: 'string' } }, { name: 'q', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/registry/adminops': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'AdminOps operations catalogue (95; ?domain=A-H / ?practice=)', parameters: [...[pathParam('engagementId', 'Engagement id')], { name: 'domain', in: 'query', schema: { type: 'string' } }, { name: 'practice', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: { type: 'object' } }), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Runs, newest first (?module= / ?status=)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('RemediationRun') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Remediate'], security: bearer, summary: 'Request a run (Stamper: bhd_operator only; AdminOps: prime/sub/bhd). Gates evaluated and recorded; blocked runs are kept, not refused', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('RemediationRun')), responses: { 201: json(ref('RemediationRun'), 'Created'), 404: err('Not found'), 422: err('Validation / unknown entry or operation (403 STAMPER_BHD_ONLY for customers)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'One run with its registry entries / operation', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/approve': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'DP-2 approval by a different person (Stamper: second BHD operator; AdminOps: senior_approver or BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_REQUESTED / SOD_SAME_PERSON (403 when not an approver for this module)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/reject': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Reject with a reason', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['reason'], properties: { reason: { type: 'string' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_REJECTABLE (403 NOT_APPROVER)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/execute': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Execute an approved run: simulate records the step plan (tenant never touched); live is queued for the tenant runner (Sprint 5)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun'), 'Simulated'), 202: json(ref('RemediationRun'), 'Queued (live)'), 409: err('RUN_NOT_APPROVED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/verify': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Task verification by a person; a verified run closes its plan action', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['verified', 'notes'], properties: { verified: { type: 'boolean' }, notes: { type: 'string' } } }), responses: { 200: json({ type: 'object', properties: { run: ref('RemediationRun'), action: ref('PlanAction') } }), 409: err('RUN_NOT_FINISHED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/cancel': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Cancel (requester or BHD)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_CANCELLABLE (403 NOT_REQUESTER)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runner/queue': {
+        get: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — queued live runs for the Windows runner (bhd_operator service identity); parameters carry no secrets', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), 404: err('Not found (403 for non-BHD roles)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/claim': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — claim a queued live run (→ running)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['runner'], properties: { runner: { type: 'string' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_QUEUED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/remediation/runs/{id}/result': {
+        post: { tags: ['Remediate'], security: bearer, summary: 'Runner protocol — post the outcome of a running live run; captures (≤ 2 MB each, ≤ 50) become draft evidence with source = stamper | adminops linked to the run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Run id')], requestBody: body({ type: 'object', required: ['outcome', 'summary', 'runner'], properties: { outcome: { type: 'string', enum: ['succeeded', 'failed'] }, summary: { type: 'string' }, runner: { type: 'string' }, steps: { type: 'array', items: { type: 'object' } }, captures: { type: 'array', items: { type: 'object', properties: { ref: { type: 'string' }, content: { type: 'string' }, encoding: { type: 'string', enum: ['utf8', 'base64'] }, content_type: { type: 'string' }, entry_id: { type: 'string' }, requirement_ids: { type: 'array', items: { type: 'string' } } } } }, execution_results: { type: 'object' } } }), responses: { 200: json(ref('RemediationRun')), 409: err('RUN_NOT_RUNNING'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/summary': {
+        get: { tags: ['Plan'], security: bearer, summary: 'Plan overview: action / POA&M counts, overdue, next due, projected SPRS', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json(ref('PlanSummary')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions': {
+        get: { tags: ['Plan'], security: bearer, summary: 'Action items (sequence, then priority, then weight)', parameters: [pathParam('engagementId', 'Engagement id'), { name: 'status', in: 'query', schema: { type: 'string' } }, { name: 'priority', in: 'query', schema: { type: 'string' } }], responses: { 200: json({ type: 'array', items: ref('PlanAction') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Plan'], security: bearer, summary: 'Add a manual action (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('PlanAction')), responses: { 201: json(ref('PlanAction'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions/generate': {
+        post: { tags: ['Plan'], security: bearer, summary: 'Generate one action per gap of a run (requirements already covered are skipped)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', required: ['run_id'], properties: { run_id: { type: 'string', format: 'uuid' }, statuses: { type: 'array', items: { type: 'string', enum: ['not_met', 'partial', 'unknown'] }, default: ['not_met', 'partial'] } } }), responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, skipped: { type: 'integer' }, actions: { type: 'array', items: ref('PlanAction') } } }, 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/actions/{id}': {
+        patch: { tags: ['Plan'], security: bearer, summary: 'Update an action (status done / wont_fix sets closed_at)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Action id')], requestBody: body(ref('PlanAction')), responses: { 200: json(ref('PlanAction')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Plan'], security: bearer, summary: 'Delete an action', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Action id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam': {
+        get: { tags: ['Plan'], security: bearer, summary: 'POA&M items, heaviest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('PoamItem') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Plan'], security: bearer, summary: 'Add a POA&M item', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('PoamItem')), responses: { 201: json(ref('PoamItem'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam/from-actions': {
+        post: { tags: ['Plan'], security: bearer, summary: 'Open actions → POA&M items (one per requirement; poam_prohibited flagged, never dropped)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 201: json({ type: 'object', properties: { created: { type: 'integer' }, items: { type: 'array', items: ref('PoamItem') } } }, 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/plan/poam/{id}': {
+        patch: { tags: ['Plan'], security: bearer, summary: 'Update a POA&M item (a prohibited item needs a recorded mitigation before completed)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'POA&M item id')], requestBody: body(ref('PoamItem')), responses: { 200: json(ref('PoamItem')), 404: err('Not found'), 409: err('POAM_PROHIBITED'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Assessment runs of an engagement, newest first', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('AssessmentRun') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Assess'], security: bearer, summary: 'Ingest a readiness-result record as a new run (prime, bhd_operator)', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ReadinessResultRecord')), responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/run': {
+        post: { tags: ['Assess'], security: bearer, summary: 'ENGINE: request a discovery run (simulator by default; live only behind the Live gate). On a Windows API host it runs in-process; elsewhere the job is queued for the Windows runner (registry commands are PowerShell). Returns a job id; the run lands as source engine_run.', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body({ type: 'object', properties: { mode: { type: 'string', enum: ['sim', 'live'], default: 'sim' }, tenant_slug: { type: 'string', default: 'mp' }, consent_ids: { type: 'array', items: { type: 'string' } }, label: { type: 'string' } } }), responses: { 202: json({ type: 'object', properties: { job_id: { type: 'string' }, status: { type: 'string' }, mode: { type: 'string' } } }, 'Started'), 404: err('Not found (403 LIVE_REFUSED when the flag is off or no consent)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Engine jobs of the engagement, newest first (queued | running | done | failed | cancelled)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs/{jobId}/cancel': {
+        post: { tags: ['Assess'], security: bearer, summary: 'Cancel a queued engine job (a running one cannot be cancelled)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('jobId', 'Job id')], responses: { 200: json({ type: 'object' }), 409: err('JOB_NOT_QUEUED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/runner/queue': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Runner protocol — queued discovery jobs for the Windows runner (bhd_operator service identity)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: { type: 'object' } }), 404: err('Not found (403 for non-BHD roles)'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs/{jobId}/claim': {
+        post: { tags: ['Assess'], security: bearer, summary: 'Runner protocol — claim a queued discovery job (→ running; live jobs refused when live access was disabled)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('jobId', 'Job id')], requestBody: body({ type: 'object', required: ['runner'], properties: { runner: { type: 'string' } } }), responses: { 200: json({ type: 'object' }), 409: err('JOB_NOT_QUEUED / LIVE_DISABLED'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs/{jobId}/result': {
+        post: { tags: ['Assess'], security: bearer, summary: 'Runner protocol — post the readiness-result envelope (+ captures ≤ 50 × 2 MB) of a running job; lands an engine_run and discovery evidence, or marks the job failed', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('jobId', 'Job id')], requestBody: body({ type: 'object', required: ['runner', 'outcome'], properties: { runner: { type: 'string' }, outcome: { type: 'string', enum: ['succeeded', 'failed'] }, error: { type: 'string' }, envelope: { type: 'object' }, stats: { type: 'object' }, captures: { type: 'array', items: { type: 'object' } } } }), responses: { 200: json({ type: 'object' }), 409: err('JOB_NOT_RUNNING'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/jobs/{jobId}': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Engine job status (queued for the runner / running / done with run_id + evidence / failed with error / cancelled)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('jobId', 'Job id')], responses: { 200: json({ type: 'object' }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/from-artifact/{artifactId}': {
+        post: { tags: ['Assess'], security: bearer, summary: 'Ingest a delivered readiness_result artifact (Delivery lane) as a new run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('artifactId', 'Delivery artifact id')], responses: { 201: json(ref('AssessmentRun'), 'Created'), 404: err('Not found'), 409: err('ARTIFACT_KIND'), 410: err('ARTIFACT_PURGED'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}': {
+        get: { tags: ['Assess'], security: bearer, summary: 'One run with its by-family summary', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json(ref('AssessmentRun')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/results': {
+        get: { tags: ['Assess'], security: bearer, summary: 'The 110 requirement results of a run', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json({ type: 'array', items: ref('AssessmentResult') }), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/gaps': {
+        get: { tags: ['Assess'], security: bearer, summary: 'Gap analysis: results not met, heaviest first, with the registry-fixable projection', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id')], responses: { 200: json(ref('GapAnalysis')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/assessments/{runId}/results/{requirementId}': {
+        patch: { tags: ['Assess'], security: bearer, summary: 'Human override of one requirement status (reason required; engine status kept; run re-scored; audited)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('runId', 'Run id'), pathParam('requirementId', 'Requirement id, e.g. IA.L2-3.5.3')], requestBody: body({ type: 'object', required: ['status', 'reason'], properties: { status: { type: 'string', enum: ['met', 'partial', 'not_met', 'unknown'] }, reason: { type: 'string', minLength: 10 }, notes: { type: 'string', nullable: true } } }), responses: { 200: json({ type: 'object', properties: { result: ref('AssessmentResult'), run: ref('AssessmentRun') } }), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/organizations': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'List organisations of the caller’s tenant', responses: { 200: json({ type: 'array', items: ref('Organization') }), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Create an organisation (prime, bhd_operator)', requestBody: body(ref('Organization')), responses: { 201: json(ref('Organization'), 'Created'), 409: err('Legal name already exists (ORGANIZATION_EXISTS)'), 422: err('Validation'), ...common } },
+      },
+      '/api/organizations/{id}': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'One organisation with its tenant registrations', parameters: [pathParam('id', 'Organisation id')], responses: { 200: json(ref('Organization')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update an organisation', parameters: [pathParam('id', 'Organisation id')], requestBody: body(ref('Organization')), responses: { 200: json(ref('Organization')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Delete an organisation (refused while tenants reference it)', parameters: [pathParam('id', 'Organisation id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), 409: err('ORGANIZATION_IN_USE'), ...common } },
+      },
+      '/api/customer-tenants': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'List customer Microsoft 365 tenant registrations', responses: { 200: json({ type: 'array', items: ref('CustomerTenant') }), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Register a customer tenant (prime, bhd_operator)', requestBody: body(ref('CustomerTenant')), responses: { 201: json(ref('CustomerTenant'), 'Created'), 422: err('Validation'), ...common } },
+      },
+      '/api/customer-tenants/{id}': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'One tenant registration', parameters: [pathParam('id', 'Registration id')], responses: { 200: json(ref('CustomerTenant')), 404: err('Not found'), ...common } },
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update a tenant registration', parameters: [pathParam('id', 'Registration id')], requestBody: body(ref('CustomerTenant')), responses: { 200: json(ref('CustomerTenant')), 404: err('Not found'), 422: err('Validation'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Remove a registration (refused while live_enabled)', parameters: [pathParam('id', 'Registration id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), 409: err('TENANT_LIVE'), ...common } },
+      },
+      '/api/customer-tenants/{id}/test-connection': {
+        post: { tags: ['Onboard'], security: bearer, summary: 'Check connection prerequisites (never contacts the tenant; runner integration in Sprint 5)', parameters: [pathParam('id', 'Registration id')], responses: { 200: json(ref('ConnectionTest')), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/assets': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'Scope assets of an engagement', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('ScopeAsset') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Add a scope asset', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ScopeAsset')), responses: { 201: json(ref('ScopeAsset'), 'Created'), 404: err('Not found'), 422: err('Validation'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/assets/{id}': {
+        patch: { tags: ['Onboard'], security: bearer, summary: 'Update a scope asset', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Asset id')], requestBody: body(ref('ScopeAsset')), responses: { 200: json(ref('ScopeAsset')), 404: err('Not found'), ...common } },
+        delete: { tags: ['Onboard'], security: bearer, summary: 'Remove a scope asset', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Asset id')], responses: { 204: { description: 'Deleted' }, 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/boundaries': {
+        get: { tags: ['Onboard'], security: bearer, summary: 'Boundary versions (newest first)', parameters: [pathParam('engagementId', 'Engagement id')], responses: { 200: json({ type: 'array', items: ref('ScopeBoundary') }), 404: err('Not found'), ...common } },
+        post: { tags: ['Onboard'], security: bearer, summary: 'Create the next draft boundary version from the current asset list', parameters: [pathParam('engagementId', 'Engagement id')], requestBody: body(ref('ScopeBoundary')), responses: { 201: json(ref('ScopeBoundary'), 'Created'), 404: err('Not found'), ...common } },
+      },
+      '/api/engagements/{engagementId}/scope/boundaries/{id}/confirm': {
+        post: { tags: ['Onboard'], security: bearer, summary: 'Confirm a draft boundary (human act; supersedes the previous confirmed version)', parameters: [pathParam('engagementId', 'Engagement id'), pathParam('id', 'Boundary id')], responses: { 200: json(ref('ScopeBoundary')), 404: err('Not found'), 409: err('BOUNDARY_NOT_DRAFT or BOUNDARY_INCOMPLETE'), ...common } },
+      },
       '/api/engagements': {
         get: { tags: ['Engagements'], security: bearer, summary: 'List engagements of the caller’s tenant', responses: { 200: json({ type: 'array', items: ref('Engagement') }), ...common } },
         post: { tags: ['Engagements'], security: bearer, summary: 'Create an engagement', requestBody: body(ref('Engagement')), responses: { 201: json(ref('Engagement'), 'Created'), 400: err('Validation (dates must be YYYY-MM-DD and in order)'), ...common } },

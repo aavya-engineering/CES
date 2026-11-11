@@ -19,6 +19,9 @@ export default defineConfig({
       // The SPA's '@/' path alias — needed by cross-package contract tests
       // (tests/resync.contract.test.ts imports SPA payload builders).
       '@': resolve(here, '..', 'src'),
+      // ces-shared/dist imports zod but a fresh checkout has no node_modules
+      // under ces-shared (workspace hoisting is partial); resolve it from ours.
+      zod: resolve(here, 'node_modules', 'zod'),
     },
   },
   test: {

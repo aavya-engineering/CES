@@ -3,7 +3,7 @@
   "version": "2.2.3",
   "private": true,
   "type": "module",
-  "description": "Muster — CES sub-tier CMMC readiness assessment (SPA + muster-api platform)",
+  "description": "Muster \u2014 CES sub-tier CMMC readiness assessment (SPA + muster-api platform)",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -15,6 +15,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:live": "playwright test --project=live",
     "check:drift": "node scripts/check-vendor-drift.mjs",
     "check:ces-shared": "npx tsx src/vendored/cesSharedSync.ts",
     "sync:ces-shared": "npx tsx src/vendored/cesSharedSync.ts --write",

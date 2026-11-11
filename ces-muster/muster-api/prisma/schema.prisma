@@ -13,7 +13,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // omit (preview in Prisma 5.x): list queries leave evidence blobs in the database (review I7).
+  previewFeatures = ["omitApi"]
 }
 
 enum Role {
@@ -22,6 +24,12 @@ enum Role {
   bhd_operator
   assessor_read_only
   platform_admin
+  // Sprint 1 Foundation (014_platform_roles): platform roles of the lifecycle UI.
+  org_admin
+  compliance_manager
+  it_security_admin
+  evidence_reviewer
+  senior_approver
 }
 
 enum EngagementKind {
@@ -78,6 +86,28 @@ model Tenant {
   users       User[]
   engagements Engagement[]
   parties     Party[]
+  organizations    Organization[]
+  customer_tenants CustomerTenant[]
+  scope_assets     ScopeAsset[]
+  scope_boundaries ScopeBoundary[]
+  assessment_runs    AssessmentRun[]
+  engine_jobs        EngineJob[]
+  assessment_results AssessmentResult[]
+  plan_actions       PlanAction[]
+  poam_items         PoamItem[]
+  remediation_runs   RemediationRun[]
+  evidence_items     EvidenceItem[]
+  evidence_requests  EvidenceRequest[]
+  monitor_findings   MonitorFinding[]
+  monitor_snapshots  MonitorSnapshot[]
+  implementation_statements ImplementationStatement[]
+  evidence_packages  EvidencePackage[]
+  assessor_requests  AssessorRequest[]
+  assessment_sign_offs AssessmentSignOff[]
+  settings           TenantSettings?
+  access_requests    AccessRequest[]
+  access_reviews     AccessReview[]
+  systems            SystemRecord[]
 
   @@map("tenants")
 }
@@ -135,6 +165,23 @@ model Engagement {
   contracts    Contract[]
   nudge_events NudgeEvent[]
   dispositions Disposition[]
+  scope_assets     ScopeAsset[]
+  scope_boundaries ScopeBoundary[]
+  assessment_runs  AssessmentRun[]
+  engine_jobs      EngineJob[]
+  plan_actions     PlanAction[]
+  poam_items       PoamItem[]
+  remediation_runs RemediationRun[]
+  evidence_items   EvidenceItem[]
+  evidence_requests EvidenceRequest[]
+  monitor_findings  MonitorFinding[]
+  monitor_snapshots MonitorSnapshot[]
+  implementation_statements ImplementationStatement[]
+  evidence_packages EvidencePackage[]
+  assessor_requests AssessorRequest[]
+  assessment_sign_offs AssessmentSignOff[]
+  access_requests   AccessRequest[]
+  systems           SystemRecord[]
 
   @@map("engagements")
 }
@@ -167,9 +214,11 @@ model Party {
   lifecycle        PartyLifecycle @default(invited)
   last_activity_at DateTime?
   created_at       DateTime       @default(now())
+  organization_id  String?
 
   tenant             Tenant             @relation(fields: [tenant_id], references: [id])
   engagement         Engagement         @relation(fields: [engagement_id], references: [id])
+  organization       Organization?      @relation(fields: [organization_id], references: [id], onDelete: SetNull)
   interview_sessions InterviewSession[]
   contracts          Contract[]
   nudge_events       NudgeEvent[]
@@ -386,4 +435,843 @@ model SharedChange {
   detail        Json?
 
   @@map("shared_changes")
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 3 slice "Onboard" (migration 015_onboard_registry, 2026-11-10):
+// organisation master data, customer M365 tenant registrations, compliance
+// scope (assets by CMMC category) and the versioned CUI boundary.
+// ---------------------------------------------------------------------------
+
+enum CustomerCloud {
+  gcc_high
+  gcc
+  commercial
+}
+
+enum CustomerTenantStatus {
+  registered
+  consented
+  live_enabled
+  disabled
+}
+
+enum ScopeCategory {
+  cui
+  security_protection
+  contractor_risk_managed
+  specialized
+  out_of_scope
+}
+
+enum BoundaryStatus {
+  draft
+  confirmed
+  superseded
+}
+
+model Organization {
+  id                    String   @id @default(uuid())
+  tenant_id             String
+  legal_name            String
+  dba_name              String?
+  uei                   String?
+  cage                  String?
+  website               String?
+  address               String?
+  primary_contact_name  String?
+  primary_contact_email String?
+  contract_clauses      String[] @default([])
+  status                String   @default("active")
+  notes                 String?
+  created_by            String?
+  created_at            DateTime @default(now()) @db.Timestamptz
+  updated_at            DateTime @default(now()) @db.Timestamptz
+
+  tenant           Tenant           @relation(fields: [tenant_id], references: [id])
+  customer_tenants CustomerTenant[]
+  parties          Party[]
+
+  @@unique([tenant_id, legal_name])
+  @@index([tenant_id])
+  @@map("organizations")
+}
+
+model CustomerTenant {
+  id                     String               @id @default(uuid())
+  tenant_id              String
+  organization_id        String?
+  display_name           String
+  entra_tenant_id        String?
+  primary_domain         String?
+  cloud                  CustomerCloud        @default(gcc_high)
+  app_registration_id    String?
+  certificate_thumbprint String?
+  status                 CustomerTenantStatus @default(registered)
+  connection_status      String?
+  connection_tested_at   DateTime?            @db.Timestamptz
+  notes                  String?
+  created_by             String?
+  created_at             DateTime             @default(now()) @db.Timestamptz
+  updated_at             DateTime             @default(now()) @db.Timestamptz
+
+  tenant       Tenant        @relation(fields: [tenant_id], references: [id])
+  organization Organization? @relation(fields: [organization_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id])
+  @@index([organization_id])
+  @@map("customer_tenants")
+}
+
+model ScopeAsset {
+  id                String        @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  name              String
+  asset_type        String
+  category          ScopeCategory
+  location          String?
+  owner             String?
+  external_provider Boolean       @default(false)
+  notes             String?
+  created_by        String?
+  created_at        DateTime      @default(now()) @db.Timestamptz
+  updated_at        DateTime      @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  systems    SystemRecord[]
+
+  @@index([engagement_id])
+  @@map("scope_assets")
+}
+
+model ScopeBoundary {
+  id            String         @id @default(uuid())
+  tenant_id     String
+  engagement_id String
+  version       Int
+  status        BoundaryStatus @default(draft)
+  narrative     String?
+  data_flows    Json?
+  asset_count   Int            @default(0)
+  confirmed_by  String?
+  confirmed_at  DateTime?      @db.Timestamptz
+  created_by    String?
+  created_at    DateTime       @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, version])
+  @@map("scope_boundaries")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 3/4 slice "Assess" (migration 016_assessment_runs, 2026-11-10):
+// persisted readiness assessment runs and per-requirement results.
+// ---------------------------------------------------------------------------
+
+enum RequirementStatus {
+  met
+  partial
+  not_met
+  unknown
+}
+
+enum AssessmentSource {
+  readiness_result
+  delivery_artifact
+  manual
+  engine_run
+}
+
+enum EngineJobStatus {
+  queued
+  running
+  done
+  failed
+  cancelled
+}
+
+/// A discovery (assessment) run queued for the engine — in-process on a Windows API host, otherwise
+/// claimed and completed by the Windows runner (migration 024).
+model EngineJob {
+  id            String          @id @default(uuid())
+  tenant_id     String
+  engagement_id String
+  kind          String          @default("discovery")
+  mode          String
+  tenant_slug   String
+  label         String?
+  status        EngineJobStatus @default(queued)
+  requested_by  String
+  requested_at  DateTime        @default(now()) @db.Timestamptz
+  claimed_by    String?
+  claimed_at    DateTime?       @db.Timestamptz
+  finished_at   DateTime?       @db.Timestamptz
+  run_id        String?
+  error         String?
+  stats         Json?
+  evidence      Json?
+  updated_at    DateTime        @default(now()) @db.Timestamptz
+
+  tenant     Tenant         @relation(fields: [tenant_id], references: [id])
+  engagement Engagement     @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        AssessmentRun? @relation(fields: [run_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("engine_jobs")
+}
+
+model AssessmentRun {
+  id                   String           @id @default(uuid())
+  tenant_id            String
+  engagement_id        String
+  source               AssessmentSource
+  schema_version       String?
+  label                String?
+  sprs_now             Int
+  sprs_after           Int?
+  met_count            Int              @default(0)
+  partial_count        Int              @default(0)
+  not_met_count        Int              @default(0)
+  unknown_count        Int              @default(0)
+  engine               Json?
+  manifest             Json?
+  generated_at         DateTime?        @db.Timestamptz
+  delivery_artifact_id String?
+  created_by           String?
+  created_at           DateTime         @default(now()) @db.Timestamptz
+
+  tenant     Tenant             @relation(fields: [tenant_id], references: [id])
+  engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  results    AssessmentResult[]
+  engineJobs EngineJob[]
+  plan_actions PlanAction[]
+  evidence_packages EvidencePackage[]
+  sign_offs  AssessmentSignOff[]
+
+  @@index([engagement_id, created_at(sort: Desc)])
+  @@map("assessment_runs")
+}
+
+model AssessmentResult {
+  id              String            @id @default(uuid())
+  tenant_id       String
+  run_id          String
+  requirement_id  String
+  family          String
+  weight          Int
+  status          RequirementStatus
+  engine_status   RequirementStatus
+  confidence      String?
+  objective_ids   String[]          @default([])
+  ran_entry_ids   String[]          @default([])
+  fixable         String?
+  fix_entry_ids   String[]          @default([])
+  override_by     String?
+  override_at     DateTime?         @db.Timestamptz
+  override_reason String?
+  notes           String?
+
+  tenant Tenant        @relation(fields: [tenant_id], references: [id])
+  run    AssessmentRun @relation(fields: [run_id], references: [id], onDelete: Cascade)
+
+  @@unique([run_id, requirement_id])
+  @@map("assessment_results")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 4 slice "Plan" (migration 017_plan_actions, 2026-11-10): remediation
+// action items from gaps and the POA&M register.
+// ---------------------------------------------------------------------------
+
+enum ActionPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum ActionStatus {
+  open
+  in_progress
+  blocked
+  done
+  wont_fix
+}
+
+enum PoamStatus {
+  open
+  ongoing
+  completed
+  risk_accepted
+}
+
+model PlanAction {
+  id             String         @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  run_id         String?
+  requirement_id String?
+  family         String?
+  weight         Int            @default(0)
+  title          String
+  description    String?
+  source         String         @default("manual")
+  fix_kind       String         @default("manual")
+  fix_entry_ids  String[]       @default([])
+  priority       ActionPriority @default(medium)
+  status         ActionStatus   @default(open)
+  owner          String?
+  due_date       DateTime?      @db.Date
+  effort_hours   Int?
+  depends_on     String[]       @default([])
+  sequence       Int?
+  notes          String?
+  created_by     String?
+  created_at     DateTime       @default(now()) @db.Timestamptz
+  updated_at     DateTime       @default(now()) @db.Timestamptz
+  closed_at      DateTime?      @db.Timestamptz
+
+  tenant     Tenant         @relation(fields: [tenant_id], references: [id])
+  engagement Engagement     @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        AssessmentRun? @relation(fields: [run_id], references: [id], onDelete: SetNull)
+  poam_items PoamItem[]
+  remediation_runs RemediationRun[]
+
+  @@index([engagement_id, status])
+  @@map("plan_actions")
+}
+
+model PoamItem {
+  id                   String     @id @default(uuid())
+  tenant_id            String
+  engagement_id        String
+  action_id            String?
+  requirement_id       String
+  weight               Int        @default(0)
+  poam_allowed         Boolean    @default(true)
+  weakness             String
+  mitigation           String?
+  milestones           Json?
+  scheduled_completion DateTime?  @db.Date
+  responsible          String?
+  resources            String?
+  status               PoamStatus @default(open)
+  created_by           String?
+  created_at           DateTime   @default(now()) @db.Timestamptz
+  updated_at           DateTime   @default(now()) @db.Timestamptz
+  completed_at         DateTime?  @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  action     PlanAction? @relation(fields: [action_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("poam_items")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 5 slice "Remediate" (migration 018_remediation_runs, 2026-11-10):
+// Stamper / AdminOps run requests with gates, approval, execution, verification.
+// ---------------------------------------------------------------------------
+
+enum RemediationModule {
+  stamper
+  adminops
+}
+
+enum RunMode {
+  simulate
+  live
+}
+
+enum RunStatus {
+  requested
+  approved
+  rejected
+  blocked
+  queued
+  running
+  succeeded
+  failed
+  verified
+  cancelled
+}
+
+model RemediationRun {
+  id                 String            @id @default(uuid())
+  tenant_id          String
+  engagement_id      String
+  module             RemediationModule
+  mode               RunMode           @default(simulate)
+  action_id          String?
+  requirement_id     String?
+  entry_ids          String[]          @default([])
+  op_id              String?
+  parameters         Json?
+  justification      String
+  status             RunStatus         @default(requested)
+  gates              Json
+  cost_estimate      Int               @default(0)
+  requires_approval  Boolean           @default(true)
+  requested_by       String
+  requested_at       DateTime          @default(now()) @db.Timestamptz
+  approved_by        String?
+  approved_at        DateTime?         @db.Timestamptz
+  rejection_reason   String?
+  started_at         DateTime?         @db.Timestamptz
+  finished_at        DateTime?         @db.Timestamptz
+  result             Json?
+  verified_by        String?
+  verified_at        DateTime?         @db.Timestamptz
+  verification_notes String?
+  updated_at         DateTime          @default(now()) @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  action     PlanAction? @relation(fields: [action_id], references: [id], onDelete: SetNull)
+  evidence_items EvidenceItem[]
+
+  @@index([engagement_id, status])
+  @@map("remediation_runs")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 6 slice "Collect Evidence" (migration 019_evidence, 2026-11-10):
+// evidence items (validated, reviewed, versioned) and evidence requests.
+// ---------------------------------------------------------------------------
+
+enum EvidenceKind {
+  document
+  screenshot
+  export
+  config_capture
+  attestation
+  log
+  other
+}
+
+enum EvidenceSource {
+  upload
+  stamper
+  adminops
+  discovery
+  manual
+}
+
+enum EvidenceStatus {
+  draft
+  submitted
+  validated
+  rejected
+  expired
+  archived
+}
+
+enum EvidenceRequestStatus {
+  open
+  submitted
+  fulfilled
+  cancelled
+}
+
+model EvidenceItem {
+  id              String         @id @default(uuid())
+  tenant_id       String
+  engagement_id   String
+  requirement_ids String[]       @default([])
+  objective_ids   String[]       @default([])
+  archetype_code  String?
+  form            String?
+  title           String
+  description     String?
+  kind            EvidenceKind   @default(document)
+  source          EvidenceSource @default(upload)
+  file_name       String?
+  content_type    String?
+  size_bytes      Int            @default(0)
+  sha256          String?
+  content         Bytes?
+  metadata        Json?
+  collected_at    DateTime       @default(now()) @db.Timestamptz
+  period_start    DateTime?      @db.Date
+  period_end      DateTime?      @db.Date
+  owner           String?
+  classification  String         @default("internal")
+  status          EvidenceStatus @default(draft)
+  validation      Json?
+  reviewed_by     String?
+  reviewed_at     DateTime?      @db.Timestamptz
+  review_notes    String?
+  run_id          String?
+  version         Int            @default(1)
+  supersedes_id   String?
+  retention_until DateTime?      @db.Date
+  created_by      String?
+  created_at      DateTime       @default(now()) @db.Timestamptz
+  updated_at      DateTime       @default(now()) @db.Timestamptz
+
+  tenant     Tenant          @relation(fields: [tenant_id], references: [id])
+  engagement Engagement      @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        RemediationRun? @relation(fields: [run_id], references: [id], onDelete: SetNull)
+  supersedes EvidenceItem?   @relation("EvidenceVersions", fields: [supersedes_id], references: [id], onDelete: SetNull)
+  successors EvidenceItem[]  @relation("EvidenceVersions")
+  requests   EvidenceRequest[]
+
+  @@index([engagement_id, status])
+  @@map("evidence_items")
+}
+
+model EvidenceRequest {
+  id               String                @id @default(uuid())
+  tenant_id        String
+  engagement_id    String
+  requirement_id   String
+  archetype_code   String?
+  title            String
+  instructions     String?
+  assignee         String?
+  due_date         DateTime?             @db.Date
+  status           EvidenceRequestStatus @default(open)
+  evidence_item_id String?
+  created_by       String?
+  created_at       DateTime              @default(now()) @db.Timestamptz
+  updated_at       DateTime              @default(now()) @db.Timestamptz
+
+  tenant        Tenant        @relation(fields: [tenant_id], references: [id])
+  engagement    Engagement    @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  evidence_item EvidenceItem? @relation(fields: [evidence_item_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("evidence_requests")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 6 slice "Monitor" (migration 020_monitor, 2026-11-10): findings
+// derived from the engagement's records and trend snapshots.
+// ---------------------------------------------------------------------------
+
+enum FindingSeverity {
+  critical
+  high
+  medium
+  low
+  info
+}
+
+enum FindingStatus {
+  open
+  acknowledged
+  escalated
+  resolved
+}
+
+model MonitorFinding {
+  id              String          @id @default(uuid())
+  tenant_id       String
+  engagement_id   String
+  key             String
+  category        String
+  severity        FindingSeverity
+  title           String
+  detail          Json?
+  requirement_id  String?
+  target_type     String?
+  target_id       String?
+  status          FindingStatus   @default(open)
+  first_seen_at   DateTime        @default(now()) @db.Timestamptz
+  last_seen_at    DateTime        @default(now()) @db.Timestamptz
+  seen_count      Int             @default(1)
+  acknowledged_by String?
+  acknowledged_at DateTime?       @db.Timestamptz
+  resolved_by     String?
+  resolved_at     DateTime?       @db.Timestamptz
+  resolution      String?
+  escalated_to    String?
+  notes           String?
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, key])
+  @@index([engagement_id, status, severity])
+  @@map("monitor_findings")
+}
+
+model MonitorSnapshot {
+  id                 String   @id @default(uuid())
+  tenant_id          String
+  engagement_id      String
+  taken_at           DateTime @default(now()) @db.Timestamptz
+  sprs_now           Int?
+  met_count          Int?
+  not_met_count      Int?
+  partial_count      Int?
+  unknown_count      Int?
+  open_actions       Int      @default(0)
+  overdue_actions    Int      @default(0)
+  open_poam          Int      @default(0)
+  evidence_validated Int      @default(0)
+  evidence_pending   Int      @default(0)
+  coverage_covered   Int      @default(0)
+  coverage_missing   Int      @default(0)
+  findings_open      Int      @default(0)
+  findings_critical  Int      @default(0)
+  by_family          Json?
+  triggered_by       String?
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@index([engagement_id, taken_at(sort: Desc)])
+  @@map("monitor_snapshots")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 6 slice "Prepare for Assessment" (migration 021_prepare, 2026-11-10):
+// SSP implementation statements, evidence packages, assessor requests, sign-offs.
+// ---------------------------------------------------------------------------
+
+enum ImplementationStatus {
+  implemented
+  partially_implemented
+  planned
+  alternative
+  not_applicable
+}
+
+enum PackageStatus {
+  draft
+  validated
+  signed_off
+  superseded
+}
+
+enum AssessorRequestStatus {
+  open
+  answered
+  closed
+}
+
+enum SignOffKind {
+  internal_review
+  evidence_completeness
+  gap_closure
+  package
+  final
+}
+
+model ImplementationStatement {
+  id                String               @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  requirement_id    String
+  status            ImplementationStatus @default(planned)
+  statement         String               @default("")
+  responsible_role  String?
+  systems           String[]             @default([])
+  evidence_item_ids String[]             @default([])
+  source            String               @default("manual")
+  version           Int                  @default(1)
+  approved_by       String?
+  approved_at       DateTime?            @db.Timestamptz
+  updated_by        String?
+  updated_at        DateTime             @default(now()) @db.Timestamptz
+  created_at        DateTime             @default(now()) @db.Timestamptz
+
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  engagement Engagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+
+  @@unique([engagement_id, requirement_id])
+  @@map("implementation_statements")
+}
+
+model EvidencePackage {
+  id             String            @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  name           String
+  scope_type     String            @default("all")
+  scope_values   String[]          @default([])
+  item_ids       String[]          @default([])
+  manifest       Json
+  validation     Json?
+  status         PackageStatus     @default(draft)
+  version        Int               @default(1)
+  supersedes_id  String?
+  run_id         String?
+  built_by       String?
+  built_at       DateTime          @default(now()) @db.Timestamptz
+  signed_off_by  String?
+  signed_off_at  DateTime?         @db.Timestamptz
+  sign_off_notes String?
+  updated_at     DateTime          @default(now()) @db.Timestamptz
+
+  tenant     Tenant             @relation(fields: [tenant_id], references: [id])
+  engagement Engagement         @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  run        AssessmentRun?     @relation(fields: [run_id], references: [id], onDelete: SetNull)
+  supersedes EvidencePackage?   @relation("PackageVersions", fields: [supersedes_id], references: [id], onDelete: SetNull)
+  successors EvidencePackage[]  @relation("PackageVersions")
+  requests   AssessorRequest[]
+  sign_offs  AssessmentSignOff[]
+
+  @@index([engagement_id, status])
+  @@map("evidence_packages")
+}
+
+model AssessorRequest {
+  id                String                @id @default(uuid())
+  tenant_id         String
+  engagement_id     String
+  package_id        String?
+  requirement_id    String?
+  question          String
+  requested_by      String
+  status            AssessorRequestStatus @default(open)
+  answer            String?
+  answered_by       String?
+  answered_at       DateTime?             @db.Timestamptz
+  evidence_item_ids String[]              @default([])
+  created_at        DateTime              @default(now()) @db.Timestamptz
+  updated_at        DateTime              @default(now()) @db.Timestamptz
+
+  tenant     Tenant           @relation(fields: [tenant_id], references: [id])
+  engagement Engagement       @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  package    EvidencePackage? @relation(fields: [package_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, status])
+  @@map("assessor_requests")
+}
+
+model AssessmentSignOff {
+  id            String      @id @default(uuid())
+  tenant_id     String
+  engagement_id String
+  kind          SignOffKind
+  decision      String
+  notes         String
+  package_id    String?
+  run_id        String?
+  readiness     Json?
+  signed_by     String
+  signed_role   String?
+  signed_at     DateTime    @default(now()) @db.Timestamptz
+
+  tenant     Tenant           @relation(fields: [tenant_id], references: [id])
+  engagement Engagement       @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  package    EvidencePackage? @relation(fields: [package_id], references: [id], onDelete: SetNull)
+  run        AssessmentRun?   @relation(fields: [run_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, kind])
+  @@map("assessment_sign_offs")
+}
+
+
+// ---------------------------------------------------------------------------
+// Sprint 1/3 leftovers (migration 022_admin_registry, 2026-11-10): tenant
+// settings, access requests / reviews, system & environment registry.
+// ---------------------------------------------------------------------------
+
+enum AccessRequestStatus {
+  open
+  approved
+  rejected
+  fulfilled
+}
+
+enum SystemKind {
+  system
+  environment
+  infrastructure
+  cloud_resource
+}
+
+model TenantSettings {
+  tenant_id     String   @id
+  organization  Json     @default("{}")
+  system        Json     @default("{}")
+  notifications Json     @default("{}")
+  security      Json     @default("{}")
+  retention     Json     @default("{}")
+  version       Int      @default(1)
+  updated_by    String?
+  updated_at    DateTime @default(now()) @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@map("tenant_settings")
+}
+
+model AccessRequest {
+  id             String              @id @default(uuid())
+  tenant_id      String
+  requested_by   String
+  subject_email  String
+  requested_role String
+  engagement_id  String?
+  justification  String
+  status         AccessRequestStatus @default(open)
+  decided_by     String?
+  decided_at     DateTime?           @db.Timestamptz
+  decision_notes String?
+  created_at     DateTime            @default(now()) @db.Timestamptz
+  updated_at     DateTime            @default(now()) @db.Timestamptz
+
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement Engagement? @relation(fields: [engagement_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id, status])
+  @@map("access_requests")
+}
+
+model AccessReview {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  title        String
+  snapshot     Json
+  decisions    Json      @default("[]")
+  status       String    @default("open")
+  started_by   String
+  started_at   DateTime  @default(now()) @db.Timestamptz
+  completed_by String?
+  completed_at DateTime? @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id, status])
+  @@map("access_reviews")
+}
+
+model SystemRecord {
+  id             String     @id @default(uuid())
+  tenant_id      String
+  engagement_id  String
+  name           String
+  kind           SystemKind @default(system)
+  environment    String?
+  hosting        String?
+  description    String?
+  owner          String?
+  handles_cui    Boolean    @default(false)
+  scope_asset_id String?
+  attributes     Json?
+  created_by     String?
+  created_at     DateTime   @default(now()) @db.Timestamptz
+  updated_at     DateTime   @default(now()) @db.Timestamptz
+
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
+  engagement  Engagement  @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  scope_asset ScopeAsset? @relation(fields: [scope_asset_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id, kind])
+  @@map("systems")
 }

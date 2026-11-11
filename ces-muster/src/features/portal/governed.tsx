@@ -11,6 +11,7 @@
 // status pill, draft/publish/discard/retire bar (no self-approval), version
 // history and change list, side drawer.
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { sharedApi, type ItemDetail, type ItemView, type Kind } from '@/shared/api/sharedApi';
 import { actorLabel, describeFailure, statusOf, useSharedViewer } from './governedState';
 
@@ -241,7 +242,7 @@ export interface RowAction {
  * Standard row "⋮" menu (View / Edit / Delete). Closes on outside click and
  * Escape; arrow keys move between items (WAI-ARIA menu button pattern).
  */
-export function RowActions({ label, actions, testId }: { label: string; actions: RowAction[]; testId?: string }) {
+export function RowActions({ label, actions, testId, glyph = 'dots' }: { label: string; actions: RowAction[]; testId?: string; /** QA retest #43/#44/#55/#63: the mockups use a right chevron on some tables and ⋯ on others. */ glyph?: 'dots' | 'chevron' }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -295,7 +296,7 @@ export function RowActions({ label, actions, testId }: { label: string; actions:
         onClick={() => setOpen((o) => !o)}
         data-testid={testId}
       >
-        ⋮
+        {glyph === 'chevron' ? <ChevronRight size={18} aria-hidden="true" /> : <MoreHorizontal size={18} aria-hidden="true" />}
       </button>
       {open && (
         <div className="row-menu-list" role="menu" id={id} style={pos ? { position: 'fixed', top: pos.top, left: pos.left, right: 'auto' } : undefined}>

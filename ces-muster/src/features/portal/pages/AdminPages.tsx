@@ -24,9 +24,10 @@ import {
 } from '@/shared/api/adminApi';
 import { isTokenRemembered, roleLabel, saveMusterToken } from '@/shared/api/musterToken';
 import { Empty, PageHeader, Pager, Stat } from '../ui';
+import LifecycleAccessMatrix from './LifecycleAccessMatrix';
 import { usePaged } from '../paging';
 
-const ROLE_OPTIONS = ['platform_admin', 'bhd_operator', 'prime', 'sub', 'assessor_read_only'];
+const ROLE_OPTIONS = ['platform_admin', 'bhd_operator', 'org_admin', 'compliance_manager', 'it_security_admin', 'evidence_reviewer', 'senior_approver', 'assessor_read_only', 'prime', 'sub'];
 
 function fmt(iso: string | null): string {
   if (!iso) return '—';
@@ -494,7 +495,8 @@ export function RolesPage() {
               </div>
             ))}
           </div>
-          <section className="card">
+          <LifecycleAccessMatrix />
+          <section className="card" style={{ marginTop: 16 }}>
             <div className="table-wrap">
               <table className="tbl" data-testid="roles-matrix">
                 <thead>

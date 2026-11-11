@@ -16,6 +16,7 @@ function matches(record: Record<string, unknown>, where: Record<string, unknown>
   return Object.entries(where).every(([k, v]) => {
     const stored = record[k];
     if (v === null) return stored == null; // match both null and undefined
+    if (v && typeof v === 'object' && !(v instanceof Date) && 'in' in (v as object)) return ((v as { in: unknown[] }).in).includes(stored);
     return stored === v;
   });
 }
@@ -59,6 +60,10 @@ function makeModel<T extends Record<string, unknown>>(initial: T[] = []) {
       return records[idx];
     },
 
+    async count({ where }: { where?: Record<string, unknown> } = {}): Promise<number> {
+      return records.filter((r) => !where || matches(r, where)).length;
+    },
+
     async updateMany({
       where,
       data,
@@ -99,6 +104,31 @@ export function createMockDb() {
     deliveryArtifact: makeModel(),
     deliveryGrant: makeModel(),
     deliveryAuditEntry: makeModel(),
+    auditEvent: makeModel(),
+    organization: makeModel(),
+    customerTenant: makeModel(),
+    scopeAsset: makeModel(),
+    scopeBoundary: makeModel(),
+    assessmentRun: makeModel(),
+    engineJob: makeModel(),
+    assessmentResult: makeModel(),
+    planAction: makeModel(),
+    poamItem: makeModel(),
+    remediationRun: makeModel(),
+    evidenceItem: makeModel(),
+    evidenceRequest: makeModel(),
+    sharedItem: makeModel(),
+    monitorFinding: makeModel(),
+    monitorSnapshot: makeModel(),
+    implementationStatement: makeModel(),
+    evidencePackage: makeModel(),
+    assessorRequest: makeModel(),
+    assessmentSignOff: makeModel(),
+    tenant: makeModel(),
+    tenantSettings: makeModel(),
+    accessRequest: makeModel(),
+    accessReview: makeModel(),
+    systemRecord: makeModel(),
 
     /**
      * Passthrough $transaction: immediately calls fn with this mockDb as the

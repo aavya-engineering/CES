@@ -40,6 +40,14 @@ async function main(): Promise<void> {
       createScheduler({ tenantId: schedulerTenantId, intervalMs }).start();
       logger.info({ tenantId: schedulerTenantId, intervalMs }, 'scheduler started');
     }
+
+    // Scheduled monitoring (Monitor section): every tenant on its own
+    // Settings › System cadence, inside that tenant's RLS context. Off unless
+    // MONITOR_SCHEDULER=1; "Evaluate now" and an external cron keep working.
+    if (process.env.MONITOR_SCHEDULER === '1') {
+      (app.locals.monitorScheduler as { start(): void }).start();
+      logger.info({ intervalMs: process.env.MONITOR_SCHEDULER_INTERVAL_MS ?? '900000' }, 'monitor scheduler started');
+    }
   });
 }
 

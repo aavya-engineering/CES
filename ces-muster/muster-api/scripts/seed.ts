@@ -28,7 +28,7 @@ function arg(name: string): string | undefined {
 
 // RBAC-01: platform_admin added (migration 008). Seed the first platform admin
 // with --role platform_admin; after that, create users from Platform → Users.
-const VALID_ROLES = ['prime', 'sub', 'bhd_operator', 'assessor_read_only', 'platform_admin'] as const;
+const VALID_ROLES = ['prime', 'sub', 'bhd_operator', 'assessor_read_only', 'platform_admin', 'org_admin', 'compliance_manager', 'it_security_admin', 'evidence_reviewer', 'senior_approver'] as const;
 type SeedRole = (typeof VALID_ROLES)[number];
 
 async function main(): Promise<number> {

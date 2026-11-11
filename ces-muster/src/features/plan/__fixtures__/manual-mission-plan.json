@@ -82,7 +82,7 @@
       },
       "key_findings": [
         {
-          "id": "find_mkeonpc0_aene7m6",
+          "id": "find_mkeonpc0_641iio8",
           "control_id": "AC.L2-3.1.1",
           "title": "AC.L2-3.1.1: Not Met",
           "status": "NOT_MET",
@@ -94,7 +94,7 @@
           ]
         },
         {
-          "id": "find_mkeonpc0_miu55v9",
+          "id": "find_mkeonpc0_ntz41kn",
           "control_id": "IA.L2-3.5.3",
           "title": "IA.L2-3.5.3: Not Met",
           "status": "NOT_MET",
@@ -181,7 +181,7 @@
   },
   "outputs": {
     "human_readable_mission_plan": {
-      "plan_id": "mplan_mkeonpc0_qce7s8f",
+      "plan_id": "mplan_mkeonpc0_q2q8h5q",
       "plan_mode": "harden_existing",
       "target_level": "L2",
       "disposition_summary": {
@@ -991,8 +991,8 @@
           ],
           "target_date": "2026-02-16",
           "phase_tasks": [
-            "task_AC.L2-3.1.1_mkeonpc0_fiu1xgy",
-            "task_IA.L2-3.5.3_mkeonpc0_fjwf14h"
+            "task_AC.L2-3.1.1_mkeonpc0_bnbxk28",
+            "task_IA.L2-3.5.3_mkeonpc0_69fvbe5"
           ]
         },
         {
@@ -1005,130 +1005,130 @@
           ],
           "target_date": "2026-03-18",
           "phase_tasks": [
-            "task_AC.L1-3.1.1_mkeonpc0_b17ub6a",
-            "task_AC.L1-3.1.2_mkeonpc0_8yyhstp",
-            "task_AC.L1-3.1.20_mkeonpc0_8pzmf1g",
-            "task_AC.L1-3.1.22_mkeonpc0_v1guxxe",
-            "task_IA.L1-3.5.1_mkeonpc0_hx3hsxl",
-            "task_IA.L1-3.5.2_mkeonpc0_jxy39ze",
-            "task_MP.L1-3.8.3_mkeonpc0_z6iwu3r",
-            "task_PE.L1-3.10.1_mkeonpc0_zluk2qk",
-            "task_PE.L1-3.10.3_mkeonpc0_a6hnnxl",
-            "task_PE.L1-3.10.4_mkeonpc0_naaxqum",
-            "task_PE.L1-3.10.5_mkeonpc0_jkqdldy",
-            "task_SC.L1-3.13.1_mkeonpc0_77sqgsk",
-            "task_SC.L1-3.13.5_mkeonpc0_8aowtan",
-            "task_SI.L1-3.14.1_mkeonpc0_n4bg3dl",
-            "task_SI.L1-3.14.2_mkeonpc0_60aftft",
-            "task_SI.L1-3.14.4_mkeonpc0_oad7sx1",
-            "task_SI.L1-3.14.5_mkeonpc0_8bwbrxl",
-            "task_AC.L2-3.1.2_mkeonpc0_bv8t8mm",
-            "task_AC.L2-3.1.3_mkeonpc0_epj6fw4",
-            "task_AC.L2-3.1.4_mkeonpc0_zi8w4ms",
-            "task_AC.L2-3.1.5_mkeonpc0_tkvtsz3",
-            "task_AC.L2-3.1.6_mkeonpc0_zrqbtdh",
-            "task_AC.L2-3.1.7_mkeonpc0_k12pr4v",
-            "task_AC.L2-3.1.8_mkeonpc0_qjauhs8",
-            "task_AC.L2-3.1.9_mkeonpc0_hnyrsej",
-            "task_AC.L2-3.1.10_mkeonpc0_sn2s52h",
-            "task_AC.L2-3.1.11_mkeonpc0_zsiblzd",
-            "task_AC.L2-3.1.12_mkeonpc0_2wmbfgl",
-            "task_AC.L2-3.1.13_mkeonpc0_6lx4cth",
-            "task_AC.L2-3.1.14_mkeonpc0_pidlega",
-            "task_AC.L2-3.1.15_mkeonpc0_rqk9qqv",
-            "task_AC.L2-3.1.16_mkeonpc0_17laa1u",
-            "task_AC.L2-3.1.17_mkeonpc0_gc9zrio",
-            "task_AC.L2-3.1.18_mkeonpc0_j79cg1r",
-            "task_AC.L2-3.1.19_mkeonpc0_k4zzaml",
-            "task_AC.L2-3.1.20_mkeonpc0_yoq329v",
-            "task_AC.L2-3.1.21_mkeonpc0_2zalxrs",
-            "task_AC.L2-3.1.22_mkeonpc0_nunpmkd",
-            "task_AT.L2-3.2.1_mkeonpc0_hldermj",
-            "task_AT.L2-3.2.2_mkeonpc0_itfrmw8",
-            "task_AT.L2-3.2.3_mkeonpc0_cg2pi3l",
-            "task_AU.L2-3.3.2_mkeonpc0_ok9h9q8",
-            "task_AU.L2-3.3.3_mkeonpc0_65krtkq",
-            "task_AU.L2-3.3.4_mkeonpc0_tdm5uas",
-            "task_AU.L2-3.3.5_mkeonpc0_48ic6xi",
-            "task_AU.L2-3.3.6_mkeonpc0_wwf0k9i",
-            "task_AU.L2-3.3.7_mkeonpc0_0t6137a",
-            "task_AU.L2-3.3.8_mkeonpc0_s8qlrep",
-            "task_AU.L2-3.3.9_mkeonpc0_3gqjhg6",
-            "task_CM.L2-3.4.1_mkeonpc0_uyv4u6r",
-            "task_CM.L2-3.4.2_mkeonpc0_n5zo5m9",
-            "task_CM.L2-3.4.3_mkeonpc0_5idhsuw",
-            "task_CM.L2-3.4.4_mkeonpc0_irfkt8f",
-            "task_CM.L2-3.4.5_mkeonpc0_wx3inuc",
-            "task_CM.L2-3.4.6_mkeonpc0_15usa00",
-            "task_CM.L2-3.4.7_mkeonpc0_7c3yyvt",
-            "task_CM.L2-3.4.8_mkeonpc0_zkgh28c",
-            "task_CM.L2-3.4.9_mkeonpc0_4egxhqr",
-            "task_IA.L2-3.5.1_mkeonpc0_b6fotuw",
-            "task_IA.L2-3.5.2_mkeonpc0_gtchjze",
-            "task_IA.L2-3.5.4_mkeonpc0_fj9ihfm",
-            "task_IA.L2-3.5.5_mkeonpc0_k733eye",
-            "task_IA.L2-3.5.6_mkeonpc0_h9blhf7",
-            "task_IA.L2-3.5.7_mkeonpc0_y0r8fl1",
-            "task_IA.L2-3.5.8_mkeonpc0_izw219m",
-            "task_IA.L2-3.5.9_mkeonpc0_j57k80n",
-            "task_IA.L2-3.5.10_mkeonpc0_4ia2tvs",
-            "task_IA.L2-3.5.11_mkeonpc0_cts8tcy",
-            "task_IR.L2-3.6.1_mkeonpc0_e4taooo",
-            "task_IR.L2-3.6.2_mkeonpc0_ate63j1",
-            "task_IR.L2-3.6.3_mkeonpc0_d6zs2or",
-            "task_MA.L2-3.7.1_mkeonpc0_mjbo06v",
-            "task_MA.L2-3.7.2_mkeonpc0_k1vj74l",
-            "task_MA.L2-3.7.3_mkeonpc0_g4sxz57",
-            "task_MA.L2-3.7.4_mkeonpc0_ubrd2pz",
-            "task_MA.L2-3.7.5_mkeonpc0_nmon3f2",
-            "task_MA.L2-3.7.6_mkeonpc0_0alqf0v",
-            "task_MP.L2-3.8.1_mkeonpc0_onj3oig",
-            "task_MP.L2-3.8.2_mkeonpc0_wz17j4p",
-            "task_MP.L2-3.8.3_mkeonpc0_736tpnx",
-            "task_MP.L2-3.8.4_mkeonpc0_azeax7i",
-            "task_MP.L2-3.8.5_mkeonpc0_xkkzrsv",
-            "task_MP.L2-3.8.6_mkeonpc0_ehbpye8",
-            "task_MP.L2-3.8.7_mkeonpc0_aw8v249",
-            "task_MP.L2-3.8.8_mkeonpc0_lkux5j2",
-            "task_MP.L2-3.8.9_mkeonpc0_tfywqmn",
-            "task_PS.L2-3.9.1_mkeonpc0_awckfpf",
-            "task_PS.L2-3.9.2_mkeonpc0_3klc7xm",
-            "task_PE.L2-3.10.1_mkeonpc0_0qutwwe",
-            "task_PE.L2-3.10.2_mkeonpc0_capa2r8",
-            "task_PE.L2-3.10.3_mkeonpc0_xe0iuh0",
-            "task_PE.L2-3.10.4_mkeonpc0_pv8zcbf",
-            "task_PE.L2-3.10.5_mkeonpc0_j9gpv92",
-            "task_PE.L2-3.10.6_mkeonpc0_u0g7i1n",
-            "task_RA.L2-3.11.1_mkeonpc0_hzh5aj6",
-            "task_RA.L2-3.11.2_mkeonpc0_naj2h9t",
-            "task_RA.L2-3.11.3_mkeonpc0_ir7xd5o",
-            "task_CA.L2-3.12.1_mkeonpc0_wijqeha",
-            "task_CA.L2-3.12.2_mkeonpc0_0vyb2du",
-            "task_CA.L2-3.12.3_mkeonpc0_6xac49k",
-            "task_CA.L2-3.12.4_mkeonpc0_j1qjos0",
-            "task_SC.L2-3.13.1_mkeonpc0_pspbo75",
-            "task_SC.L2-3.13.2_mkeonpc0_di6ye54",
-            "task_SC.L2-3.13.3_mkeonpc0_twqwqyj",
-            "task_SC.L2-3.13.4_mkeonpc0_2p2dk5x",
-            "task_SC.L2-3.13.5_mkeonpc0_l7un6im",
-            "task_SC.L2-3.13.6_mkeonpc0_1iay27l",
-            "task_SC.L2-3.13.7_mkeonpc0_5hmf6bs",
-            "task_SC.L2-3.13.8_mkeonpc0_ifb6eak",
-            "task_SC.L2-3.13.9_mkeonpc0_2bls9wt",
-            "task_SC.L2-3.13.10_mkeonpc0_8y0clg9",
-            "task_SC.L2-3.13.11_mkeonpc0_ukkh0ny",
-            "task_SC.L2-3.13.12_mkeonpc0_42guccd",
-            "task_SC.L2-3.13.13_mkeonpc0_xsrn6ph",
-            "task_SC.L2-3.13.14_mkeonpc0_bzk4h5x",
-            "task_SC.L2-3.13.15_mkeonpc0_giht44d",
-            "task_SC.L2-3.13.16_mkeonpc0_k3omshu",
-            "task_SI.L2-3.14.1_mkeonpc0_0hkk1u8",
-            "task_SI.L2-3.14.2_mkeonpc0_owxt0nx",
-            "task_SI.L2-3.14.3_mkeonpc0_5xissgh",
-            "task_SI.L2-3.14.4_mkeonpc0_zpjo0rd",
-            "task_SI.L2-3.14.5_mkeonpc0_bmacric",
-            "task_SI.L2-3.14.6_mkeonpc0_naq424i",
-            "task_SI.L2-3.14.7_mkeonpc0_r3m3tqm"
+            "task_AC.L1-3.1.1_mkeonpc0_6veiwbb",
+            "task_AC.L1-3.1.2_mkeonpc0_vlj2ruw",
+            "task_AC.L1-3.1.20_mkeonpc0_fn294bh",
+            "task_AC.L1-3.1.22_mkeonpc0_gtrijqs",
+            "task_IA.L1-3.5.1_mkeonpc0_g9qde7n",
+            "task_IA.L1-3.5.2_mkeonpc0_6e1m641",
+            "task_MP.L1-3.8.3_mkeonpc0_01ecjbt",
+            "task_PE.L1-3.10.1_mkeonpc0_vzkph52",
+            "task_PE.L1-3.10.3_mkeonpc0_3kwkztx",
+            "task_PE.L1-3.10.4_mkeonpc0_9ymh88c",
+            "task_PE.L1-3.10.5_mkeonpc0_ga4m07z",
+            "task_SC.L1-3.13.1_mkeonpc0_o4po8uy",
+            "task_SC.L1-3.13.5_mkeonpc0_cnoedip",
+            "task_SI.L1-3.14.1_mkeonpc0_311f3o9",
+            "task_SI.L1-3.14.2_mkeonpc0_18daa6k",
+            "task_SI.L1-3.14.4_mkeonpc0_1l4adrp",
+            "task_SI.L1-3.14.5_mkeonpc0_lgd506h",
+            "task_AC.L2-3.1.2_mkeonpc0_4zkyjh6",
+            "task_AC.L2-3.1.3_mkeonpc0_umfjwx2",
+            "task_AC.L2-3.1.4_mkeonpc0_876q6a2",
+            "task_AC.L2-3.1.5_mkeonpc0_1whmge2",
+            "task_AC.L2-3.1.6_mkeonpc0_9cl01pw",
+            "task_AC.L2-3.1.7_mkeonpc0_grau4ak",
+            "task_AC.L2-3.1.8_mkeonpc0_z7upg05",
+            "task_AC.L2-3.1.9_mkeonpc0_usm74py",
+            "task_AC.L2-3.1.10_mkeonpc0_46sokk7",
+            "task_AC.L2-3.1.11_mkeonpc0_mdstbr8",
+            "task_AC.L2-3.1.12_mkeonpc0_5g2t8jv",
+            "task_AC.L2-3.1.13_mkeonpc0_7zakozr",
+            "task_AC.L2-3.1.14_mkeonpc0_xrfof6l",
+            "task_AC.L2-3.1.15_mkeonpc0_ifx3972",
+            "task_AC.L2-3.1.16_mkeonpc0_w4k654v",
+            "task_AC.L2-3.1.17_mkeonpc0_0ur9lo4",
+            "task_AC.L2-3.1.18_mkeonpc0_ivrnd8r",
+            "task_AC.L2-3.1.19_mkeonpc0_r2x9543",
+            "task_AC.L2-3.1.20_mkeonpc0_qnwxeyu",
+            "task_AC.L2-3.1.21_mkeonpc0_xtp94zr",
+            "task_AC.L2-3.1.22_mkeonpc0_ol73jpm",
+            "task_AT.L2-3.2.1_mkeonpc0_1tw7kff",
+            "task_AT.L2-3.2.2_mkeonpc0_b658b49",
+            "task_AT.L2-3.2.3_mkeonpc0_nan2nji",
+            "task_AU.L2-3.3.2_mkeonpc0_66l021n",
+            "task_AU.L2-3.3.3_mkeonpc0_h0b2hi4",
+            "task_AU.L2-3.3.4_mkeonpc0_tx2dmwl",
+            "task_AU.L2-3.3.5_mkeonpc0_j5n7kul",
+            "task_AU.L2-3.3.6_mkeonpc0_a9tfex5",
+            "task_AU.L2-3.3.7_mkeonpc0_euvzmio",
+            "task_AU.L2-3.3.8_mkeonpc0_lg5fa2f",
+            "task_AU.L2-3.3.9_mkeonpc0_xosi1ix",
+            "task_CM.L2-3.4.1_mkeonpc0_3sly9ha",
+            "task_CM.L2-3.4.2_mkeonpc0_sx8luam",
+            "task_CM.L2-3.4.3_mkeonpc0_9omqejs",
+            "task_CM.L2-3.4.4_mkeonpc0_p92iiwt",
+            "task_CM.L2-3.4.5_mkeonpc0_uijbt8k",
+            "task_CM.L2-3.4.6_mkeonpc0_133jtm6",
+            "task_CM.L2-3.4.7_mkeonpc0_8u5jc11",
+            "task_CM.L2-3.4.8_mkeonpc0_7ti6o8d",
+            "task_CM.L2-3.4.9_mkeonpc0_v6zhrnb",
+            "task_IA.L2-3.5.1_mkeonpc0_bi8j25v",
+            "task_IA.L2-3.5.2_mkeonpc0_30prpbw",
+            "task_IA.L2-3.5.4_mkeonpc0_m4kir8y",
+            "task_IA.L2-3.5.5_mkeonpc0_wk90bod",
+            "task_IA.L2-3.5.6_mkeonpc0_0eiigc2",
+            "task_IA.L2-3.5.7_mkeonpc0_rc74ubf",
+            "task_IA.L2-3.5.8_mkeonpc0_fjvlwek",
+            "task_IA.L2-3.5.9_mkeonpc0_iezo5rn",
+            "task_IA.L2-3.5.10_mkeonpc0_onlf96z",
+            "task_IA.L2-3.5.11_mkeonpc0_flzbu0w",
+            "task_IR.L2-3.6.1_mkeonpc0_0c0ih4f",
+            "task_IR.L2-3.6.2_mkeonpc0_3qxe0lr",
+            "task_IR.L2-3.6.3_mkeonpc0_sbhznz9",
+            "task_MA.L2-3.7.1_mkeonpc0_7btbhku",
+            "task_MA.L2-3.7.2_mkeonpc0_769vbyz",
+            "task_MA.L2-3.7.3_mkeonpc0_ou0tyl5",
+            "task_MA.L2-3.7.4_mkeonpc0_3z7mbr1",
+            "task_MA.L2-3.7.5_mkeonpc0_dvd07o0",
+            "task_MA.L2-3.7.6_mkeonpc0_vck5fek",
+            "task_MP.L2-3.8.1_mkeonpc0_na8nbiw",
+            "task_MP.L2-3.8.2_mkeonpc0_vwgoxdj",
+            "task_MP.L2-3.8.3_mkeonpc0_56vyir4",
+            "task_MP.L2-3.8.4_mkeonpc0_faqiwzj",
+            "task_MP.L2-3.8.5_mkeonpc0_4u5re4b",
+            "task_MP.L2-3.8.6_mkeonpc0_wy3xs8d",
+            "task_MP.L2-3.8.7_mkeonpc0_vyhb06p",
+            "task_MP.L2-3.8.8_mkeonpc0_6ngu3ax",
+            "task_MP.L2-3.8.9_mkeonpc0_c4ww2ev",
+            "task_PS.L2-3.9.1_mkeonpc0_op74s46",
+            "task_PS.L2-3.9.2_mkeonpc0_w7i92zr",
+            "task_PE.L2-3.10.1_mkeonpc0_x3fp8gh",
+            "task_PE.L2-3.10.2_mkeonpc0_xdtugiu",
+            "task_PE.L2-3.10.3_mkeonpc0_jtba4d1",
+            "task_PE.L2-3.10.4_mkeonpc0_3t7qnsk",
+            "task_PE.L2-3.10.5_mkeonpc0_hko4q5l",
+            "task_PE.L2-3.10.6_mkeonpc0_a96v62l",
+            "task_RA.L2-3.11.1_mkeonpc0_vsb1n3y",
+            "task_RA.L2-3.11.2_mkeonpc0_n180zsv",
+            "task_RA.L2-3.11.3_mkeonpc0_e190tzi",
+            "task_CA.L2-3.12.1_mkeonpc0_6wac2yj",
+            "task_CA.L2-3.12.2_mkeonpc0_p9aa7rn",
+            "task_CA.L2-3.12.3_mkeonpc0_p4s7vtx",
+            "task_CA.L2-3.12.4_mkeonpc0_77vcg0f",
+            "task_SC.L2-3.13.1_mkeonpc0_yy0aedx",
+            "task_SC.L2-3.13.2_mkeonpc0_j1a9rs4",
+            "task_SC.L2-3.13.3_mkeonpc0_9eiwy3e",
+            "task_SC.L2-3.13.4_mkeonpc0_zc1y06c",
+            "task_SC.L2-3.13.5_mkeonpc0_ej7r19v",
+            "task_SC.L2-3.13.6_mkeonpc0_6wmxi6w",
+            "task_SC.L2-3.13.7_mkeonpc0_yvm63a5",
+            "task_SC.L2-3.13.8_mkeonpc0_65f2gud",
+            "task_SC.L2-3.13.9_mkeonpc0_cor08qm",
+            "task_SC.L2-3.13.10_mkeonpc0_elf3ram",
+            "task_SC.L2-3.13.11_mkeonpc0_9b92tjl",
+            "task_SC.L2-3.13.12_mkeonpc0_of5dmcb",
+            "task_SC.L2-3.13.13_mkeonpc0_3vydawb",
+            "task_SC.L2-3.13.14_mkeonpc0_8o0gh27",
+            "task_SC.L2-3.13.15_mkeonpc0_hurvz3g",
+            "task_SC.L2-3.13.16_mkeonpc0_0zn4k8d",
+            "task_SI.L2-3.14.1_mkeonpc0_nzuvk5c",
+            "task_SI.L2-3.14.2_mkeonpc0_10eht6q",
+            "task_SI.L2-3.14.3_mkeonpc0_itdqrhc",
+            "task_SI.L2-3.14.4_mkeonpc0_ck13s1g",
+            "task_SI.L2-3.14.5_mkeonpc0_98elk6t",
+            "task_SI.L2-3.14.6_mkeonpc0_via8l0g",
+            "task_SI.L2-3.14.7_mkeonpc0_tysu74t"
           ]
         },
         {
@@ -1145,7 +1145,7 @@
       ],
       "steps": [
         {
-          "id": "step_task_AC.L2-3.1.1_mkeonpc0_fiu1xgy",
+          "id": "step_task_AC.L2-3.1.1_mkeonpc0_bnbxk28",
           "title": "Account Management Lifecycle (AC.L2-3.1.1)",
           "task_type": "configuration",
           "priority": "p1",
@@ -1481,7 +1481,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_lrgz9ea",
+              "artifact_id": "ev_mkeonpc0_n9yrvp8",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.1 compliance",
               "collector": "evidence_ops",
@@ -1940,7 +1940,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.3_mkeonpc0_fjwf14h",
+          "id": "step_task_IA.L2-3.5.3_mkeonpc0_69fvbe5",
           "title": "Multifactor Authentication (IA.L2-3.5.3)",
           "task_type": "policy",
           "priority": "p1",
@@ -2101,7 +2101,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_witrt4e",
+              "artifact_id": "ev_mkeonpc0_dv6c1p5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.3 compliance",
               "collector": "evidence_ops",
@@ -2278,7 +2278,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L1-3.1.1_mkeonpc0_b17ub6a",
+          "id": "step_task_AC.L1-3.1.1_mkeonpc0_6veiwbb",
           "title": "Enforce Authorized Access (AC.L1-3.1.1)",
           "task_type": "policy",
           "priority": "p2",
@@ -2578,7 +2578,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_3de3qe5",
+              "artifact_id": "ev_mkeonpc0_6vpurfy",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L1-3.1.1 compliance",
               "collector": "evidence_ops",
@@ -3005,7 +3005,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L1-3.1.2_mkeonpc0_8yyhstp",
+          "id": "step_task_AC.L1-3.1.2_mkeonpc0_vlj2ruw",
           "title": "Transaction and Function Authorization (AC.L1-3.1.2)",
           "task_type": "policy",
           "priority": "p2",
@@ -3219,7 +3219,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_aslo6mz",
+              "artifact_id": "ev_mkeonpc0_ewfehs1",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L1-3.1.2 compliance",
               "collector": "evidence_ops",
@@ -3503,7 +3503,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L1-3.1.20_mkeonpc0_8pzmf1g",
+          "id": "step_task_AC.L1-3.1.20_mkeonpc0_fn294bh",
           "title": "External Connection Control (AC.L1-3.1.20)",
           "task_type": "policy",
           "priority": "p2",
@@ -3705,7 +3705,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_tss2630",
+              "artifact_id": "ev_mkeonpc0_rw71tyn",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L1-3.1.20 compliance",
               "collector": "evidence_ops",
@@ -4032,7 +4032,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L1-3.1.22_mkeonpc0_v1guxxe",
+          "id": "step_task_AC.L1-3.1.22_mkeonpc0_gtrijqs",
           "title": "Public Information Control (AC.L1-3.1.22)",
           "task_type": "policy",
           "priority": "p2",
@@ -4238,7 +4238,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_nc5nma0",
+              "artifact_id": "ev_mkeonpc0_gm68ge7",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L1-3.1.22 compliance",
               "collector": "evidence_ops",
@@ -4484,7 +4484,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L1-3.5.1_mkeonpc0_hx3hsxl",
+          "id": "step_task_IA.L1-3.5.1_mkeonpc0_g9qde7n",
           "title": "User Identification (IA.L1-3.5.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -4593,7 +4593,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_uiztn7n",
+              "artifact_id": "ev_mkeonpc0_27dqizu",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L1-3.5.1 compliance",
               "collector": "evidence_ops",
@@ -4803,7 +4803,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L1-3.5.2_mkeonpc0_jxy39ze",
+          "id": "step_task_IA.L1-3.5.2_mkeonpc0_6e1m641",
           "title": "User Authentication (IA.L1-3.5.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -4970,7 +4970,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_505erbx",
+              "artifact_id": "ev_mkeonpc0_qltezx4",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L1-3.5.2 compliance",
               "collector": "evidence_ops",
@@ -5341,7 +5341,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L1-3.8.3_mkeonpc0_z6iwu3r",
+          "id": "step_task_MP.L1-3.8.3_mkeonpc0_01ecjbt",
           "title": "Basic Media Disposal (MP.L1-3.8.3)",
           "task_type": "policy",
           "priority": "p2",
@@ -5523,7 +5523,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ls6n09s",
+              "artifact_id": "ev_mkeonpc0_8rtrh6w",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L1-3.8.3 compliance",
               "collector": "evidence_ops",
@@ -5734,7 +5734,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L1-3.10.1_mkeonpc0_zluk2qk",
+          "id": "step_task_PE.L1-3.10.1_mkeonpc0_vzkph52",
           "title": "Physical Access Limitation (PE.L1-3.10.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -5790,7 +5790,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_p9n12ld",
+              "artifact_id": "ev_mkeonpc0_eqr5fh0",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L1-3.10.1 compliance",
               "collector": "evidence_ops",
@@ -5863,7 +5863,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L1-3.10.3_mkeonpc0_a6hnnxl",
+          "id": "step_task_PE.L1-3.10.3_mkeonpc0_3kwkztx",
           "title": "Visitor Escort (PE.L1-3.10.3)",
           "task_type": "process",
           "priority": "p2",
@@ -5933,7 +5933,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_slgyouk",
+              "artifact_id": "ev_mkeonpc0_gsalkcc",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L1-3.10.3 compliance",
               "collector": "evidence_ops",
@@ -5999,7 +5999,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L1-3.10.4_mkeonpc0_naaxqum",
+          "id": "step_task_PE.L1-3.10.4_mkeonpc0_9ymh88c",
           "title": "Physical Access Logging (PE.L1-3.10.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -6055,7 +6055,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_esg3n1g",
+              "artifact_id": "ev_mkeonpc0_sy1haiz",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L1-3.10.4 compliance",
               "collector": "evidence_ops",
@@ -6116,7 +6116,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L1-3.10.5_mkeonpc0_jkqdldy",
+          "id": "step_task_PE.L1-3.10.5_mkeonpc0_ga4m07z",
           "title": "Physical Access Device Management (PE.L1-3.10.5)",
           "task_type": "process",
           "priority": "p2",
@@ -6185,7 +6185,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_1iy86zq",
+              "artifact_id": "ev_mkeonpc0_sk5uuel",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L1-3.10.5 compliance",
               "collector": "evidence_ops",
@@ -6255,7 +6255,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L1-3.13.1_mkeonpc0_77sqgsk",
+          "id": "step_task_SC.L1-3.13.1_mkeonpc0_o4po8uy",
           "title": "Basic Boundary Protection (SC.L1-3.13.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -6467,7 +6467,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_az0yf5l",
+              "artifact_id": "ev_mkeonpc0_1us59ar",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L1-3.13.1 compliance",
               "collector": "evidence_ops",
@@ -6854,7 +6854,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L1-3.13.5_mkeonpc0_8aowtan",
+          "id": "step_task_SC.L1-3.13.5_mkeonpc0_cnoedip",
           "title": "Public-Access System Separation (SC.L1-3.13.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -6961,7 +6961,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_pjakvda",
+              "artifact_id": "ev_mkeonpc0_18a9dow",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L1-3.13.5 compliance",
               "collector": "evidence_ops",
@@ -7120,7 +7120,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L1-3.14.1_mkeonpc0_n4bg3dl",
+          "id": "step_task_SI.L1-3.14.1_mkeonpc0_311f3o9",
           "title": "Basic Flaw Remediation (SI.L1-3.14.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -7290,7 +7290,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_b2aannn",
+              "artifact_id": "ev_mkeonpc0_6bwxw6n",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L1-3.14.1 compliance",
               "collector": "evidence_ops",
@@ -7559,7 +7559,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L1-3.14.2_mkeonpc0_60aftft",
+          "id": "step_task_SI.L1-3.14.2_mkeonpc0_18daa6k",
           "title": "Basic Malware Protection (SI.L1-3.14.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -7681,7 +7681,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_cfa1exq",
+              "artifact_id": "ev_mkeonpc0_o98sk8s",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L1-3.14.2 compliance",
               "collector": "evidence_ops",
@@ -7874,7 +7874,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L1-3.14.4_mkeonpc0_oad7sx1",
+          "id": "step_task_SI.L1-3.14.4_mkeonpc0_1l4adrp",
           "title": "Malware Signature Updates (SI.L1-3.14.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -8020,7 +8020,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_guxjdb4",
+              "artifact_id": "ev_mkeonpc0_19onq7s",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L1-3.14.4 compliance",
               "collector": "evidence_ops",
@@ -8312,7 +8312,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L1-3.14.5_mkeonpc0_8bwbrxl",
+          "id": "step_task_SI.L1-3.14.5_mkeonpc0_lgd506h",
           "title": "System Scanning (SI.L1-3.14.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -8398,7 +8398,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_qv66tg2",
+              "artifact_id": "ev_mkeonpc0_uaehvqh",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L1-3.14.5 compliance",
               "collector": "evidence_ops",
@@ -8551,7 +8551,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.2_mkeonpc0_bv8t8mm",
+          "id": "step_task_AC.L2-3.1.2_mkeonpc0_4zkyjh6",
           "title": "Privileged Access Restriction (AC.L2-3.1.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -8811,7 +8811,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_6sircbj",
+              "artifact_id": "ev_mkeonpc0_g3jfbof",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.2 compliance",
               "collector": "evidence_ops",
@@ -9094,7 +9094,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.3_mkeonpc0_epj6fw4",
+          "id": "step_task_AC.L2-3.1.3_mkeonpc0_umfjwx2",
           "title": "CUI Flow Control (AC.L2-3.1.3)",
           "task_type": "policy",
           "priority": "p2",
@@ -9352,7 +9352,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_9azsqns",
+              "artifact_id": "ev_mkeonpc0_vqjbr4l",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.3 compliance",
               "collector": "evidence_ops",
@@ -9697,7 +9697,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.4_mkeonpc0_zi8w4ms",
+          "id": "step_task_AC.L2-3.1.4_mkeonpc0_876q6a2",
           "title": "Separation of Duties (AC.L2-3.1.4)",
           "task_type": "policy",
           "priority": "p2",
@@ -9841,7 +9841,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ldb2qmt",
+              "artifact_id": "ev_mkeonpc0_9dq2i54",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.4 compliance",
               "collector": "evidence_ops",
@@ -9983,7 +9983,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.5_mkeonpc0_tkvtsz3",
+          "id": "step_task_AC.L2-3.1.5_mkeonpc0_1whmge2",
           "title": "Least Privilege Enforcement (AC.L2-3.1.5)",
           "task_type": "policy",
           "priority": "p2",
@@ -10295,7 +10295,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_8618173",
+              "artifact_id": "ev_mkeonpc0_bbxvtpr",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.5 compliance",
               "collector": "evidence_ops",
@@ -10731,7 +10731,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.6_mkeonpc0_zrqbtdh",
+          "id": "step_task_AC.L2-3.1.6_mkeonpc0_9cl01pw",
           "title": "Non-Privileged Account Use (AC.L2-3.1.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -10899,7 +10899,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ifa6dhg",
+              "artifact_id": "ev_mkeonpc0_hj1rob0",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.6 compliance",
               "collector": "evidence_ops",
@@ -11239,7 +11239,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.7_mkeonpc0_k12pr4v",
+          "id": "step_task_AC.L2-3.1.7_mkeonpc0_grau4ak",
           "title": "Privileged Function Restriction (AC.L2-3.1.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -11462,7 +11462,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_u03wj59",
+              "artifact_id": "ev_mkeonpc0_2w5wz9f",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.7 compliance",
               "collector": "evidence_ops",
@@ -11834,7 +11834,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.8_mkeonpc0_qjauhs8",
+          "id": "step_task_AC.L2-3.1.8_mkeonpc0_z7upg05",
           "title": "Failed Logon Lockout (AC.L2-3.1.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -11911,7 +11911,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_zivpurc",
+              "artifact_id": "ev_mkeonpc0_q39k7ar",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.8 compliance",
               "collector": "evidence_ops",
@@ -12010,7 +12010,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.9_mkeonpc0_hnyrsej",
+          "id": "step_task_AC.L2-3.1.9_mkeonpc0_usm74py",
           "title": "System Use Notification Banner (AC.L2-3.1.9)",
           "task_type": "policy",
           "priority": "p2",
@@ -12143,7 +12143,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_r93nqw1",
+              "artifact_id": "ev_mkeonpc0_01hcap1",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.9 compliance",
               "collector": "evidence_ops",
@@ -12337,7 +12337,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.10_mkeonpc0_sn2s52h",
+          "id": "step_task_AC.L2-3.1.10_mkeonpc0_46sokk7",
           "title": "Session Lock (AC.L2-3.1.10)",
           "task_type": "configuration",
           "priority": "p2",
@@ -12463,7 +12463,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_4jpo4du",
+              "artifact_id": "ev_mkeonpc0_tp9shiv",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.10 compliance",
               "collector": "evidence_ops",
@@ -12663,7 +12663,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.11_mkeonpc0_zsiblzd",
+          "id": "step_task_AC.L2-3.1.11_mkeonpc0_mdstbr8",
           "title": "Session Termination (AC.L2-3.1.11)",
           "task_type": "configuration",
           "priority": "p2",
@@ -12797,7 +12797,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_5np32o2",
+              "artifact_id": "ev_mkeonpc0_v0n53zs",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.11 compliance",
               "collector": "evidence_ops",
@@ -13015,7 +13015,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.12_mkeonpc0_2wmbfgl",
+          "id": "step_task_AC.L2-3.1.12_mkeonpc0_5g2t8jv",
           "title": "Remote Access Monitoring (AC.L2-3.1.12)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -13175,7 +13175,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_a8oztzv",
+              "artifact_id": "ev_mkeonpc0_2b78ogq",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.12 compliance",
               "collector": "evidence_ops",
@@ -13387,7 +13387,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.13_mkeonpc0_6lx4cth",
+          "id": "step_task_AC.L2-3.1.13_mkeonpc0_7zakozr",
           "title": "Remote Access Encryption (AC.L2-3.1.13)",
           "task_type": "configuration",
           "priority": "p2",
@@ -13485,7 +13485,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_1yl9hp1",
+              "artifact_id": "ev_mkeonpc0_k95kh5j",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.13 compliance",
               "collector": "evidence_ops",
@@ -13640,7 +13640,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.14_mkeonpc0_pidlega",
+          "id": "step_task_AC.L2-3.1.14_mkeonpc0_xrfof6l",
           "title": "Remote Access Routing (AC.L2-3.1.14)",
           "task_type": "configuration",
           "priority": "p2",
@@ -13802,7 +13802,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_writny3",
+              "artifact_id": "ev_mkeonpc0_yesh9d3",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.14 compliance",
               "collector": "evidence_ops",
@@ -14106,7 +14106,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.15_mkeonpc0_rqk9qqv",
+          "id": "step_task_AC.L2-3.1.15_mkeonpc0_ifx3972",
           "title": "Privileged Remote Access Control (AC.L2-3.1.15)",
           "task_type": "configuration",
           "priority": "p2",
@@ -14288,7 +14288,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_a1lav3u",
+              "artifact_id": "ev_mkeonpc0_q1d21ib",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.15 compliance",
               "collector": "evidence_ops",
@@ -14566,7 +14566,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.16_mkeonpc0_17laa1u",
+          "id": "step_task_AC.L2-3.1.16_mkeonpc0_w4k654v",
           "title": "Wireless Access Authorization (AC.L2-3.1.16)",
           "task_type": "configuration",
           "priority": "p2",
@@ -14651,7 +14651,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_avpfzol",
+              "artifact_id": "ev_mkeonpc0_8vg9261",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.16 compliance",
               "collector": "evidence_ops",
@@ -14734,7 +14734,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.17_mkeonpc0_gc9zrio",
+          "id": "step_task_AC.L2-3.1.17_mkeonpc0_0ur9lo4",
           "title": "Wireless Access Protection (AC.L2-3.1.17)",
           "task_type": "configuration",
           "priority": "p2",
@@ -14813,7 +14813,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_l8j01it",
+              "artifact_id": "ev_mkeonpc0_5xudee1",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.17 compliance",
               "collector": "evidence_ops",
@@ -14918,7 +14918,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.18_mkeonpc0_j79cg1r",
+          "id": "step_task_AC.L2-3.1.18_mkeonpc0_ivrnd8r",
           "title": "Mobile Device Connection Control (AC.L2-3.1.18)",
           "task_type": "configuration",
           "priority": "p2",
@@ -15050,7 +15050,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_5o2yljr",
+              "artifact_id": "ev_mkeonpc0_88xzka3",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.18 compliance",
               "collector": "evidence_ops",
@@ -15182,7 +15182,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.19_mkeonpc0_k4zzaml",
+          "id": "step_task_AC.L2-3.1.19_mkeonpc0_r2x9543",
           "title": "Mobile Device CUI Encryption (AC.L2-3.1.19)",
           "task_type": "configuration",
           "priority": "p2",
@@ -15357,7 +15357,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_d9ngxde",
+              "artifact_id": "ev_mkeonpc0_klgpur7",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.19 compliance",
               "collector": "evidence_ops",
@@ -15598,7 +15598,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.20_mkeonpc0_yoq329v",
+          "id": "step_task_AC.L2-3.1.20_mkeonpc0_qnwxeyu",
           "title": "External System Verification (AC.L2-3.1.20)",
           "task_type": "process",
           "priority": "p2",
@@ -15771,7 +15771,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_qsy1pm3",
+              "artifact_id": "ev_mkeonpc0_rqstapl",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.20 compliance",
               "collector": "evidence_ops",
@@ -16097,7 +16097,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.21_mkeonpc0_2zalxrs",
+          "id": "step_task_AC.L2-3.1.21_mkeonpc0_xtp94zr",
           "title": "Portable Storage Restriction (AC.L2-3.1.21)",
           "task_type": "configuration",
           "priority": "p2",
@@ -16199,7 +16199,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_mlvk7o0",
+              "artifact_id": "ev_mkeonpc0_tdveqks",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.21 compliance",
               "collector": "evidence_ops",
@@ -16418,7 +16418,7 @@
           ]
         },
         {
-          "id": "step_task_AC.L2-3.1.22_mkeonpc0_nunpmkd",
+          "id": "step_task_AC.L2-3.1.22_mkeonpc0_ol73jpm",
           "title": "CUI Public Posting Prevention (AC.L2-3.1.22)",
           "task_type": "configuration",
           "priority": "p2",
@@ -16592,7 +16592,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_stei4wn",
+              "artifact_id": "ev_mkeonpc0_8kpw2s5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AC.L2-3.1.22 compliance",
               "collector": "evidence_ops",
@@ -16836,7 +16836,7 @@
           ]
         },
         {
-          "id": "step_task_AT.L2-3.2.1_mkeonpc0_hldermj",
+          "id": "step_task_AT.L2-3.2.1_mkeonpc0_1tw7kff",
           "title": "Security Awareness Training (AT.L2-3.2.1)",
           "task_type": "training",
           "priority": "p2",
@@ -16941,7 +16941,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_2diu694",
+              "artifact_id": "ev_mkeonpc0_jw6z1xn",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AT.L2-3.2.1 compliance",
               "collector": "evidence_ops",
@@ -17020,7 +17020,7 @@
           ]
         },
         {
-          "id": "step_task_AT.L2-3.2.2_mkeonpc0_itfrmw8",
+          "id": "step_task_AT.L2-3.2.2_mkeonpc0_b658b49",
           "title": "Role-Based Security Training (AT.L2-3.2.2)",
           "task_type": "training",
           "priority": "p2",
@@ -17112,7 +17112,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_3umhh0s",
+              "artifact_id": "ev_mkeonpc0_7lc55r1",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AT.L2-3.2.2 compliance",
               "collector": "evidence_ops",
@@ -17217,7 +17217,7 @@
           ]
         },
         {
-          "id": "step_task_AT.L2-3.2.3_mkeonpc0_cg2pi3l",
+          "id": "step_task_AT.L2-3.2.3_mkeonpc0_nan2nji",
           "title": "Insider Threat Awareness (AT.L2-3.2.3)",
           "task_type": "training",
           "priority": "p2",
@@ -17302,7 +17302,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_bzxl7sq",
+              "artifact_id": "ev_mkeonpc0_c25upri",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AT.L2-3.2.3 compliance",
               "collector": "evidence_ops",
@@ -17392,7 +17392,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.2_mkeonpc0_ok9h9q8",
+          "id": "step_task_AU.L2-3.3.2_mkeonpc0_66l021n",
           "title": "User Action Accountability (AU.L2-3.3.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -17568,7 +17568,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_iozyw8w",
+              "artifact_id": "ev_mkeonpc0_o71n69y",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.2 compliance",
               "collector": "evidence_ops",
@@ -17912,7 +17912,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.3_mkeonpc0_65krtkq",
+          "id": "step_task_AU.L2-3.3.3_mkeonpc0_h0b2hi4",
           "title": "Audit Event Review (AU.L2-3.3.3)",
           "task_type": "process",
           "priority": "p2",
@@ -18058,7 +18058,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_rl61zut",
+              "artifact_id": "ev_mkeonpc0_0bmaj27",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.3 compliance",
               "collector": "evidence_ops",
@@ -18358,7 +18358,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.4_mkeonpc0_tdm5uas",
+          "id": "step_task_AU.L2-3.3.4_mkeonpc0_tx2dmwl",
           "title": "Audit Failure Alerting (AU.L2-3.3.4)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -18511,7 +18511,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_i938h56",
+              "artifact_id": "ev_mkeonpc0_qa812ek",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.4 compliance",
               "collector": "evidence_ops",
@@ -18745,7 +18745,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.5_mkeonpc0_48ic6xi",
+          "id": "step_task_AU.L2-3.3.5_mkeonpc0_j5n7kul",
           "title": "Audit Record Correlation (AU.L2-3.3.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -18901,7 +18901,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_i0oyl51",
+              "artifact_id": "ev_mkeonpc0_j97xivn",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.5 compliance",
               "collector": "evidence_ops",
@@ -19141,7 +19141,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.6_mkeonpc0_wwf0k9i",
+          "id": "step_task_AU.L2-3.3.6_mkeonpc0_a9tfex5",
           "title": "Audit Reduction and Reporting (AU.L2-3.3.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -19258,7 +19258,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_qfb7qgw",
+              "artifact_id": "ev_mkeonpc0_lz1sf91",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.6 compliance",
               "collector": "evidence_ops",
@@ -19436,7 +19436,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.7_mkeonpc0_0t6137a",
+          "id": "step_task_AU.L2-3.3.7_mkeonpc0_euvzmio",
           "title": "Time Synchronization (AU.L2-3.3.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -19505,7 +19505,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_cdf63ec",
+              "artifact_id": "ev_mkeonpc0_7vurref",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.7 compliance",
               "collector": "evidence_ops",
@@ -19605,7 +19605,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.8_mkeonpc0_s8qlrep",
+          "id": "step_task_AU.L2-3.3.8_mkeonpc0_lg5fa2f",
           "title": "Audit Information Protection (AU.L2-3.3.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -19763,7 +19763,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_bp97dio",
+              "artifact_id": "ev_mkeonpc0_mg99xwn",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.8 compliance",
               "collector": "evidence_ops",
@@ -20042,7 +20042,7 @@
           ]
         },
         {
-          "id": "step_task_AU.L2-3.3.9_mkeonpc0_3gqjhg6",
+          "id": "step_task_AU.L2-3.3.9_mkeonpc0_xosi1ix",
           "title": "Audit Management Restriction (AU.L2-3.3.9)",
           "task_type": "configuration",
           "priority": "p2",
@@ -20200,7 +20200,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_d0342j7",
+              "artifact_id": "ev_mkeonpc0_n3l2ysx",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating AU.L2-3.3.9 compliance",
               "collector": "evidence_ops",
@@ -20472,7 +20472,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.1_mkeonpc0_uyv4u6r",
+          "id": "step_task_CM.L2-3.4.1_mkeonpc0_3sly9ha",
           "title": "Baseline Configuration (CM.L2-3.4.1)",
           "task_type": "policy",
           "priority": "p2",
@@ -20698,7 +20698,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_wf5q90d",
+              "artifact_id": "ev_mkeonpc0_m9ojert",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.1 compliance",
               "collector": "evidence_ops",
@@ -21115,7 +21115,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.2_mkeonpc0_n5zo5m9",
+          "id": "step_task_CM.L2-3.4.2_mkeonpc0_sx8luam",
           "title": "Security Configuration Enforcement (CM.L2-3.4.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -21254,7 +21254,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_b95zg1y",
+              "artifact_id": "ev_mkeonpc0_wdo616g",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.2 compliance",
               "collector": "evidence_ops",
@@ -21555,7 +21555,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.3_mkeonpc0_5idhsuw",
+          "id": "step_task_CM.L2-3.4.3_mkeonpc0_9omqejs",
           "title": "Configuration Change Control (CM.L2-3.4.3)",
           "task_type": "process",
           "priority": "p2",
@@ -21763,7 +21763,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_pwfcm3u",
+              "artifact_id": "ev_mkeonpc0_hibun70",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.3 compliance",
               "collector": "evidence_ops",
@@ -22031,7 +22031,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.4_mkeonpc0_irfkt8f",
+          "id": "step_task_CM.L2-3.4.4_mkeonpc0_p92iiwt",
           "title": "Security Impact Analysis (CM.L2-3.4.4)",
           "task_type": "process",
           "priority": "p2",
@@ -22131,7 +22131,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_o41emfe",
+              "artifact_id": "ev_mkeonpc0_z3cg5bf",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.4 compliance",
               "collector": "evidence_ops",
@@ -22216,7 +22216,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.5_mkeonpc0_wx3inuc",
+          "id": "step_task_CM.L2-3.4.5_mkeonpc0_uijbt8k",
           "title": "Change Access Restrictions (CM.L2-3.4.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -22325,7 +22325,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_csfhqtm",
+              "artifact_id": "ev_mkeonpc0_xxigzng",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.5 compliance",
               "collector": "evidence_ops",
@@ -22513,7 +22513,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.6_mkeonpc0_15usa00",
+          "id": "step_task_CM.L2-3.4.6_mkeonpc0_133jtm6",
           "title": "Least Functionality (CM.L2-3.4.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -22692,7 +22692,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_tpvkxyy",
+              "artifact_id": "ev_mkeonpc0_e8vno4d",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.6 compliance",
               "collector": "evidence_ops",
@@ -23035,7 +23035,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.7_mkeonpc0_7c3yyvt",
+          "id": "step_task_CM.L2-3.4.7_mkeonpc0_8u5jc11",
           "title": "Nonessential Function Restriction (CM.L2-3.4.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -23167,7 +23167,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_trt9d7o",
+              "artifact_id": "ev_mkeonpc0_xl93con",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.7 compliance",
               "collector": "evidence_ops",
@@ -23521,7 +23521,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.8_mkeonpc0_zkgh28c",
+          "id": "step_task_CM.L2-3.4.8_mkeonpc0_7ti6o8d",
           "title": "Deny-by-Exception Software Policy (CM.L2-3.4.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -23630,7 +23630,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_8tcguqv",
+              "artifact_id": "ev_mkeonpc0_naro626",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.8 compliance",
               "collector": "evidence_ops",
@@ -23865,7 +23865,7 @@
           ]
         },
         {
-          "id": "step_task_CM.L2-3.4.9_mkeonpc0_4egxhqr",
+          "id": "step_task_CM.L2-3.4.9_mkeonpc0_v6zhrnb",
           "title": "User-Installed Software Control (CM.L2-3.4.9)",
           "task_type": "configuration",
           "priority": "p2",
@@ -24010,7 +24010,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_snffis4",
+              "artifact_id": "ev_mkeonpc0_ustg3k7",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CM.L2-3.4.9 compliance",
               "collector": "evidence_ops",
@@ -24285,7 +24285,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.1_mkeonpc0_b6fotuw",
+          "id": "step_task_IA.L2-3.5.1_mkeonpc0_bi8j25v",
           "title": "User, Process, and Device Identification (IA.L2-3.5.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -24399,7 +24399,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_by8wo6w",
+              "artifact_id": "ev_mkeonpc0_mgbbyis",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.1 compliance",
               "collector": "evidence_ops",
@@ -24609,7 +24609,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.2_mkeonpc0_gtchjze",
+          "id": "step_task_IA.L2-3.5.2_mkeonpc0_30prpbw",
           "title": "Device Authentication (IA.L2-3.5.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -24777,7 +24777,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_140aw9h",
+              "artifact_id": "ev_mkeonpc0_a99e0uf",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.2 compliance",
               "collector": "evidence_ops",
@@ -25148,7 +25148,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.4_mkeonpc0_fj9ihfm",
+          "id": "step_task_IA.L2-3.5.4_mkeonpc0_m4kir8y",
           "title": "Replay-Resistant Authentication (IA.L2-3.5.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -25229,7 +25229,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_1vqp9ez",
+              "artifact_id": "ev_mkeonpc0_pfnl8bi",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.4 compliance",
               "collector": "evidence_ops",
@@ -25326,7 +25326,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.5_mkeonpc0_k733eye",
+          "id": "step_task_IA.L2-3.5.5_mkeonpc0_wk90bod",
           "title": "Identifier Reuse Prevention (IA.L2-3.5.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -25405,7 +25405,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_8xr04ym",
+              "artifact_id": "ev_mkeonpc0_7951kzp",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.5 compliance",
               "collector": "evidence_ops",
@@ -25490,7 +25490,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.6_mkeonpc0_h9blhf7",
+          "id": "step_task_IA.L2-3.5.6_mkeonpc0_0eiigc2",
           "title": "Identifier Disablement (IA.L2-3.5.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -25581,7 +25581,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ogeurfw",
+              "artifact_id": "ev_mkeonpc0_pd6mppt",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.6 compliance",
               "collector": "evidence_ops",
@@ -25680,7 +25680,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.7_mkeonpc0_y0r8fl1",
+          "id": "step_task_IA.L2-3.5.7_mkeonpc0_rc74ubf",
           "title": "Password Complexity (IA.L2-3.5.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -25789,7 +25789,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_vf3sbha",
+              "artifact_id": "ev_mkeonpc0_l71le20",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.7 compliance",
               "collector": "evidence_ops",
@@ -25992,7 +25992,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.8_mkeonpc0_izw219m",
+          "id": "step_task_IA.L2-3.5.8_mkeonpc0_fjvlwek",
           "title": "Password Reuse Prevention (IA.L2-3.5.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -26105,7 +26105,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_wplbaoq",
+              "artifact_id": "ev_mkeonpc0_433h1pl",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.8 compliance",
               "collector": "evidence_ops",
@@ -26255,7 +26255,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.9_mkeonpc0_j57k80n",
+          "id": "step_task_IA.L2-3.5.9_mkeonpc0_iezo5rn",
           "title": "Temporary Password Management (IA.L2-3.5.9)",
           "task_type": "configuration",
           "priority": "p2",
@@ -26343,7 +26343,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_jwd8j7k",
+              "artifact_id": "ev_mkeonpc0_pds5ztk",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.9 compliance",
               "collector": "evidence_ops",
@@ -26448,7 +26448,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.10_mkeonpc0_4ia2tvs",
+          "id": "step_task_IA.L2-3.5.10_mkeonpc0_onlf96z",
           "title": "Cryptographic Password Storage (IA.L2-3.5.10)",
           "task_type": "assessment",
           "priority": "p2",
@@ -26587,7 +26587,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_k8m8uw6",
+              "artifact_id": "ev_mkeonpc0_657crqs",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.10 compliance",
               "collector": "evidence_ops",
@@ -26737,7 +26737,7 @@
           ]
         },
         {
-          "id": "step_task_IA.L2-3.5.11_mkeonpc0_cts8tcy",
+          "id": "step_task_IA.L2-3.5.11_mkeonpc0_flzbu0w",
           "title": "Authenticator Feedback Obscuring (IA.L2-3.5.11)",
           "task_type": "configuration",
           "priority": "p2",
@@ -26809,7 +26809,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_iqspap9",
+              "artifact_id": "ev_mkeonpc0_hm2oz2e",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IA.L2-3.5.11 compliance",
               "collector": "evidence_ops",
@@ -26890,7 +26890,7 @@
           ]
         },
         {
-          "id": "step_task_IR.L2-3.6.1_mkeonpc0_e4taooo",
+          "id": "step_task_IR.L2-3.6.1_mkeonpc0_0c0ih4f",
           "title": "Incident Response Planning (IR.L2-3.6.1)",
           "task_type": "policy",
           "priority": "p2",
@@ -27098,7 +27098,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_6n4bspl",
+              "artifact_id": "ev_mkeonpc0_fqbn34w",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IR.L2-3.6.1 compliance",
               "collector": "evidence_ops",
@@ -27462,7 +27462,7 @@
           ]
         },
         {
-          "id": "step_task_IR.L2-3.6.2_mkeonpc0_ate63j1",
+          "id": "step_task_IR.L2-3.6.2_mkeonpc0_3qxe0lr",
           "title": "Incident Tracking and Reporting (IR.L2-3.6.2)",
           "task_type": "process",
           "priority": "p2",
@@ -27621,7 +27621,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_9us82k5",
+              "artifact_id": "ev_mkeonpc0_wvtdtca",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IR.L2-3.6.2 compliance",
               "collector": "evidence_ops",
@@ -27910,7 +27910,7 @@
           ]
         },
         {
-          "id": "step_task_IR.L2-3.6.3_mkeonpc0_d6zs2or",
+          "id": "step_task_IR.L2-3.6.3_mkeonpc0_sbhznz9",
           "title": "Incident Response Testing (IR.L2-3.6.3)",
           "task_type": "assessment",
           "priority": "p2",
@@ -28017,7 +28017,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_rch86t3",
+              "artifact_id": "ev_mkeonpc0_i38uq9u",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating IR.L2-3.6.3 compliance",
               "collector": "evidence_ops",
@@ -28162,7 +28162,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.1_mkeonpc0_mjbo06v",
+          "id": "step_task_MA.L2-3.7.1_mkeonpc0_7btbhku",
           "title": "Controlled System Maintenance (MA.L2-3.7.1)",
           "task_type": "process",
           "priority": "p2",
@@ -28297,7 +28297,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_6bynznr",
+              "artifact_id": "ev_mkeonpc0_6cztags",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.1 compliance",
               "collector": "evidence_ops",
@@ -28502,7 +28502,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.2_mkeonpc0_k1vj74l",
+          "id": "step_task_MA.L2-3.7.2_mkeonpc0_769vbyz",
           "title": "Maintenance Tool Control (MA.L2-3.7.2)",
           "task_type": "process",
           "priority": "p2",
@@ -28672,7 +28672,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_0czm9ko",
+              "artifact_id": "ev_mkeonpc0_35pl8yv",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.2 compliance",
               "collector": "evidence_ops",
@@ -29000,7 +29000,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.3_mkeonpc0_g4sxz57",
+          "id": "step_task_MA.L2-3.7.3_mkeonpc0_ou0tyl5",
           "title": "Equipment Sanitization (MA.L2-3.7.3)",
           "task_type": "process",
           "priority": "p2",
@@ -29151,7 +29151,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_7arvxfa",
+              "artifact_id": "ev_mkeonpc0_86vqswb",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.3 compliance",
               "collector": "evidence_ops",
@@ -29356,7 +29356,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.4_mkeonpc0_ubrd2pz",
+          "id": "step_task_MA.L2-3.7.4_mkeonpc0_3z7mbr1",
           "title": "Maintenance Media Inspection (MA.L2-3.7.4)",
           "task_type": "process",
           "priority": "p2",
@@ -29452,7 +29452,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_few8co3",
+              "artifact_id": "ev_mkeonpc0_n5y52ug",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.4 compliance",
               "collector": "evidence_ops",
@@ -29564,7 +29564,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.5_mkeonpc0_nmon3f2",
+          "id": "step_task_MA.L2-3.7.5_mkeonpc0_dvd07o0",
           "title": "Nonlocal Maintenance Authentication (MA.L2-3.7.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -29676,7 +29676,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_gnx8rwr",
+              "artifact_id": "ev_mkeonpc0_4ee0vz2",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.5 compliance",
               "collector": "evidence_ops",
@@ -29905,7 +29905,7 @@
           ]
         },
         {
-          "id": "step_task_MA.L2-3.7.6_mkeonpc0_0alqf0v",
+          "id": "step_task_MA.L2-3.7.6_mkeonpc0_vck5fek",
           "title": "Maintenance Personnel Supervision (MA.L2-3.7.6)",
           "task_type": "process",
           "priority": "p2",
@@ -30009,7 +30009,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_e7skgi2",
+              "artifact_id": "ev_mkeonpc0_w9g60nv",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MA.L2-3.7.6 compliance",
               "collector": "evidence_ops",
@@ -30160,7 +30160,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.1_mkeonpc0_onj3oig",
+          "id": "step_task_MP.L2-3.8.1_mkeonpc0_na8nbiw",
           "title": "Media Protection (MP.L2-3.8.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -30418,7 +30418,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_xgjg3yz",
+              "artifact_id": "ev_mkeonpc0_wu7w1px",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.1 compliance",
               "collector": "evidence_ops",
@@ -30888,7 +30888,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.2_mkeonpc0_wz17j4p",
+          "id": "step_task_MP.L2-3.8.2_mkeonpc0_vwgoxdj",
           "title": "Media Access Limitation (MP.L2-3.8.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -31084,7 +31084,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_oknwsb2",
+              "artifact_id": "ev_mkeonpc0_hxbrkw9",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.2 compliance",
               "collector": "evidence_ops",
@@ -31448,7 +31448,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.3_mkeonpc0_736tpnx",
+          "id": "step_task_MP.L2-3.8.3_mkeonpc0_56vyir4",
           "title": "Media Sanitization (MP.L2-3.8.3)",
           "task_type": "process",
           "priority": "p2",
@@ -31590,7 +31590,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_3pr907z",
+              "artifact_id": "ev_mkeonpc0_65tv3r0",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.3 compliance",
               "collector": "evidence_ops",
@@ -31800,7 +31800,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.4_mkeonpc0_azeax7i",
+          "id": "step_task_MP.L2-3.8.4_mkeonpc0_faqiwzj",
           "title": "Media Marking (MP.L2-3.8.4)",
           "task_type": "process",
           "priority": "p2",
@@ -31991,7 +31991,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_3662ioe",
+              "artifact_id": "ev_mkeonpc0_ebq5djx",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.4 compliance",
               "collector": "evidence_ops",
@@ -32230,7 +32230,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.5_mkeonpc0_xkkzrsv",
+          "id": "step_task_MP.L2-3.8.5_mkeonpc0_4u5re4b",
           "title": "Media Transport Protection (MP.L2-3.8.5)",
           "task_type": "process",
           "priority": "p2",
@@ -32472,7 +32472,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_xxowvv6",
+              "artifact_id": "ev_mkeonpc0_tmvywta",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.5 compliance",
               "collector": "evidence_ops",
@@ -32909,7 +32909,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.6_mkeonpc0_ehbpye8",
+          "id": "step_task_MP.L2-3.8.6_mkeonpc0_wy3xs8d",
           "title": "Media Transport Encryption (MP.L2-3.8.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -33134,7 +33134,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_g0lteh6",
+              "artifact_id": "ev_mkeonpc0_1uski8r",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.6 compliance",
               "collector": "evidence_ops",
@@ -33508,7 +33508,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.7_mkeonpc0_aw8v249",
+          "id": "step_task_MP.L2-3.8.7_mkeonpc0_vyhb06p",
           "title": "Removable Media Control (MP.L2-3.8.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -33620,7 +33620,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_w142533",
+              "artifact_id": "ev_mkeonpc0_ivczlzq",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.7 compliance",
               "collector": "evidence_ops",
@@ -33762,7 +33762,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.8_mkeonpc0_lkux5j2",
+          "id": "step_task_MP.L2-3.8.8_mkeonpc0_6ngu3ax",
           "title": "Portable Storage Prohibition (MP.L2-3.8.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -33861,7 +33861,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_t3sws7q",
+              "artifact_id": "ev_mkeonpc0_wyijuar",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.8 compliance",
               "collector": "evidence_ops",
@@ -33983,7 +33983,7 @@
           ]
         },
         {
-          "id": "step_task_MP.L2-3.8.9_mkeonpc0_tfywqmn",
+          "id": "step_task_MP.L2-3.8.9_mkeonpc0_c4ww2ev",
           "title": "Backup Confidentiality (MP.L2-3.8.9)",
           "task_type": "configuration",
           "priority": "p2",
@@ -34160,7 +34160,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_9rra4kv",
+              "artifact_id": "ev_mkeonpc0_lgob2ex",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating MP.L2-3.8.9 compliance",
               "collector": "evidence_ops",
@@ -34444,7 +34444,7 @@
           ]
         },
         {
-          "id": "step_task_PS.L2-3.9.1_mkeonpc0_awckfpf",
+          "id": "step_task_PS.L2-3.9.1_mkeonpc0_op74s46",
           "title": "Personnel Screening (PS.L2-3.9.1)",
           "task_type": "policy",
           "priority": "p2",
@@ -34544,7 +34544,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_5547j2o",
+              "artifact_id": "ev_mkeonpc0_5j04qvr",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PS.L2-3.9.1 compliance",
               "collector": "evidence_ops",
@@ -34621,7 +34621,7 @@
           ]
         },
         {
-          "id": "step_task_PS.L2-3.9.2_mkeonpc0_3klc7xm",
+          "id": "step_task_PS.L2-3.9.2_mkeonpc0_w7i92zr",
           "title": "Personnel Transfer and Termination (PS.L2-3.9.2)",
           "task_type": "policy",
           "priority": "p2",
@@ -34820,7 +34820,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_1ip3aui",
+              "artifact_id": "ev_mkeonpc0_16cft3y",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PS.L2-3.9.2 compliance",
               "collector": "evidence_ops",
@@ -35054,7 +35054,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.1_mkeonpc0_0qutwwe",
+          "id": "step_task_PE.L2-3.10.1_mkeonpc0_x3fp8gh",
           "title": "Organizational System Physical Access (PE.L2-3.10.1)",
           "task_type": "configuration",
           "priority": "p2",
@@ -35110,7 +35110,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ss3x8j4",
+              "artifact_id": "ev_mkeonpc0_mnc1lp6",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.1 compliance",
               "collector": "evidence_ops",
@@ -35183,7 +35183,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.2_mkeonpc0_capa2r8",
+          "id": "step_task_PE.L2-3.10.2_mkeonpc0_xdtugiu",
           "title": "Facility Protection and Monitoring (PE.L2-3.10.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -35239,7 +35239,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_mr3icyx",
+              "artifact_id": "ev_mkeonpc0_e617t60",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.2 compliance",
               "collector": "evidence_ops",
@@ -35312,7 +35312,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.3_mkeonpc0_xe0iuh0",
+          "id": "step_task_PE.L2-3.10.3_mkeonpc0_jtba4d1",
           "title": "Visitor Escort and Monitoring (PE.L2-3.10.3)",
           "task_type": "process",
           "priority": "p2",
@@ -35382,7 +35382,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_7dyabyp",
+              "artifact_id": "ev_mkeonpc0_31o96zk",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.3 compliance",
               "collector": "evidence_ops",
@@ -35448,7 +35448,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.4_mkeonpc0_pv8zcbf",
+          "id": "step_task_PE.L2-3.10.4_mkeonpc0_3t7qnsk",
           "title": "Physical Access Audit Trail (PE.L2-3.10.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -35504,7 +35504,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_5vrgzhv",
+              "artifact_id": "ev_mkeonpc0_o7ps3xe",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.4 compliance",
               "collector": "evidence_ops",
@@ -35565,7 +35565,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.5_mkeonpc0_j9gpv92",
+          "id": "step_task_PE.L2-3.10.5_mkeonpc0_hko4q5l",
           "title": "Physical Access Device Control (PE.L2-3.10.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -35621,7 +35621,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_cclwcow",
+              "artifact_id": "ev_mkeonpc0_9kxbjuc",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.5 compliance",
               "collector": "evidence_ops",
@@ -35690,7 +35690,7 @@
           ]
         },
         {
-          "id": "step_task_PE.L2-3.10.6_mkeonpc0_u0g7i1n",
+          "id": "step_task_PE.L2-3.10.6_mkeonpc0_a96v62l",
           "title": "Alternate Work Site Safeguards (PE.L2-3.10.6)",
           "task_type": "policy",
           "priority": "p2",
@@ -35965,7 +35965,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_rnqbh4k",
+              "artifact_id": "ev_mkeonpc0_5gjnlax",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating PE.L2-3.10.6 compliance",
               "collector": "evidence_ops",
@@ -36497,7 +36497,7 @@
           ]
         },
         {
-          "id": "step_task_RA.L2-3.11.1_mkeonpc0_hzh5aj6",
+          "id": "step_task_RA.L2-3.11.1_mkeonpc0_vsb1n3y",
           "title": "Risk Assessment (RA.L2-3.11.1)",
           "task_type": "assessment",
           "priority": "p2",
@@ -36754,7 +36754,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_6pxejcc",
+              "artifact_id": "ev_mkeonpc0_kt4qrk0",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating RA.L2-3.11.1 compliance",
               "collector": "evidence_ops",
@@ -37126,7 +37126,7 @@
           ]
         },
         {
-          "id": "step_task_RA.L2-3.11.2_mkeonpc0_naj2h9t",
+          "id": "step_task_RA.L2-3.11.2_mkeonpc0_n180zsv",
           "title": "Vulnerability Scanning (RA.L2-3.11.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -37239,7 +37239,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_jkooxwv",
+              "artifact_id": "ev_mkeonpc0_vhtykpt",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating RA.L2-3.11.2 compliance",
               "collector": "evidence_ops",
@@ -37445,7 +37445,7 @@
           ]
         },
         {
-          "id": "step_task_RA.L2-3.11.3_mkeonpc0_ir7xd5o",
+          "id": "step_task_RA.L2-3.11.3_mkeonpc0_e190tzi",
           "title": "Vulnerability Remediation (RA.L2-3.11.3)",
           "task_type": "process",
           "priority": "p2",
@@ -37593,7 +37593,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_nor8wf3",
+              "artifact_id": "ev_mkeonpc0_2q3v40b",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating RA.L2-3.11.3 compliance",
               "collector": "evidence_ops",
@@ -37828,7 +37828,7 @@
           ]
         },
         {
-          "id": "step_task_CA.L2-3.12.1_mkeonpc0_wijqeha",
+          "id": "step_task_CA.L2-3.12.1_mkeonpc0_6wac2yj",
           "title": "Security Control Assessment (CA.L2-3.12.1)",
           "task_type": "assessment",
           "priority": "p2",
@@ -38020,7 +38020,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_joentls",
+              "artifact_id": "ev_mkeonpc0_1k9c35s",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CA.L2-3.12.1 compliance",
               "collector": "evidence_ops",
@@ -38319,7 +38319,7 @@
           ]
         },
         {
-          "id": "step_task_CA.L2-3.12.2_mkeonpc0_0vyb2du",
+          "id": "step_task_CA.L2-3.12.2_mkeonpc0_p9aa7rn",
           "title": "Plan of Action and Milestones (CA.L2-3.12.2)",
           "task_type": "process",
           "priority": "p2",
@@ -38402,7 +38402,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_t9fqw0c",
+              "artifact_id": "ev_mkeonpc0_8roeoxi",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CA.L2-3.12.2 compliance",
               "collector": "evidence_ops",
@@ -38507,7 +38507,7 @@
           ]
         },
         {
-          "id": "step_task_CA.L2-3.12.3_mkeonpc0_6xac49k",
+          "id": "step_task_CA.L2-3.12.3_mkeonpc0_p4s7vtx",
           "title": "Continuous Monitoring Program (CA.L2-3.12.3)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -38686,7 +38686,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_s5ej9pr",
+              "artifact_id": "ev_mkeonpc0_5fxhy8m",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CA.L2-3.12.3 compliance",
               "collector": "evidence_ops",
@@ -39000,7 +39000,7 @@
           ]
         },
         {
-          "id": "step_task_CA.L2-3.12.4_mkeonpc0_j1qjos0",
+          "id": "step_task_CA.L2-3.12.4_mkeonpc0_77vcg0f",
           "title": "System Security Plan (CA.L2-3.12.4)",
           "task_type": "policy",
           "priority": "p2",
@@ -39099,7 +39099,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_hnz1z4z",
+              "artifact_id": "ev_mkeonpc0_2o42nyk",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating CA.L2-3.12.4 compliance",
               "collector": "evidence_ops",
@@ -39219,7 +39219,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.1_mkeonpc0_pspbo75",
+          "id": "step_task_SC.L2-3.13.1_mkeonpc0_yy0aedx",
           "title": "Boundary Monitoring and Control (SC.L2-3.13.1)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -39461,7 +39461,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_yqd8wpa",
+              "artifact_id": "ev_mkeonpc0_zlnancx",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.1 compliance",
               "collector": "evidence_ops",
@@ -39849,7 +39849,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.2_mkeonpc0_di6ye54",
+          "id": "step_task_SC.L2-3.13.2_mkeonpc0_j1a9rs4",
           "title": "Security Architecture Design (SC.L2-3.13.2)",
           "task_type": "policy",
           "priority": "p2",
@@ -39929,7 +39929,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_it9na46",
+              "artifact_id": "ev_mkeonpc0_c78cnpi",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.2 compliance",
               "collector": "evidence_ops",
@@ -40017,7 +40017,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.3_mkeonpc0_twqwqyj",
+          "id": "step_task_SC.L2-3.13.3_mkeonpc0_9eiwy3e",
           "title": "Application Partitioning (SC.L2-3.13.3)",
           "task_type": "configuration",
           "priority": "p2",
@@ -40169,7 +40169,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_t4vsakq",
+              "artifact_id": "ev_mkeonpc0_97vvui9",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.3 compliance",
               "collector": "evidence_ops",
@@ -40422,7 +40422,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.4_mkeonpc0_2p2dk5x",
+          "id": "step_task_SC.L2-3.13.4_mkeonpc0_zc1y06c",
           "title": "Shared Resource Information Transfer Control (SC.L2-3.13.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -40633,7 +40633,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_lergnul",
+              "artifact_id": "ev_mkeonpc0_25pniz5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.4 compliance",
               "collector": "evidence_ops",
@@ -41004,7 +41004,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.5_mkeonpc0_l7un6im",
+          "id": "step_task_SC.L2-3.13.5_mkeonpc0_ej7r19v",
           "title": "Network Segmentation (SC.L2-3.13.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -41111,7 +41111,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_j0mm919",
+              "artifact_id": "ev_mkeonpc0_worc9l8",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.5 compliance",
               "collector": "evidence_ops",
@@ -41269,7 +41269,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.6_mkeonpc0_1iay27l",
+          "id": "step_task_SC.L2-3.13.6_mkeonpc0_6wmxi6w",
           "title": "Default Deny Network Policy (SC.L2-3.13.6)",
           "task_type": "configuration",
           "priority": "p2",
@@ -41371,7 +41371,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_xmf9voi",
+              "artifact_id": "ev_mkeonpc0_ipsd7y5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.6 compliance",
               "collector": "evidence_ops",
@@ -41510,7 +41510,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.7_mkeonpc0_5hmf6bs",
+          "id": "step_task_SC.L2-3.13.7_mkeonpc0_yvm63a5",
           "title": "Split Tunneling Prevention (SC.L2-3.13.7)",
           "task_type": "configuration",
           "priority": "p2",
@@ -41651,7 +41651,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_6fmexyo",
+              "artifact_id": "ev_mkeonpc0_etty0ek",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.7 compliance",
               "collector": "evidence_ops",
@@ -41881,7 +41881,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.8_mkeonpc0_ifb6eak",
+          "id": "step_task_SC.L2-3.13.8_mkeonpc0_65f2gud",
           "title": "CUI Transmission Encryption (SC.L2-3.13.8)",
           "task_type": "configuration",
           "priority": "p2",
@@ -42163,7 +42163,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_3eqxhzq",
+              "artifact_id": "ev_mkeonpc0_5fdp51l",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.8 compliance",
               "collector": "evidence_ops",
@@ -42679,7 +42679,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.9_mkeonpc0_2bls9wt",
+          "id": "step_task_SC.L2-3.13.9_mkeonpc0_cor08qm",
           "title": "Network Session Termination (SC.L2-3.13.9)",
           "task_type": "configuration",
           "priority": "p2",
@@ -42791,7 +42791,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_uqa6kj7",
+              "artifact_id": "ev_mkeonpc0_ajf3p9c",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.9 compliance",
               "collector": "evidence_ops",
@@ -42964,7 +42964,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.10_mkeonpc0_8y0clg9",
+          "id": "step_task_SC.L2-3.13.10_mkeonpc0_elf3ram",
           "title": "Cryptographic Key Management (SC.L2-3.13.10)",
           "task_type": "configuration",
           "priority": "p2",
@@ -43050,7 +43050,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_jp31ffz",
+              "artifact_id": "ev_mkeonpc0_j0zsylo",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.10 compliance",
               "collector": "evidence_ops",
@@ -43169,7 +43169,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.11_mkeonpc0_ukkh0ny",
+          "id": "step_task_SC.L2-3.13.11_mkeonpc0_9b92tjl",
           "title": "FIPS-Validated Cryptography (SC.L2-3.13.11)",
           "task_type": "configuration",
           "priority": "p2",
@@ -43381,7 +43381,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_il32nod",
+              "artifact_id": "ev_mkeonpc0_e3j2x5o",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.11 compliance",
               "collector": "evidence_ops",
@@ -43711,7 +43711,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.12_mkeonpc0_42guccd",
+          "id": "step_task_SC.L2-3.13.12_mkeonpc0_of5dmcb",
           "title": "Collaborative Computing Control (SC.L2-3.13.12)",
           "task_type": "configuration",
           "priority": "p2",
@@ -43794,7 +43794,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_xx05bhr",
+              "artifact_id": "ev_mkeonpc0_eawe2fc",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.12 compliance",
               "collector": "evidence_ops",
@@ -43886,7 +43886,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.13_mkeonpc0_xsrn6ph",
+          "id": "step_task_SC.L2-3.13.13_mkeonpc0_3vydawb",
           "title": "Mobile Code Restriction (SC.L2-3.13.13)",
           "task_type": "configuration",
           "priority": "p2",
@@ -43994,7 +43994,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_au4r69l",
+              "artifact_id": "ev_mkeonpc0_221e6ux",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.13 compliance",
               "collector": "evidence_ops",
@@ -44198,7 +44198,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.14_mkeonpc0_bzk4h5x",
+          "id": "step_task_SC.L2-3.13.14_mkeonpc0_8o0gh27",
           "title": "VoIP Protection (SC.L2-3.13.14)",
           "task_type": "configuration",
           "priority": "p2",
@@ -44304,7 +44304,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_jhjszux",
+              "artifact_id": "ev_mkeonpc0_762cs6l",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.14 compliance",
               "collector": "evidence_ops",
@@ -44448,7 +44448,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.15_mkeonpc0_giht44d",
+          "id": "step_task_SC.L2-3.13.15_mkeonpc0_hurvz3g",
           "title": "Session Authenticity (SC.L2-3.13.15)",
           "task_type": "configuration",
           "priority": "p2",
@@ -44569,7 +44569,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_j7r94hw",
+              "artifact_id": "ev_mkeonpc0_kak0g1q",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.15 compliance",
               "collector": "evidence_ops",
@@ -44767,7 +44767,7 @@
           ]
         },
         {
-          "id": "step_task_SC.L2-3.13.16_mkeonpc0_k3omshu",
+          "id": "step_task_SC.L2-3.13.16_mkeonpc0_0zn4k8d",
           "title": "CUI Confidentiality at Rest (SC.L2-3.13.16)",
           "task_type": "configuration",
           "priority": "p2",
@@ -44942,7 +44942,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_g6tzcyq",
+              "artifact_id": "ev_mkeonpc0_4u36zy5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SC.L2-3.13.16 compliance",
               "collector": "evidence_ops",
@@ -45181,7 +45181,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.1_mkeonpc0_0hkk1u8",
+          "id": "step_task_SI.L2-3.14.1_mkeonpc0_nzuvk5c",
           "title": "Flaw Identification and Remediation (SI.L2-3.14.1)",
           "task_type": "policy",
           "priority": "p2",
@@ -45427,7 +45427,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_2ttwuq7",
+              "artifact_id": "ev_mkeonpc0_yt66pz1",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.1 compliance",
               "collector": "evidence_ops",
@@ -45697,7 +45697,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.2_mkeonpc0_owxt0nx",
+          "id": "step_task_SI.L2-3.14.2_mkeonpc0_10eht6q",
           "title": "Advanced Malware Protection (SI.L2-3.14.2)",
           "task_type": "configuration",
           "priority": "p2",
@@ -45817,7 +45817,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_xddrl7g",
+              "artifact_id": "ev_mkeonpc0_7r490ys",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.2 compliance",
               "collector": "evidence_ops",
@@ -46010,7 +46010,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.3_mkeonpc0_5xissgh",
+          "id": "step_task_SI.L2-3.14.3_mkeonpc0_itdqrhc",
           "title": "Security Advisory Monitoring (SI.L2-3.14.3)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -46157,7 +46157,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_a4ihzdq",
+              "artifact_id": "ev_mkeonpc0_dp71quu",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.3 compliance",
               "collector": "evidence_ops",
@@ -46334,7 +46334,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.4_mkeonpc0_zpjo0rd",
+          "id": "step_task_SI.L2-3.14.4_mkeonpc0_ck13s1g",
           "title": "Malware Protection Maintenance (SI.L2-3.14.4)",
           "task_type": "configuration",
           "priority": "p2",
@@ -46480,7 +46480,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_ov38139",
+              "artifact_id": "ev_mkeonpc0_objmlhy",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.4 compliance",
               "collector": "evidence_ops",
@@ -46772,7 +46772,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.5_mkeonpc0_bmacric",
+          "id": "step_task_SI.L2-3.14.5_mkeonpc0_98elk6t",
           "title": "Periodic and Real-Time Scanning (SI.L2-3.14.5)",
           "task_type": "configuration",
           "priority": "p2",
@@ -46856,7 +46856,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_34jfct3",
+              "artifact_id": "ev_mkeonpc0_u4dum7l",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.5 compliance",
               "collector": "evidence_ops",
@@ -47009,7 +47009,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.6_mkeonpc0_naq424i",
+          "id": "step_task_SI.L2-3.14.6_mkeonpc0_via8l0g",
           "title": "System Monitoring (SI.L2-3.14.6)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -47197,7 +47197,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_oo8uw1j",
+              "artifact_id": "ev_mkeonpc0_appj74g",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.6 compliance",
               "collector": "evidence_ops",
@@ -47469,7 +47469,7 @@
           ]
         },
         {
-          "id": "step_task_SI.L2-3.14.7_mkeonpc0_r3m3tqm",
+          "id": "step_task_SI.L2-3.14.7_mkeonpc0_tysu74t",
           "title": "Unauthorized Use Detection (SI.L2-3.14.7)",
           "task_type": "monitoring",
           "priority": "p2",
@@ -47783,7 +47783,7 @@
           ],
           "expected_artifacts": [
             {
-              "artifact_id": "ev_mkeonpc0_m3oluj0",
+              "artifact_id": "ev_mkeonpc0_t487tk5",
               "artifact_type": "config_export",
               "description": "Configuration export demonstrating SI.L2-3.14.7 compliance",
               "collector": "evidence_ops",
@@ -48354,7 +48354,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L1-3.1.1_mkeonpc0_b17ub6a"
+            "task_AC.L1-3.1.1_mkeonpc0_6veiwbb"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48370,7 +48370,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L1-3.1.2_mkeonpc0_8yyhstp"
+            "task_AC.L1-3.1.2_mkeonpc0_vlj2ruw"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48386,7 +48386,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L1-3.1.20_mkeonpc0_8pzmf1g"
+            "task_AC.L1-3.1.20_mkeonpc0_fn294bh"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48402,7 +48402,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L1-3.1.22_mkeonpc0_v1guxxe"
+            "task_AC.L1-3.1.22_mkeonpc0_gtrijqs"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48418,7 +48418,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L1-3.5.1_mkeonpc0_hx3hsxl"
+            "task_IA.L1-3.5.1_mkeonpc0_g9qde7n"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48433,7 +48433,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L1-3.5.2_mkeonpc0_jxy39ze"
+            "task_IA.L1-3.5.2_mkeonpc0_6e1m641"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48448,7 +48448,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L1-3.8.3_mkeonpc0_z6iwu3r"
+            "task_MP.L1-3.8.3_mkeonpc0_01ecjbt"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48464,7 +48464,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PE.L1-3.10.1_mkeonpc0_zluk2qk"
+            "task_PE.L1-3.10.1_mkeonpc0_vzkph52"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48479,7 +48479,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PE.L1-3.10.3_mkeonpc0_a6hnnxl"
+            "task_PE.L1-3.10.3_mkeonpc0_3kwkztx"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48494,7 +48494,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PE.L1-3.10.4_mkeonpc0_naaxqum"
+            "task_PE.L1-3.10.4_mkeonpc0_9ymh88c"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48509,7 +48509,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PE.L1-3.10.5_mkeonpc0_jkqdldy"
+            "task_PE.L1-3.10.5_mkeonpc0_ga4m07z"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48524,7 +48524,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L1-3.13.1_mkeonpc0_77sqgsk"
+            "task_SC.L1-3.13.1_mkeonpc0_o4po8uy"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48540,7 +48540,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L1-3.13.5_mkeonpc0_8aowtan"
+            "task_SC.L1-3.13.5_mkeonpc0_cnoedip"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48556,7 +48556,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L1-3.14.1_mkeonpc0_n4bg3dl"
+            "task_SI.L1-3.14.1_mkeonpc0_311f3o9"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48571,7 +48571,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L1-3.14.2_mkeonpc0_60aftft"
+            "task_SI.L1-3.14.2_mkeonpc0_18daa6k"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48586,7 +48586,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L1-3.14.4_mkeonpc0_oad7sx1"
+            "task_SI.L1-3.14.4_mkeonpc0_1l4adrp"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48601,7 +48601,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L1-3.14.5_mkeonpc0_8bwbrxl"
+            "task_SI.L1-3.14.5_mkeonpc0_lgd506h"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48616,7 +48616,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.3_mkeonpc0_epj6fw4"
+            "task_AC.L2-3.1.3_mkeonpc0_umfjwx2"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48632,7 +48632,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.4_mkeonpc0_zi8w4ms"
+            "task_AC.L2-3.1.4_mkeonpc0_876q6a2"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48648,7 +48648,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.5_mkeonpc0_tkvtsz3"
+            "task_AC.L2-3.1.5_mkeonpc0_1whmge2"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48665,7 +48665,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.6_mkeonpc0_zrqbtdh"
+            "task_AC.L2-3.1.6_mkeonpc0_9cl01pw"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48680,7 +48680,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.7_mkeonpc0_k12pr4v"
+            "task_AC.L2-3.1.7_mkeonpc0_grau4ak"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48695,7 +48695,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.8_mkeonpc0_qjauhs8"
+            "task_AC.L2-3.1.8_mkeonpc0_z7upg05"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48710,7 +48710,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.9_mkeonpc0_hnyrsej"
+            "task_AC.L2-3.1.9_mkeonpc0_usm74py"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48726,7 +48726,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.10_mkeonpc0_sn2s52h"
+            "task_AC.L2-3.1.10_mkeonpc0_46sokk7"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48741,7 +48741,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.11_mkeonpc0_zsiblzd"
+            "task_AC.L2-3.1.11_mkeonpc0_mdstbr8"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48756,7 +48756,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.12_mkeonpc0_2wmbfgl"
+            "task_AC.L2-3.1.12_mkeonpc0_5g2t8jv"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -48772,7 +48772,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.13_mkeonpc0_6lx4cth"
+            "task_AC.L2-3.1.13_mkeonpc0_7zakozr"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48787,7 +48787,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.14_mkeonpc0_pidlega"
+            "task_AC.L2-3.1.14_mkeonpc0_xrfof6l"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48802,7 +48802,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.15_mkeonpc0_rqk9qqv"
+            "task_AC.L2-3.1.15_mkeonpc0_ifx3972"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48817,7 +48817,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.16_mkeonpc0_17laa1u"
+            "task_AC.L2-3.1.16_mkeonpc0_w4k654v"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48832,7 +48832,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.17_mkeonpc0_gc9zrio"
+            "task_AC.L2-3.1.17_mkeonpc0_0ur9lo4"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48847,7 +48847,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.18_mkeonpc0_j79cg1r"
+            "task_AC.L2-3.1.18_mkeonpc0_ivrnd8r"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48862,7 +48862,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.19_mkeonpc0_k4zzaml"
+            "task_AC.L2-3.1.19_mkeonpc0_r2x9543"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48877,7 +48877,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AC.L2-3.1.21_mkeonpc0_2zalxrs"
+            "task_AC.L2-3.1.21_mkeonpc0_xtp94zr"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48892,7 +48892,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_AT.L2-3.2.1_mkeonpc0_hldermj"
+            "task_AT.L2-3.2.1_mkeonpc0_1tw7kff"
           ],
           "estimated_effort_hours": 6,
           "gap_classifications": [
@@ -48907,7 +48907,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_AT.L2-3.2.2_mkeonpc0_itfrmw8"
+            "task_AT.L2-3.2.2_mkeonpc0_b658b49"
           ],
           "estimated_effort_hours": 6,
           "gap_classifications": [
@@ -48922,7 +48922,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_AT.L2-3.2.3_mkeonpc0_cg2pi3l"
+            "task_AT.L2-3.2.3_mkeonpc0_nan2nji"
           ],
           "estimated_effort_hours": 6,
           "gap_classifications": [
@@ -48949,7 +48949,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.2_mkeonpc0_ok9h9q8"
+            "task_AU.L2-3.3.2_mkeonpc0_66l021n"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -48964,7 +48964,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.3_mkeonpc0_65krtkq"
+            "task_AU.L2-3.3.3_mkeonpc0_h0b2hi4"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -48980,7 +48980,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.4_mkeonpc0_tdm5uas"
+            "task_AU.L2-3.3.4_mkeonpc0_tx2dmwl"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -48996,7 +48996,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.5_mkeonpc0_48ic6xi"
+            "task_AU.L2-3.3.5_mkeonpc0_j5n7kul"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49011,7 +49011,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_AU.L2-3.3.6_mkeonpc0_wwf0k9i"
+            "task_AU.L2-3.3.6_mkeonpc0_a9tfex5"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49026,7 +49026,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_AU.L2-3.3.7_mkeonpc0_0t6137a"
+            "task_AU.L2-3.3.7_mkeonpc0_euvzmio"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49041,7 +49041,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.8_mkeonpc0_s8qlrep"
+            "task_AU.L2-3.3.8_mkeonpc0_lg5fa2f"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49056,7 +49056,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_AU.L2-3.3.9_mkeonpc0_3gqjhg6"
+            "task_AU.L2-3.3.9_mkeonpc0_xosi1ix"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49071,7 +49071,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.1_mkeonpc0_uyv4u6r"
+            "task_CM.L2-3.4.1_mkeonpc0_3sly9ha"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49087,7 +49087,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.2_mkeonpc0_n5zo5m9"
+            "task_CM.L2-3.4.2_mkeonpc0_sx8luam"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49102,7 +49102,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.3_mkeonpc0_5idhsuw"
+            "task_CM.L2-3.4.3_mkeonpc0_9omqejs"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49118,7 +49118,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_CM.L2-3.4.4_mkeonpc0_irfkt8f"
+            "task_CM.L2-3.4.4_mkeonpc0_p92iiwt"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49133,7 +49133,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.5_mkeonpc0_wx3inuc"
+            "task_CM.L2-3.4.5_mkeonpc0_uijbt8k"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49148,7 +49148,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.6_mkeonpc0_15usa00"
+            "task_CM.L2-3.4.6_mkeonpc0_133jtm6"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49163,7 +49163,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.7_mkeonpc0_7c3yyvt"
+            "task_CM.L2-3.4.7_mkeonpc0_8u5jc11"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49178,7 +49178,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_CM.L2-3.4.8_mkeonpc0_zkgh28c"
+            "task_CM.L2-3.4.8_mkeonpc0_7ti6o8d"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49193,7 +49193,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CM.L2-3.4.9_mkeonpc0_4egxhqr"
+            "task_CM.L2-3.4.9_mkeonpc0_v6zhrnb"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49209,7 +49209,7 @@
           "readiness_status": "not_met",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.3_mkeonpc0_fjwf14h"
+            "task_IA.L2-3.5.3_mkeonpc0_69fvbe5"
           ],
           "estimated_effort_hours": 16,
           "gap_classifications": [
@@ -49225,7 +49225,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.4_mkeonpc0_fj9ihfm"
+            "task_IA.L2-3.5.4_mkeonpc0_m4kir8y"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49240,7 +49240,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.5_mkeonpc0_k733eye"
+            "task_IA.L2-3.5.5_mkeonpc0_wk90bod"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49255,7 +49255,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.6_mkeonpc0_h9blhf7"
+            "task_IA.L2-3.5.6_mkeonpc0_0eiigc2"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49270,7 +49270,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.7_mkeonpc0_y0r8fl1"
+            "task_IA.L2-3.5.7_mkeonpc0_rc74ubf"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49285,7 +49285,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_IA.L2-3.5.8_mkeonpc0_izw219m"
+            "task_IA.L2-3.5.8_mkeonpc0_fjvlwek"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49300,7 +49300,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IA.L2-3.5.9_mkeonpc0_j57k80n"
+            "task_IA.L2-3.5.9_mkeonpc0_iezo5rn"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49315,7 +49315,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_IA.L2-3.5.10_mkeonpc0_4ia2tvs"
+            "task_IA.L2-3.5.10_mkeonpc0_onlf96z"
           ],
           "estimated_effort_hours": 8,
           "gap_classifications": [
@@ -49330,7 +49330,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_IA.L2-3.5.11_mkeonpc0_cts8tcy"
+            "task_IA.L2-3.5.11_mkeonpc0_flzbu0w"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49345,7 +49345,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IR.L2-3.6.1_mkeonpc0_e4taooo"
+            "task_IR.L2-3.6.1_mkeonpc0_0c0ih4f"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49361,7 +49361,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_IR.L2-3.6.2_mkeonpc0_ate63j1"
+            "task_IR.L2-3.6.2_mkeonpc0_3qxe0lr"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49377,7 +49377,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_IR.L2-3.6.3_mkeonpc0_d6zs2or"
+            "task_IR.L2-3.6.3_mkeonpc0_sbhznz9"
           ],
           "estimated_effort_hours": 8,
           "gap_classifications": [
@@ -49392,7 +49392,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MA.L2-3.7.1_mkeonpc0_mjbo06v"
+            "task_MA.L2-3.7.1_mkeonpc0_7btbhku"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49407,7 +49407,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MA.L2-3.7.2_mkeonpc0_k1vj74l"
+            "task_MA.L2-3.7.2_mkeonpc0_769vbyz"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49422,7 +49422,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MA.L2-3.7.3_mkeonpc0_g4sxz57"
+            "task_MA.L2-3.7.3_mkeonpc0_ou0tyl5"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49437,7 +49437,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MA.L2-3.7.4_mkeonpc0_ubrd2pz"
+            "task_MA.L2-3.7.4_mkeonpc0_3z7mbr1"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49452,7 +49452,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MA.L2-3.7.5_mkeonpc0_nmon3f2"
+            "task_MA.L2-3.7.5_mkeonpc0_dvd07o0"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49467,7 +49467,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MA.L2-3.7.6_mkeonpc0_0alqf0v"
+            "task_MA.L2-3.7.6_mkeonpc0_vck5fek"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49482,7 +49482,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L2-3.8.1_mkeonpc0_onj3oig"
+            "task_MP.L2-3.8.1_mkeonpc0_na8nbiw"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49497,7 +49497,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L2-3.8.2_mkeonpc0_wz17j4p"
+            "task_MP.L2-3.8.2_mkeonpc0_vwgoxdj"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49512,7 +49512,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L2-3.8.4_mkeonpc0_azeax7i"
+            "task_MP.L2-3.8.4_mkeonpc0_faqiwzj"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49527,7 +49527,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MP.L2-3.8.5_mkeonpc0_xkkzrsv"
+            "task_MP.L2-3.8.5_mkeonpc0_4u5re4b"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49542,7 +49542,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MP.L2-3.8.6_mkeonpc0_ehbpye8"
+            "task_MP.L2-3.8.6_mkeonpc0_wy3xs8d"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49557,7 +49557,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_MP.L2-3.8.7_mkeonpc0_aw8v249"
+            "task_MP.L2-3.8.7_mkeonpc0_vyhb06p"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49572,7 +49572,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L2-3.8.8_mkeonpc0_lkux5j2"
+            "task_MP.L2-3.8.8_mkeonpc0_6ngu3ax"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49587,7 +49587,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_MP.L2-3.8.9_mkeonpc0_tfywqmn"
+            "task_MP.L2-3.8.9_mkeonpc0_c4ww2ev"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49602,7 +49602,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PS.L2-3.9.1_mkeonpc0_awckfpf"
+            "task_PS.L2-3.9.1_mkeonpc0_op74s46"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49617,7 +49617,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PS.L2-3.9.2_mkeonpc0_3klc7xm"
+            "task_PS.L2-3.9.2_mkeonpc0_w7i92zr"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49633,7 +49633,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_PE.L2-3.10.2_mkeonpc0_capa2r8"
+            "task_PE.L2-3.10.2_mkeonpc0_xdtugiu"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49648,7 +49648,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_PE.L2-3.10.6_mkeonpc0_u0g7i1n"
+            "task_PE.L2-3.10.6_mkeonpc0_a96v62l"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49664,7 +49664,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_RA.L2-3.11.1_mkeonpc0_hzh5aj6"
+            "task_RA.L2-3.11.1_mkeonpc0_vsb1n3y"
           ],
           "estimated_effort_hours": 8,
           "gap_classifications": [
@@ -49679,7 +49679,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_RA.L2-3.11.2_mkeonpc0_naj2h9t"
+            "task_RA.L2-3.11.2_mkeonpc0_n180zsv"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49694,7 +49694,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_RA.L2-3.11.3_mkeonpc0_ir7xd5o"
+            "task_RA.L2-3.11.3_mkeonpc0_e190tzi"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49709,7 +49709,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CA.L2-3.12.1_mkeonpc0_wijqeha"
+            "task_CA.L2-3.12.1_mkeonpc0_6wac2yj"
           ],
           "estimated_effort_hours": 8,
           "gap_classifications": [
@@ -49724,7 +49724,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_CA.L2-3.12.2_mkeonpc0_0vyb2du"
+            "task_CA.L2-3.12.2_mkeonpc0_p9aa7rn"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49739,7 +49739,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_CA.L2-3.12.3_mkeonpc0_6xac49k"
+            "task_CA.L2-3.12.3_mkeonpc0_p4s7vtx"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -49754,7 +49754,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Non-Stack",
           "task_ids": [
-            "task_CA.L2-3.12.4_mkeonpc0_j1qjos0"
+            "task_CA.L2-3.12.4_mkeonpc0_77vcg0f"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49769,7 +49769,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.2_mkeonpc0_di6ye54"
+            "task_SC.L2-3.13.2_mkeonpc0_j1a9rs4"
           ],
           "estimated_effort_hours": 11,
           "gap_classifications": [
@@ -49785,7 +49785,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.3_mkeonpc0_twqwqyj"
+            "task_SC.L2-3.13.3_mkeonpc0_9eiwy3e"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49800,7 +49800,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.4_mkeonpc0_2p2dk5x"
+            "task_SC.L2-3.13.4_mkeonpc0_zc1y06c"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49815,7 +49815,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.6_mkeonpc0_1iay27l"
+            "task_SC.L2-3.13.6_mkeonpc0_6wmxi6w"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49831,7 +49831,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.7_mkeonpc0_5hmf6bs"
+            "task_SC.L2-3.13.7_mkeonpc0_yvm63a5"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49846,7 +49846,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.8_mkeonpc0_ifb6eak"
+            "task_SC.L2-3.13.8_mkeonpc0_65f2gud"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49861,7 +49861,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.9_mkeonpc0_2bls9wt"
+            "task_SC.L2-3.13.9_mkeonpc0_cor08qm"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49876,7 +49876,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.10_mkeonpc0_8y0clg9"
+            "task_SC.L2-3.13.10_mkeonpc0_elf3ram"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49892,7 +49892,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.11_mkeonpc0_ukkh0ny"
+            "task_SC.L2-3.13.11_mkeonpc0_9b92tjl"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49908,7 +49908,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.12_mkeonpc0_42guccd"
+            "task_SC.L2-3.13.12_mkeonpc0_of5dmcb"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49923,7 +49923,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.13_mkeonpc0_xsrn6ph"
+            "task_SC.L2-3.13.13_mkeonpc0_3vydawb"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49938,7 +49938,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.14_mkeonpc0_bzk4h5x"
+            "task_SC.L2-3.13.14_mkeonpc0_8o0gh27"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49953,7 +49953,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.15_mkeonpc0_giht44d"
+            "task_SC.L2-3.13.15_mkeonpc0_hurvz3g"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49968,7 +49968,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SC.L2-3.13.16_mkeonpc0_k3omshu"
+            "task_SC.L2-3.13.16_mkeonpc0_0zn4k8d"
           ],
           "estimated_effort_hours": 17,
           "gap_classifications": [
@@ -49983,7 +49983,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L2-3.14.3_mkeonpc0_5xissgh"
+            "task_SI.L2-3.14.3_mkeonpc0_itdqrhc"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -49998,7 +49998,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L2-3.14.6_mkeonpc0_naq424i"
+            "task_SI.L2-3.14.6_mkeonpc0_via8l0g"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -50013,7 +50013,7 @@
           "scope_status": "in_scope",
           "stamper_action": "Automated",
           "task_ids": [
-            "task_SI.L2-3.14.7_mkeonpc0_r3m3tqm"
+            "task_SI.L2-3.14.7_mkeonpc0_tysu74t"
           ],
           "estimated_effort_hours": 14,
           "gap_classifications": [
@@ -50027,266 +50027,266 @@
           "control_id": "AC.L1-3.1.1",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L1-3.1.1_mkeonpc0_b17ub6a"
+            "task_AC.L1-3.1.1_mkeonpc0_6veiwbb"
           ]
         },
         {
           "control_id": "AC.L1-3.1.2",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L1-3.1.2_mkeonpc0_8yyhstp"
+            "task_AC.L1-3.1.2_mkeonpc0_vlj2ruw"
           ]
         },
         {
           "control_id": "AC.L1-3.1.20",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L1-3.1.20_mkeonpc0_8pzmf1g"
+            "task_AC.L1-3.1.20_mkeonpc0_fn294bh"
           ]
         },
         {
           "control_id": "AC.L1-3.1.22",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L1-3.1.22_mkeonpc0_v1guxxe"
+            "task_AC.L1-3.1.22_mkeonpc0_gtrijqs"
           ]
         },
         {
           "control_id": "IA.L1-3.5.1",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L1-3.5.1_mkeonpc0_hx3hsxl"
+            "task_IA.L1-3.5.1_mkeonpc0_g9qde7n"
           ]
         },
         {
           "control_id": "IA.L1-3.5.2",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L1-3.5.2_mkeonpc0_jxy39ze"
+            "task_IA.L1-3.5.2_mkeonpc0_6e1m641"
           ]
         },
         {
           "control_id": "MP.L1-3.8.3",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L1-3.8.3_mkeonpc0_z6iwu3r"
+            "task_MP.L1-3.8.3_mkeonpc0_01ecjbt"
           ]
         },
         {
           "control_id": "PE.L1-3.10.1",
           "directive": "manual",
           "step_ids": [
-            "task_PE.L1-3.10.1_mkeonpc0_zluk2qk"
+            "task_PE.L1-3.10.1_mkeonpc0_vzkph52"
           ]
         },
         {
           "control_id": "PE.L1-3.10.3",
           "directive": "manual",
           "step_ids": [
-            "task_PE.L1-3.10.3_mkeonpc0_a6hnnxl"
+            "task_PE.L1-3.10.3_mkeonpc0_3kwkztx"
           ]
         },
         {
           "control_id": "PE.L1-3.10.4",
           "directive": "manual",
           "step_ids": [
-            "task_PE.L1-3.10.4_mkeonpc0_naaxqum"
+            "task_PE.L1-3.10.4_mkeonpc0_9ymh88c"
           ]
         },
         {
           "control_id": "PE.L1-3.10.5",
           "directive": "manual",
           "step_ids": [
-            "task_PE.L1-3.10.5_mkeonpc0_jkqdldy"
+            "task_PE.L1-3.10.5_mkeonpc0_ga4m07z"
           ]
         },
         {
           "control_id": "SC.L1-3.13.1",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L1-3.13.1_mkeonpc0_77sqgsk"
+            "task_SC.L1-3.13.1_mkeonpc0_o4po8uy"
           ]
         },
         {
           "control_id": "SC.L1-3.13.5",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L1-3.13.5_mkeonpc0_8aowtan"
+            "task_SC.L1-3.13.5_mkeonpc0_cnoedip"
           ]
         },
         {
           "control_id": "SI.L1-3.14.1",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L1-3.14.1_mkeonpc0_n4bg3dl"
+            "task_SI.L1-3.14.1_mkeonpc0_311f3o9"
           ]
         },
         {
           "control_id": "SI.L1-3.14.2",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L1-3.14.2_mkeonpc0_60aftft"
+            "task_SI.L1-3.14.2_mkeonpc0_18daa6k"
           ]
         },
         {
           "control_id": "SI.L1-3.14.4",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L1-3.14.4_mkeonpc0_oad7sx1"
+            "task_SI.L1-3.14.4_mkeonpc0_1l4adrp"
           ]
         },
         {
           "control_id": "SI.L1-3.14.5",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L1-3.14.5_mkeonpc0_8bwbrxl"
+            "task_SI.L1-3.14.5_mkeonpc0_lgd506h"
           ]
         },
         {
           "control_id": "AC.L2-3.1.3",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.3_mkeonpc0_epj6fw4"
+            "task_AC.L2-3.1.3_mkeonpc0_umfjwx2"
           ]
         },
         {
           "control_id": "AC.L2-3.1.4",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.4_mkeonpc0_zi8w4ms"
+            "task_AC.L2-3.1.4_mkeonpc0_876q6a2"
           ]
         },
         {
           "control_id": "AC.L2-3.1.5",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.5_mkeonpc0_tkvtsz3"
+            "task_AC.L2-3.1.5_mkeonpc0_1whmge2"
           ]
         },
         {
           "control_id": "AC.L2-3.1.6",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.6_mkeonpc0_zrqbtdh"
+            "task_AC.L2-3.1.6_mkeonpc0_9cl01pw"
           ]
         },
         {
           "control_id": "AC.L2-3.1.7",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.7_mkeonpc0_k12pr4v"
+            "task_AC.L2-3.1.7_mkeonpc0_grau4ak"
           ]
         },
         {
           "control_id": "AC.L2-3.1.8",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.8_mkeonpc0_qjauhs8"
+            "task_AC.L2-3.1.8_mkeonpc0_z7upg05"
           ]
         },
         {
           "control_id": "AC.L2-3.1.9",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.9_mkeonpc0_hnyrsej"
+            "task_AC.L2-3.1.9_mkeonpc0_usm74py"
           ]
         },
         {
           "control_id": "AC.L2-3.1.10",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.10_mkeonpc0_sn2s52h"
+            "task_AC.L2-3.1.10_mkeonpc0_46sokk7"
           ]
         },
         {
           "control_id": "AC.L2-3.1.11",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.11_mkeonpc0_zsiblzd"
+            "task_AC.L2-3.1.11_mkeonpc0_mdstbr8"
           ]
         },
         {
           "control_id": "AC.L2-3.1.12",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.12_mkeonpc0_2wmbfgl"
+            "task_AC.L2-3.1.12_mkeonpc0_5g2t8jv"
           ]
         },
         {
           "control_id": "AC.L2-3.1.13",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.13_mkeonpc0_6lx4cth"
+            "task_AC.L2-3.1.13_mkeonpc0_7zakozr"
           ]
         },
         {
           "control_id": "AC.L2-3.1.14",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.14_mkeonpc0_pidlega"
+            "task_AC.L2-3.1.14_mkeonpc0_xrfof6l"
           ]
         },
         {
           "control_id": "AC.L2-3.1.15",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.15_mkeonpc0_rqk9qqv"
+            "task_AC.L2-3.1.15_mkeonpc0_ifx3972"
           ]
         },
         {
           "control_id": "AC.L2-3.1.16",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.16_mkeonpc0_17laa1u"
+            "task_AC.L2-3.1.16_mkeonpc0_w4k654v"
           ]
         },
         {
           "control_id": "AC.L2-3.1.17",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.17_mkeonpc0_gc9zrio"
+            "task_AC.L2-3.1.17_mkeonpc0_0ur9lo4"
           ]
         },
         {
           "control_id": "AC.L2-3.1.18",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.18_mkeonpc0_j79cg1r"
+            "task_AC.L2-3.1.18_mkeonpc0_ivrnd8r"
           ]
         },
         {
           "control_id": "AC.L2-3.1.19",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.19_mkeonpc0_k4zzaml"
+            "task_AC.L2-3.1.19_mkeonpc0_r2x9543"
           ]
         },
         {
           "control_id": "AC.L2-3.1.21",
           "directive": "implement",
           "step_ids": [
-            "task_AC.L2-3.1.21_mkeonpc0_2zalxrs"
+            "task_AC.L2-3.1.21_mkeonpc0_xtp94zr"
           ]
         },
         {
           "control_id": "AT.L2-3.2.1",
           "directive": "manual",
           "step_ids": [
-            "task_AT.L2-3.2.1_mkeonpc0_hldermj"
+            "task_AT.L2-3.2.1_mkeonpc0_1tw7kff"
           ]
         },
         {
           "control_id": "AT.L2-3.2.2",
           "directive": "manual",
           "step_ids": [
-            "task_AT.L2-3.2.2_mkeonpc0_itfrmw8"
+            "task_AT.L2-3.2.2_mkeonpc0_b658b49"
           ]
         },
         {
           "control_id": "AT.L2-3.2.3",
           "directive": "manual",
           "step_ids": [
-            "task_AT.L2-3.2.3_mkeonpc0_cg2pi3l"
+            "task_AT.L2-3.2.3_mkeonpc0_nan2nji"
           ]
         },
         {
@@ -50297,497 +50297,497 @@
           "control_id": "AU.L2-3.3.2",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.2_mkeonpc0_ok9h9q8"
+            "task_AU.L2-3.3.2_mkeonpc0_66l021n"
           ]
         },
         {
           "control_id": "AU.L2-3.3.3",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.3_mkeonpc0_65krtkq"
+            "task_AU.L2-3.3.3_mkeonpc0_h0b2hi4"
           ]
         },
         {
           "control_id": "AU.L2-3.3.4",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.4_mkeonpc0_tdm5uas"
+            "task_AU.L2-3.3.4_mkeonpc0_tx2dmwl"
           ]
         },
         {
           "control_id": "AU.L2-3.3.5",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.5_mkeonpc0_48ic6xi"
+            "task_AU.L2-3.3.5_mkeonpc0_j5n7kul"
           ]
         },
         {
           "control_id": "AU.L2-3.3.6",
           "directive": "manual",
           "step_ids": [
-            "task_AU.L2-3.3.6_mkeonpc0_wwf0k9i"
+            "task_AU.L2-3.3.6_mkeonpc0_a9tfex5"
           ]
         },
         {
           "control_id": "AU.L2-3.3.7",
           "directive": "manual",
           "step_ids": [
-            "task_AU.L2-3.3.7_mkeonpc0_0t6137a"
+            "task_AU.L2-3.3.7_mkeonpc0_euvzmio"
           ]
         },
         {
           "control_id": "AU.L2-3.3.8",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.8_mkeonpc0_s8qlrep"
+            "task_AU.L2-3.3.8_mkeonpc0_lg5fa2f"
           ]
         },
         {
           "control_id": "AU.L2-3.3.9",
           "directive": "implement",
           "step_ids": [
-            "task_AU.L2-3.3.9_mkeonpc0_3gqjhg6"
+            "task_AU.L2-3.3.9_mkeonpc0_xosi1ix"
           ]
         },
         {
           "control_id": "CM.L2-3.4.1",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.1_mkeonpc0_uyv4u6r"
+            "task_CM.L2-3.4.1_mkeonpc0_3sly9ha"
           ]
         },
         {
           "control_id": "CM.L2-3.4.2",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.2_mkeonpc0_n5zo5m9"
+            "task_CM.L2-3.4.2_mkeonpc0_sx8luam"
           ]
         },
         {
           "control_id": "CM.L2-3.4.3",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.3_mkeonpc0_5idhsuw"
+            "task_CM.L2-3.4.3_mkeonpc0_9omqejs"
           ]
         },
         {
           "control_id": "CM.L2-3.4.4",
           "directive": "manual",
           "step_ids": [
-            "task_CM.L2-3.4.4_mkeonpc0_irfkt8f"
+            "task_CM.L2-3.4.4_mkeonpc0_p92iiwt"
           ]
         },
         {
           "control_id": "CM.L2-3.4.5",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.5_mkeonpc0_wx3inuc"
+            "task_CM.L2-3.4.5_mkeonpc0_uijbt8k"
           ]
         },
         {
           "control_id": "CM.L2-3.4.6",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.6_mkeonpc0_15usa00"
+            "task_CM.L2-3.4.6_mkeonpc0_133jtm6"
           ]
         },
         {
           "control_id": "CM.L2-3.4.7",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.7_mkeonpc0_7c3yyvt"
+            "task_CM.L2-3.4.7_mkeonpc0_8u5jc11"
           ]
         },
         {
           "control_id": "CM.L2-3.4.8",
           "directive": "manual",
           "step_ids": [
-            "task_CM.L2-3.4.8_mkeonpc0_zkgh28c"
+            "task_CM.L2-3.4.8_mkeonpc0_7ti6o8d"
           ]
         },
         {
           "control_id": "CM.L2-3.4.9",
           "directive": "implement",
           "step_ids": [
-            "task_CM.L2-3.4.9_mkeonpc0_4egxhqr"
+            "task_CM.L2-3.4.9_mkeonpc0_v6zhrnb"
           ]
         },
         {
           "control_id": "IA.L2-3.5.3",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.3_mkeonpc0_fjwf14h"
+            "task_IA.L2-3.5.3_mkeonpc0_69fvbe5"
           ]
         },
         {
           "control_id": "IA.L2-3.5.4",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.4_mkeonpc0_fj9ihfm"
+            "task_IA.L2-3.5.4_mkeonpc0_m4kir8y"
           ]
         },
         {
           "control_id": "IA.L2-3.5.5",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.5_mkeonpc0_k733eye"
+            "task_IA.L2-3.5.5_mkeonpc0_wk90bod"
           ]
         },
         {
           "control_id": "IA.L2-3.5.6",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.6_mkeonpc0_h9blhf7"
+            "task_IA.L2-3.5.6_mkeonpc0_0eiigc2"
           ]
         },
         {
           "control_id": "IA.L2-3.5.7",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.7_mkeonpc0_y0r8fl1"
+            "task_IA.L2-3.5.7_mkeonpc0_rc74ubf"
           ]
         },
         {
           "control_id": "IA.L2-3.5.8",
           "directive": "manual",
           "step_ids": [
-            "task_IA.L2-3.5.8_mkeonpc0_izw219m"
+            "task_IA.L2-3.5.8_mkeonpc0_fjvlwek"
           ]
         },
         {
           "control_id": "IA.L2-3.5.9",
           "directive": "implement",
           "step_ids": [
-            "task_IA.L2-3.5.9_mkeonpc0_j57k80n"
+            "task_IA.L2-3.5.9_mkeonpc0_iezo5rn"
           ]
         },
         {
           "control_id": "IA.L2-3.5.10",
           "directive": "manual",
           "step_ids": [
-            "task_IA.L2-3.5.10_mkeonpc0_4ia2tvs"
+            "task_IA.L2-3.5.10_mkeonpc0_onlf96z"
           ]
         },
         {
           "control_id": "IA.L2-3.5.11",
           "directive": "manual",
           "step_ids": [
-            "task_IA.L2-3.5.11_mkeonpc0_cts8tcy"
+            "task_IA.L2-3.5.11_mkeonpc0_flzbu0w"
           ]
         },
         {
           "control_id": "IR.L2-3.6.1",
           "directive": "implement",
           "step_ids": [
-            "task_IR.L2-3.6.1_mkeonpc0_e4taooo"
+            "task_IR.L2-3.6.1_mkeonpc0_0c0ih4f"
           ]
         },
         {
           "control_id": "IR.L2-3.6.2",
           "directive": "implement",
           "step_ids": [
-            "task_IR.L2-3.6.2_mkeonpc0_ate63j1"
+            "task_IR.L2-3.6.2_mkeonpc0_3qxe0lr"
           ]
         },
         {
           "control_id": "IR.L2-3.6.3",
           "directive": "manual",
           "step_ids": [
-            "task_IR.L2-3.6.3_mkeonpc0_d6zs2or"
+            "task_IR.L2-3.6.3_mkeonpc0_sbhznz9"
           ]
         },
         {
           "control_id": "MA.L2-3.7.1",
           "directive": "manual",
           "step_ids": [
-            "task_MA.L2-3.7.1_mkeonpc0_mjbo06v"
+            "task_MA.L2-3.7.1_mkeonpc0_7btbhku"
           ]
         },
         {
           "control_id": "MA.L2-3.7.2",
           "directive": "manual",
           "step_ids": [
-            "task_MA.L2-3.7.2_mkeonpc0_k1vj74l"
+            "task_MA.L2-3.7.2_mkeonpc0_769vbyz"
           ]
         },
         {
           "control_id": "MA.L2-3.7.3",
           "directive": "manual",
           "step_ids": [
-            "task_MA.L2-3.7.3_mkeonpc0_g4sxz57"
+            "task_MA.L2-3.7.3_mkeonpc0_ou0tyl5"
           ]
         },
         {
           "control_id": "MA.L2-3.7.4",
           "directive": "manual",
           "step_ids": [
-            "task_MA.L2-3.7.4_mkeonpc0_ubrd2pz"
+            "task_MA.L2-3.7.4_mkeonpc0_3z7mbr1"
           ]
         },
         {
           "control_id": "MA.L2-3.7.5",
           "directive": "implement",
           "step_ids": [
-            "task_MA.L2-3.7.5_mkeonpc0_nmon3f2"
+            "task_MA.L2-3.7.5_mkeonpc0_dvd07o0"
           ]
         },
         {
           "control_id": "MA.L2-3.7.6",
           "directive": "manual",
           "step_ids": [
-            "task_MA.L2-3.7.6_mkeonpc0_0alqf0v"
+            "task_MA.L2-3.7.6_mkeonpc0_vck5fek"
           ]
         },
         {
           "control_id": "MP.L2-3.8.1",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L2-3.8.1_mkeonpc0_onj3oig"
+            "task_MP.L2-3.8.1_mkeonpc0_na8nbiw"
           ]
         },
         {
           "control_id": "MP.L2-3.8.2",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L2-3.8.2_mkeonpc0_wz17j4p"
+            "task_MP.L2-3.8.2_mkeonpc0_vwgoxdj"
           ]
         },
         {
           "control_id": "MP.L2-3.8.4",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L2-3.8.4_mkeonpc0_azeax7i"
+            "task_MP.L2-3.8.4_mkeonpc0_faqiwzj"
           ]
         },
         {
           "control_id": "MP.L2-3.8.5",
           "directive": "manual",
           "step_ids": [
-            "task_MP.L2-3.8.5_mkeonpc0_xkkzrsv"
+            "task_MP.L2-3.8.5_mkeonpc0_4u5re4b"
           ]
         },
         {
           "control_id": "MP.L2-3.8.6",
           "directive": "manual",
           "step_ids": [
-            "task_MP.L2-3.8.6_mkeonpc0_ehbpye8"
+            "task_MP.L2-3.8.6_mkeonpc0_wy3xs8d"
           ]
         },
         {
           "control_id": "MP.L2-3.8.7",
           "directive": "manual",
           "step_ids": [
-            "task_MP.L2-3.8.7_mkeonpc0_aw8v249"
+            "task_MP.L2-3.8.7_mkeonpc0_vyhb06p"
           ]
         },
         {
           "control_id": "MP.L2-3.8.8",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L2-3.8.8_mkeonpc0_lkux5j2"
+            "task_MP.L2-3.8.8_mkeonpc0_6ngu3ax"
           ]
         },
         {
           "control_id": "MP.L2-3.8.9",
           "directive": "implement",
           "step_ids": [
-            "task_MP.L2-3.8.9_mkeonpc0_tfywqmn"
+            "task_MP.L2-3.8.9_mkeonpc0_c4ww2ev"
           ]
         },
         {
           "control_id": "PS.L2-3.9.1",
           "directive": "manual",
           "step_ids": [
-            "task_PS.L2-3.9.1_mkeonpc0_awckfpf"
+            "task_PS.L2-3.9.1_mkeonpc0_op74s46"
           ]
         },
         {
           "control_id": "PS.L2-3.9.2",
           "directive": "manual",
           "step_ids": [
-            "task_PS.L2-3.9.2_mkeonpc0_3klc7xm"
+            "task_PS.L2-3.9.2_mkeonpc0_w7i92zr"
           ]
         },
         {
           "control_id": "PE.L2-3.10.2",
           "directive": "manual",
           "step_ids": [
-            "task_PE.L2-3.10.2_mkeonpc0_capa2r8"
+            "task_PE.L2-3.10.2_mkeonpc0_xdtugiu"
           ]
         },
         {
           "control_id": "PE.L2-3.10.6",
           "directive": "implement",
           "step_ids": [
-            "task_PE.L2-3.10.6_mkeonpc0_u0g7i1n"
+            "task_PE.L2-3.10.6_mkeonpc0_a96v62l"
           ]
         },
         {
           "control_id": "RA.L2-3.11.1",
           "directive": "manual",
           "step_ids": [
-            "task_RA.L2-3.11.1_mkeonpc0_hzh5aj6"
+            "task_RA.L2-3.11.1_mkeonpc0_vsb1n3y"
           ]
         },
         {
           "control_id": "RA.L2-3.11.2",
           "directive": "manual",
           "step_ids": [
-            "task_RA.L2-3.11.2_mkeonpc0_naj2h9t"
+            "task_RA.L2-3.11.2_mkeonpc0_n180zsv"
           ]
         },
         {
           "control_id": "RA.L2-3.11.3",
           "directive": "manual",
           "step_ids": [
-            "task_RA.L2-3.11.3_mkeonpc0_ir7xd5o"
+            "task_RA.L2-3.11.3_mkeonpc0_e190tzi"
           ]
         },
         {
           "control_id": "CA.L2-3.12.1",
           "directive": "implement",
           "step_ids": [
-            "task_CA.L2-3.12.1_mkeonpc0_wijqeha"
+            "task_CA.L2-3.12.1_mkeonpc0_6wac2yj"
           ]
         },
         {
           "control_id": "CA.L2-3.12.2",
           "directive": "manual",
           "step_ids": [
-            "task_CA.L2-3.12.2_mkeonpc0_0vyb2du"
+            "task_CA.L2-3.12.2_mkeonpc0_p9aa7rn"
           ]
         },
         {
           "control_id": "CA.L2-3.12.3",
           "directive": "implement",
           "step_ids": [
-            "task_CA.L2-3.12.3_mkeonpc0_6xac49k"
+            "task_CA.L2-3.12.3_mkeonpc0_p4s7vtx"
           ]
         },
         {
           "control_id": "CA.L2-3.12.4",
           "directive": "manual",
           "step_ids": [
-            "task_CA.L2-3.12.4_mkeonpc0_j1qjos0"
+            "task_CA.L2-3.12.4_mkeonpc0_77vcg0f"
           ]
         },
         {
           "control_id": "SC.L2-3.13.2",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.2_mkeonpc0_di6ye54"
+            "task_SC.L2-3.13.2_mkeonpc0_j1a9rs4"
           ]
         },
         {
           "control_id": "SC.L2-3.13.3",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.3_mkeonpc0_twqwqyj"
+            "task_SC.L2-3.13.3_mkeonpc0_9eiwy3e"
           ]
         },
         {
           "control_id": "SC.L2-3.13.4",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.4_mkeonpc0_2p2dk5x"
+            "task_SC.L2-3.13.4_mkeonpc0_zc1y06c"
           ]
         },
         {
           "control_id": "SC.L2-3.13.6",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.6_mkeonpc0_1iay27l"
+            "task_SC.L2-3.13.6_mkeonpc0_6wmxi6w"
           ]
         },
         {
           "control_id": "SC.L2-3.13.7",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.7_mkeonpc0_5hmf6bs"
+            "task_SC.L2-3.13.7_mkeonpc0_yvm63a5"
           ]
         },
         {
           "control_id": "SC.L2-3.13.8",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.8_mkeonpc0_ifb6eak"
+            "task_SC.L2-3.13.8_mkeonpc0_65f2gud"
           ]
         },
         {
           "control_id": "SC.L2-3.13.9",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.9_mkeonpc0_2bls9wt"
+            "task_SC.L2-3.13.9_mkeonpc0_cor08qm"
           ]
         },
         {
           "control_id": "SC.L2-3.13.10",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.10_mkeonpc0_8y0clg9"
+            "task_SC.L2-3.13.10_mkeonpc0_elf3ram"
           ]
         },
         {
           "control_id": "SC.L2-3.13.11",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.11_mkeonpc0_ukkh0ny"
+            "task_SC.L2-3.13.11_mkeonpc0_9b92tjl"
           ]
         },
         {
           "control_id": "SC.L2-3.13.12",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.12_mkeonpc0_42guccd"
+            "task_SC.L2-3.13.12_mkeonpc0_of5dmcb"
           ]
         },
         {
           "control_id": "SC.L2-3.13.13",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.13_mkeonpc0_xsrn6ph"
+            "task_SC.L2-3.13.13_mkeonpc0_3vydawb"
           ]
         },
         {
           "control_id": "SC.L2-3.13.14",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.14_mkeonpc0_bzk4h5x"
+            "task_SC.L2-3.13.14_mkeonpc0_8o0gh27"
           ]
         },
         {
           "control_id": "SC.L2-3.13.15",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.15_mkeonpc0_giht44d"
+            "task_SC.L2-3.13.15_mkeonpc0_hurvz3g"
           ]
         },
         {
           "control_id": "SC.L2-3.13.16",
           "directive": "implement",
           "step_ids": [
-            "task_SC.L2-3.13.16_mkeonpc0_k3omshu"
+            "task_SC.L2-3.13.16_mkeonpc0_0zn4k8d"
           ]
         },
         {
           "control_id": "SI.L2-3.14.3",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L2-3.14.3_mkeonpc0_5xissgh"
+            "task_SI.L2-3.14.3_mkeonpc0_itdqrhc"
           ]
         },
         {
           "control_id": "SI.L2-3.14.6",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L2-3.14.6_mkeonpc0_naq424i"
+            "task_SI.L2-3.14.6_mkeonpc0_via8l0g"
           ]
         },
         {
           "control_id": "SI.L2-3.14.7",
           "directive": "implement",
           "step_ids": [
-            "task_SI.L2-3.14.7_mkeonpc0_r3m3tqm"
+            "task_SI.L2-3.14.7_mkeonpc0_tysu74t"
           ]
         }
       ],
@@ -50823,7 +50823,7 @@
       }
     },
     "cost_proposal_sow": {
-      "proposal_id": "prop_mkeonpc0_mu31jgs",
+      "proposal_id": "prop_mkeonpc0_cnm3sxc",
       "assumptions": [
         "Client provides necessary access to all in-scope systems",
         "Existing infrastructure documentation is current and accurate",
@@ -50844,8 +50844,8 @@
               "MS-1"
             ],
             "steps": [
-              "step_task_AC.L2-3.1.1_mkeonpc0_fiu1xgy",
-              "step_task_IA.L2-3.5.3_mkeonpc0_fjwf14h"
+              "step_task_AC.L2-3.1.1_mkeonpc0_bnbxk28",
+              "step_task_IA.L2-3.5.3_mkeonpc0_69fvbe5"
             ],
             "controls": [
               "AC.L2-3.1.1",
@@ -50866,130 +50866,130 @@
               "MS-2"
             ],
             "steps": [
-              "step_task_AC.L1-3.1.1_mkeonpc0_b17ub6a",
-              "step_task_AC.L1-3.1.2_mkeonpc0_8yyhstp",
-              "step_task_AC.L1-3.1.20_mkeonpc0_8pzmf1g",
-              "step_task_AC.L1-3.1.22_mkeonpc0_v1guxxe",
-              "step_task_IA.L1-3.5.1_mkeonpc0_hx3hsxl",
-              "step_task_IA.L1-3.5.2_mkeonpc0_jxy39ze",
-              "step_task_MP.L1-3.8.3_mkeonpc0_z6iwu3r",
-              "step_task_PE.L1-3.10.1_mkeonpc0_zluk2qk",
-              "step_task_PE.L1-3.10.3_mkeonpc0_a6hnnxl",
-              "step_task_PE.L1-3.10.4_mkeonpc0_naaxqum",
-              "step_task_PE.L1-3.10.5_mkeonpc0_jkqdldy",
-              "step_task_SC.L1-3.13.1_mkeonpc0_77sqgsk",
-              "step_task_SC.L1-3.13.5_mkeonpc0_8aowtan",
-              "step_task_SI.L1-3.14.1_mkeonpc0_n4bg3dl",
-              "step_task_SI.L1-3.14.2_mkeonpc0_60aftft",
-              "step_task_SI.L1-3.14.4_mkeonpc0_oad7sx1",
-              "step_task_SI.L1-3.14.5_mkeonpc0_8bwbrxl",
-              "step_task_AC.L2-3.1.2_mkeonpc0_bv8t8mm",
-              "step_task_AC.L2-3.1.3_mkeonpc0_epj6fw4",
-              "step_task_AC.L2-3.1.4_mkeonpc0_zi8w4ms",
-              "step_task_AC.L2-3.1.5_mkeonpc0_tkvtsz3",
-              "step_task_AC.L2-3.1.6_mkeonpc0_zrqbtdh",
-              "step_task_AC.L2-3.1.7_mkeonpc0_k12pr4v",
-              "step_task_AC.L2-3.1.8_mkeonpc0_qjauhs8",
-              "step_task_AC.L2-3.1.9_mkeonpc0_hnyrsej",
-              "step_task_AC.L2-3.1.10_mkeonpc0_sn2s52h",
-              "step_task_AC.L2-3.1.11_mkeonpc0_zsiblzd",
-              "step_task_AC.L2-3.1.12_mkeonpc0_2wmbfgl",
-              "step_task_AC.L2-3.1.13_mkeonpc0_6lx4cth",
-              "step_task_AC.L2-3.1.14_mkeonpc0_pidlega",
-              "step_task_AC.L2-3.1.15_mkeonpc0_rqk9qqv",
-              "step_task_AC.L2-3.1.16_mkeonpc0_17laa1u",
-              "step_task_AC.L2-3.1.17_mkeonpc0_gc9zrio",
-              "step_task_AC.L2-3.1.18_mkeonpc0_j79cg1r",
-              "step_task_AC.L2-3.1.19_mkeonpc0_k4zzaml",
-              "step_task_AC.L2-3.1.20_mkeonpc0_yoq329v",
-              "step_task_AC.L2-3.1.21_mkeonpc0_2zalxrs",
-              "step_task_AC.L2-3.1.22_mkeonpc0_nunpmkd",
-              "step_task_AT.L2-3.2.1_mkeonpc0_hldermj",
-              "step_task_AT.L2-3.2.2_mkeonpc0_itfrmw8",
-              "step_task_AT.L2-3.2.3_mkeonpc0_cg2pi3l",
-              "step_task_AU.L2-3.3.2_mkeonpc0_ok9h9q8",
-              "step_task_AU.L2-3.3.3_mkeonpc0_65krtkq",
-              "step_task_AU.L2-3.3.4_mkeonpc0_tdm5uas",
-              "step_task_AU.L2-3.3.5_mkeonpc0_48ic6xi",
-              "step_task_AU.L2-3.3.6_mkeonpc0_wwf0k9i",
-              "step_task_AU.L2-3.3.7_mkeonpc0_0t6137a",
-              "step_task_AU.L2-3.3.8_mkeonpc0_s8qlrep",
-              "step_task_AU.L2-3.3.9_mkeonpc0_3gqjhg6",
-              "step_task_CM.L2-3.4.1_mkeonpc0_uyv4u6r",
-              "step_task_CM.L2-3.4.2_mkeonpc0_n5zo5m9",
-              "step_task_CM.L2-3.4.3_mkeonpc0_5idhsuw",
-              "step_task_CM.L2-3.4.4_mkeonpc0_irfkt8f",
-              "step_task_CM.L2-3.4.5_mkeonpc0_wx3inuc",
-              "step_task_CM.L2-3.4.6_mkeonpc0_15usa00",
-              "step_task_CM.L2-3.4.7_mkeonpc0_7c3yyvt",
-              "step_task_CM.L2-3.4.8_mkeonpc0_zkgh28c",
-              "step_task_CM.L2-3.4.9_mkeonpc0_4egxhqr",
-              "step_task_IA.L2-3.5.1_mkeonpc0_b6fotuw",
-              "step_task_IA.L2-3.5.2_mkeonpc0_gtchjze",
-              "step_task_IA.L2-3.5.4_mkeonpc0_fj9ihfm",
-              "step_task_IA.L2-3.5.5_mkeonpc0_k733eye",
-              "step_task_IA.L2-3.5.6_mkeonpc0_h9blhf7",
-              "step_task_IA.L2-3.5.7_mkeonpc0_y0r8fl1",
-              "step_task_IA.L2-3.5.8_mkeonpc0_izw219m",
-              "step_task_IA.L2-3.5.9_mkeonpc0_j57k80n",
-              "step_task_IA.L2-3.5.10_mkeonpc0_4ia2tvs",
-              "step_task_IA.L2-3.5.11_mkeonpc0_cts8tcy",
-              "step_task_IR.L2-3.6.1_mkeonpc0_e4taooo",
-              "step_task_IR.L2-3.6.2_mkeonpc0_ate63j1",
-              "step_task_IR.L2-3.6.3_mkeonpc0_d6zs2or",
-              "step_task_MA.L2-3.7.1_mkeonpc0_mjbo06v",
-              "step_task_MA.L2-3.7.2_mkeonpc0_k1vj74l",
-              "step_task_MA.L2-3.7.3_mkeonpc0_g4sxz57",
-              "step_task_MA.L2-3.7.4_mkeonpc0_ubrd2pz",
-              "step_task_MA.L2-3.7.5_mkeonpc0_nmon3f2",
-              "step_task_MA.L2-3.7.6_mkeonpc0_0alqf0v",
-              "step_task_MP.L2-3.8.1_mkeonpc0_onj3oig",
-              "step_task_MP.L2-3.8.2_mkeonpc0_wz17j4p",
-              "step_task_MP.L2-3.8.3_mkeonpc0_736tpnx",
-              "step_task_MP.L2-3.8.4_mkeonpc0_azeax7i",
-              "step_task_MP.L2-3.8.5_mkeonpc0_xkkzrsv",
-              "step_task_MP.L2-3.8.6_mkeonpc0_ehbpye8",
-              "step_task_MP.L2-3.8.7_mkeonpc0_aw8v249",
-              "step_task_MP.L2-3.8.8_mkeonpc0_lkux5j2",
-              "step_task_MP.L2-3.8.9_mkeonpc0_tfywqmn",
-              "step_task_PS.L2-3.9.1_mkeonpc0_awckfpf",
-              "step_task_PS.L2-3.9.2_mkeonpc0_3klc7xm",
-              "step_task_PE.L2-3.10.1_mkeonpc0_0qutwwe",
-              "step_task_PE.L2-3.10.2_mkeonpc0_capa2r8",
-              "step_task_PE.L2-3.10.3_mkeonpc0_xe0iuh0",
-              "step_task_PE.L2-3.10.4_mkeonpc0_pv8zcbf",
-              "step_task_PE.L2-3.10.5_mkeonpc0_j9gpv92",
-              "step_task_PE.L2-3.10.6_mkeonpc0_u0g7i1n",
-              "step_task_RA.L2-3.11.1_mkeonpc0_hzh5aj6",
-              "step_task_RA.L2-3.11.2_mkeonpc0_naj2h9t",
-              "step_task_RA.L2-3.11.3_mkeonpc0_ir7xd5o",
-              "step_task_CA.L2-3.12.1_mkeonpc0_wijqeha",
-              "step_task_CA.L2-3.12.2_mkeonpc0_0vyb2du",
-              "step_task_CA.L2-3.12.3_mkeonpc0_6xac49k",
-              "step_task_CA.L2-3.12.4_mkeonpc0_j1qjos0",
-              "step_task_SC.L2-3.13.1_mkeonpc0_pspbo75",
-              "step_task_SC.L2-3.13.2_mkeonpc0_di6ye54",
-              "step_task_SC.L2-3.13.3_mkeonpc0_twqwqyj",
-              "step_task_SC.L2-3.13.4_mkeonpc0_2p2dk5x",
-              "step_task_SC.L2-3.13.5_mkeonpc0_l7un6im",
-              "step_task_SC.L2-3.13.6_mkeonpc0_1iay27l",
-              "step_task_SC.L2-3.13.7_mkeonpc0_5hmf6bs",
-              "step_task_SC.L2-3.13.8_mkeonpc0_ifb6eak",
-              "step_task_SC.L2-3.13.9_mkeonpc0_2bls9wt",
-              "step_task_SC.L2-3.13.10_mkeonpc0_8y0clg9",
-              "step_task_SC.L2-3.13.11_mkeonpc0_ukkh0ny",
-              "step_task_SC.L2-3.13.12_mkeonpc0_42guccd",
-              "step_task_SC.L2-3.13.13_mkeonpc0_xsrn6ph",
-              "step_task_SC.L2-3.13.14_mkeonpc0_bzk4h5x",
-              "step_task_SC.L2-3.13.15_mkeonpc0_giht44d",
-              "step_task_SC.L2-3.13.16_mkeonpc0_k3omshu",
-              "step_task_SI.L2-3.14.1_mkeonpc0_0hkk1u8",
-              "step_task_SI.L2-3.14.2_mkeonpc0_owxt0nx",
-              "step_task_SI.L2-3.14.3_mkeonpc0_5xissgh",
-              "step_task_SI.L2-3.14.4_mkeonpc0_zpjo0rd",
-              "step_task_SI.L2-3.14.5_mkeonpc0_bmacric",
-              "step_task_SI.L2-3.14.6_mkeonpc0_naq424i",
-              "step_task_SI.L2-3.14.7_mkeonpc0_r3m3tqm"
+              "step_task_AC.L1-3.1.1_mkeonpc0_6veiwbb",
+              "step_task_AC.L1-3.1.2_mkeonpc0_vlj2ruw",
+              "step_task_AC.L1-3.1.20_mkeonpc0_fn294bh",
+              "step_task_AC.L1-3.1.22_mkeonpc0_gtrijqs",
+              "step_task_IA.L1-3.5.1_mkeonpc0_g9qde7n",
+              "step_task_IA.L1-3.5.2_mkeonpc0_6e1m641",
+              "step_task_MP.L1-3.8.3_mkeonpc0_01ecjbt",
+              "step_task_PE.L1-3.10.1_mkeonpc0_vzkph52",
+              "step_task_PE.L1-3.10.3_mkeonpc0_3kwkztx",
+              "step_task_PE.L1-3.10.4_mkeonpc0_9ymh88c",
+              "step_task_PE.L1-3.10.5_mkeonpc0_ga4m07z",
+              "step_task_SC.L1-3.13.1_mkeonpc0_o4po8uy",
+              "step_task_SC.L1-3.13.5_mkeonpc0_cnoedip",
+              "step_task_SI.L1-3.14.1_mkeonpc0_311f3o9",
+              "step_task_SI.L1-3.14.2_mkeonpc0_18daa6k",
+              "step_task_SI.L1-3.14.4_mkeonpc0_1l4adrp",
+              "step_task_SI.L1-3.14.5_mkeonpc0_lgd506h",
+              "step_task_AC.L2-3.1.2_mkeonpc0_4zkyjh6",
+              "step_task_AC.L2-3.1.3_mkeonpc0_umfjwx2",
+              "step_task_AC.L2-3.1.4_mkeonpc0_876q6a2",
+              "step_task_AC.L2-3.1.5_mkeonpc0_1whmge2",
+              "step_task_AC.L2-3.1.6_mkeonpc0_9cl01pw",
+              "step_task_AC.L2-3.1.7_mkeonpc0_grau4ak",
+              "step_task_AC.L2-3.1.8_mkeonpc0_z7upg05",
+              "step_task_AC.L2-3.1.9_mkeonpc0_usm74py",
+              "step_task_AC.L2-3.1.10_mkeonpc0_46sokk7",
+              "step_task_AC.L2-3.1.11_mkeonpc0_mdstbr8",
+              "step_task_AC.L2-3.1.12_mkeonpc0_5g2t8jv",
+              "step_task_AC.L2-3.1.13_mkeonpc0_7zakozr",
+              "step_task_AC.L2-3.1.14_mkeonpc0_xrfof6l",
+              "step_task_AC.L2-3.1.15_mkeonpc0_ifx3972",
+              "step_task_AC.L2-3.1.16_mkeonpc0_w4k654v",
+              "step_task_AC.L2-3.1.17_mkeonpc0_0ur9lo4",
+              "step_task_AC.L2-3.1.18_mkeonpc0_ivrnd8r",
+              "step_task_AC.L2-3.1.19_mkeonpc0_r2x9543",
+              "step_task_AC.L2-3.1.20_mkeonpc0_qnwxeyu",
+              "step_task_AC.L2-3.1.21_mkeonpc0_xtp94zr",
+              "step_task_AC.L2-3.1.22_mkeonpc0_ol73jpm",
+              "step_task_AT.L2-3.2.1_mkeonpc0_1tw7kff",
+              "step_task_AT.L2-3.2.2_mkeonpc0_b658b49",
+              "step_task_AT.L2-3.2.3_mkeonpc0_nan2nji",
+              "step_task_AU.L2-3.3.2_mkeonpc0_66l021n",
+              "step_task_AU.L2-3.3.3_mkeonpc0_h0b2hi4",
+              "step_task_AU.L2-3.3.4_mkeonpc0_tx2dmwl",
+              "step_task_AU.L2-3.3.5_mkeonpc0_j5n7kul",
+              "step_task_AU.L2-3.3.6_mkeonpc0_a9tfex5",
+              "step_task_AU.L2-3.3.7_mkeonpc0_euvzmio",
+              "step_task_AU.L2-3.3.8_mkeonpc0_lg5fa2f",
+              "step_task_AU.L2-3.3.9_mkeonpc0_xosi1ix",
+              "step_task_CM.L2-3.4.1_mkeonpc0_3sly9ha",
+              "step_task_CM.L2-3.4.2_mkeonpc0_sx8luam",
+              "step_task_CM.L2-3.4.3_mkeonpc0_9omqejs",
+              "step_task_CM.L2-3.4.4_mkeonpc0_p92iiwt",
+              "step_task_CM.L2-3.4.5_mkeonpc0_uijbt8k",
+              "step_task_CM.L2-3.4.6_mkeonpc0_133jtm6",
+              "step_task_CM.L2-3.4.7_mkeonpc0_8u5jc11",
+              "step_task_CM.L2-3.4.8_mkeonpc0_7ti6o8d",
+              "step_task_CM.L2-3.4.9_mkeonpc0_v6zhrnb",
+              "step_task_IA.L2-3.5.1_mkeonpc0_bi8j25v",
+              "step_task_IA.L2-3.5.2_mkeonpc0_30prpbw",
+              "step_task_IA.L2-3.5.4_mkeonpc0_m4kir8y",
+              "step_task_IA.L2-3.5.5_mkeonpc0_wk90bod",
+              "step_task_IA.L2-3.5.6_mkeonpc0_0eiigc2",
+              "step_task_IA.L2-3.5.7_mkeonpc0_rc74ubf",
+              "step_task_IA.L2-3.5.8_mkeonpc0_fjvlwek",
+              "step_task_IA.L2-3.5.9_mkeonpc0_iezo5rn",
+              "step_task_IA.L2-3.5.10_mkeonpc0_onlf96z",
+              "step_task_IA.L2-3.5.11_mkeonpc0_flzbu0w",
+              "step_task_IR.L2-3.6.1_mkeonpc0_0c0ih4f",
+              "step_task_IR.L2-3.6.2_mkeonpc0_3qxe0lr",
+              "step_task_IR.L2-3.6.3_mkeonpc0_sbhznz9",
+              "step_task_MA.L2-3.7.1_mkeonpc0_7btbhku",
+              "step_task_MA.L2-3.7.2_mkeonpc0_769vbyz",
+              "step_task_MA.L2-3.7.3_mkeonpc0_ou0tyl5",
+              "step_task_MA.L2-3.7.4_mkeonpc0_3z7mbr1",
+              "step_task_MA.L2-3.7.5_mkeonpc0_dvd07o0",
+              "step_task_MA.L2-3.7.6_mkeonpc0_vck5fek",
+              "step_task_MP.L2-3.8.1_mkeonpc0_na8nbiw",
+              "step_task_MP.L2-3.8.2_mkeonpc0_vwgoxdj",
+              "step_task_MP.L2-3.8.3_mkeonpc0_56vyir4",
+              "step_task_MP.L2-3.8.4_mkeonpc0_faqiwzj",
+              "step_task_MP.L2-3.8.5_mkeonpc0_4u5re4b",
+              "step_task_MP.L2-3.8.6_mkeonpc0_wy3xs8d",
+              "step_task_MP.L2-3.8.7_mkeonpc0_vyhb06p",
+              "step_task_MP.L2-3.8.8_mkeonpc0_6ngu3ax",
+              "step_task_MP.L2-3.8.9_mkeonpc0_c4ww2ev",
+              "step_task_PS.L2-3.9.1_mkeonpc0_op74s46",
+              "step_task_PS.L2-3.9.2_mkeonpc0_w7i92zr",
+              "step_task_PE.L2-3.10.1_mkeonpc0_x3fp8gh",
+              "step_task_PE.L2-3.10.2_mkeonpc0_xdtugiu",
+              "step_task_PE.L2-3.10.3_mkeonpc0_jtba4d1",
+              "step_task_PE.L2-3.10.4_mkeonpc0_3t7qnsk",
+              "step_task_PE.L2-3.10.5_mkeonpc0_hko4q5l",
+              "step_task_PE.L2-3.10.6_mkeonpc0_a96v62l",
+              "step_task_RA.L2-3.11.1_mkeonpc0_vsb1n3y",
+              "step_task_RA.L2-3.11.2_mkeonpc0_n180zsv",
+              "step_task_RA.L2-3.11.3_mkeonpc0_e190tzi",
+              "step_task_CA.L2-3.12.1_mkeonpc0_6wac2yj",
+              "step_task_CA.L2-3.12.2_mkeonpc0_p9aa7rn",
+              "step_task_CA.L2-3.12.3_mkeonpc0_p4s7vtx",
+              "step_task_CA.L2-3.12.4_mkeonpc0_77vcg0f",
+              "step_task_SC.L2-3.13.1_mkeonpc0_yy0aedx",
+              "step_task_SC.L2-3.13.2_mkeonpc0_j1a9rs4",
+              "step_task_SC.L2-3.13.3_mkeonpc0_9eiwy3e",
+              "step_task_SC.L2-3.13.4_mkeonpc0_zc1y06c",
+              "step_task_SC.L2-3.13.5_mkeonpc0_ej7r19v",
+              "step_task_SC.L2-3.13.6_mkeonpc0_6wmxi6w",
+              "step_task_SC.L2-3.13.7_mkeonpc0_yvm63a5",
+              "step_task_SC.L2-3.13.8_mkeonpc0_65f2gud",
+              "step_task_SC.L2-3.13.9_mkeonpc0_cor08qm",
+              "step_task_SC.L2-3.13.10_mkeonpc0_elf3ram",
+              "step_task_SC.L2-3.13.11_mkeonpc0_9b92tjl",
+              "step_task_SC.L2-3.13.12_mkeonpc0_of5dmcb",
+              "step_task_SC.L2-3.13.13_mkeonpc0_3vydawb",
+              "step_task_SC.L2-3.13.14_mkeonpc0_8o0gh27",
+              "step_task_SC.L2-3.13.15_mkeonpc0_hurvz3g",
+              "step_task_SC.L2-3.13.16_mkeonpc0_0zn4k8d",
+              "step_task_SI.L2-3.14.1_mkeonpc0_nzuvk5c",
+              "step_task_SI.L2-3.14.2_mkeonpc0_10eht6q",
+              "step_task_SI.L2-3.14.3_mkeonpc0_itdqrhc",
+              "step_task_SI.L2-3.14.4_mkeonpc0_ck13s1g",
+              "step_task_SI.L2-3.14.5_mkeonpc0_98elk6t",
+              "step_task_SI.L2-3.14.6_mkeonpc0_via8l0g",
+              "step_task_SI.L2-3.14.7_mkeonpc0_tysu74t"
             ],
             "controls": [
               "AC.L1-3.1.1",

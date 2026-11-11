@@ -7,16 +7,28 @@
 // Removing or altering this notice is prohibited (17 U.S.C. 1202). Ref: BHD-CES-MUSTER-2026A
 // See LICENSE and TERMS.md.
 
-// nav.ts — UI-02: the portal's navigation model (Aavya mockups, 2026-10-24).
+// nav.ts — UI-02 / Sprint 1 Foundation: the portal's navigation model.
 //
 // Pure data + pure functions: which sections and items a viewer sees. The
 // sidebar only HIDES what a role cannot use; muster-api still enforces every
-// rule (muster-api/src/lib/permissions.ts). Items whose screen is not built
-// yet are marked `planned` and open an honest "not built yet" page.
+// rule (muster-api/src/lib/permissions.ts).
+//
+// Sprint 1 Foundation (2026-11-10): a signed-in viewer gets the LIFECYCLE
+// navigation from "CES Navigation.xlsx" (Shared Foundation → Onboard → Assess →
+// Plan → Remediate → Collect Evidence → Monitor → Prepare for Assessment →
+// Administration), filtered by lifecycle/rbac.ts. Pages that already have a
+// screen open it (lifecycle/builtRoutes.ts); the rest open an honest scaffold
+// (`lc/<section>/<group>/<item>`) that says which sprint builds it and which
+// engine API it will call. The offline (no account) viewer keeps the Muster-only
+// navigation of Sprint 1.
+
+import { BUILT } from './lifecycle/builtRoutes';
+import { LIFECYCLE_NAV, LIFECYCLE_PAGES, type LifecycleSection } from './lifecycle/navigation';
+import { canView, toPlatformRole } from './lifecycle/rbac';
 
 export type MusterView = 'assessment' | 'discovery' | 'readiness' | 'plan' | 'contracts' | 'quick-session' | 'help' | 'rollup' | 'result';
 
-export type RouteId =
+export type StaticRouteId =
   | 'home'
   | 'shared/overview'
   | 'shared/requirements'
@@ -36,6 +48,34 @@ export type RouteId =
   | 'store/integrity'
   | 'engagements/tenants'
   | 'engagements/all'
+  | 'onboard/organizations'
+  | 'onboard/tenants'
+  | 'onboard/scope'
+  | 'assess/readiness'
+  | 'assess/gaps'
+  | 'plan/overview'
+  | 'plan/actions'
+  | 'plan/poam'
+  | 'remediate/overview'
+  | 'remediate/stamper'
+  | 'remediate/adminops'
+  | 'evidence/overview'
+  | 'evidence/explorer'
+  | 'evidence/collect'
+  | 'evidence/catalog'
+  | 'monitor/overview'
+  | 'monitor/findings'
+  | 'monitor/activity'
+  | 'prepare/overview'
+  | 'prepare/ssp'
+  | 'prepare/packages'
+  | 'prepare/assessor'
+  | 'prepare/reports'
+  | 'admin/settings'
+  | 'admin/access'
+  | 'admin/health'
+  | 'onboard/systems'
+  | 'onboard/checklist'
   | 'muster'
   | 'module/stamper'
   | 'module/adminops'
@@ -46,8 +86,14 @@ export type RouteId =
   | 'account/password'
   | 'help';
 
+/** A lifecycle scaffold route: `lc` + the page path from navigation.ts (`lc/assess/discovery/sync-status`). */
+export type LifecycleRouteId = `lc/${string}`;
+
+export type RouteId = StaticRouteId | LifecycleRouteId;
+
 /** Who is looking: offline (no account) or a signed-in role. */
-export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string };
+/** `sub` is the signed-in user's id — what the API stores in requested_by / created_by / built_by (SoD hints compare against it). */
+export type Viewer = { kind: 'offline' } | { kind: 'signed-in'; role: string; sub?: string | null };
 
 export interface NavItem {
   label: string;
@@ -57,9 +103,9 @@ export interface NavItem {
   planned?: boolean;
   /** Shortcut to a screen another item owns: never shown as the current page. */
   shortcut?: boolean;
-  /** S1.4: wireframe sub-group heading inside a section (e.g. "Reference Data"). */
+  /** Sub-group heading inside a section (lifecycle group label). */
   group?: string;
-  /** S1.9: icon name from icons.tsx (NavIcon). */
+  /** Icon name from icons.tsx (NavIcon). */
   icon?: string;
   testId: string;
 }
@@ -77,18 +123,64 @@ export interface NavSection {
 const isAdmin = (v: Viewer) => v.kind === 'signed-in' && v.role === 'platform_admin';
 const isSignedIn = (v: Viewer) => v.kind === 'signed-in';
 
+export const lifecycleRoute = (path: string): LifecycleRouteId => `lc/${path.replace(/^\//, '')}`;
+export const lifecyclePath = (route: LifecycleRouteId): string => '/' + route.slice(3);
+export const isLifecycleRoute = (r: string): r is LifecycleRouteId => r.startsWith('lc/') && LIFECYCLE_PAGES.has('/' + r.slice(3));
+
+const SECTION_ICON: Record<string, string> = {
+  shared: 'shared', onboard: 'engagements', assess: 'muster', plan: 'plan', remediate: 'stamper', evidence: 'evidenceops', monitor: 'readiness', prepare: 'contracts', admin: 'platform',
+};
+const SECTION_MOD: Record<string, NavSection['mod']> = { onboard: 'muster', assess: 'muster', plan: 'muster', remediate: 'stamper', evidence: 'evidenceops', monitor: 'evidenceops', prepare: 'evidenceops' };
+
+function itemFor(section: LifecycleSection, path: string, label: string, groupLabel?: string, role?: string): NavItem | null {
+  const built = BUILT[path];
+  if (built?.onlyRoles && (!role || !built.onlyRoles.includes(toPlatformRole(role) ?? role))) return null;
+  const testId = built?.testId ?? `nav-lc-${path.replace(/^\//, '').replace(/\//g, '-')}`;
+  if (built) return { label, route: built.route, view: built.view, group: groupLabel, testId, icon: SECTION_ICON[section.key] };
+  return { label, route: lifecycleRoute(path), planned: true, group: groupLabel, testId, icon: SECTION_ICON[section.key] };
+}
+
+/** Lifecycle sections for a signed-in role (sidebar order = lifecycle order). */
+export function lifecycleNavFor(role: string): NavSection[] {
+  const out: NavSection[] = [];
+  for (const section of LIFECYCLE_NAV) {
+    if (!canView(role, section.key)) continue;
+    const items: NavItem[] = [];
+    for (const group of section.groups) {
+      if (!canView(role, section.key, group.key)) continue;
+      if (group.items.length === 0) {
+        // A group without pages (Overview, Audit Log) is a page itself.
+        const page = itemFor(section, group.path, group.label, undefined, role);
+        if (page) items.push(page);
+        continue;
+      }
+      for (const item of group.items) {
+        const page = itemFor(section, item.path, item.label, group.label, role);
+        if (page) items.push(page);
+      }
+    }
+    if (!items.length) continue;
+    out.push({ id: section.key, label: section.label, icon: SECTION_ICON[section.key] ?? 'overview', mod: SECTION_MOD[section.key], items });
+  }
+  return out;
+}
+
 /** Sections a viewer sees, in sidebar order. */
 export function navFor(viewer: Viewer): NavSection[] {
-  const admin = isAdmin(viewer);
   const sections: NavSection[] = [];
-
-  // A platform administrator has no customer data (BHD role review PB-01): no
-  // engagements or modules. S1.8 (doc 28 D-1): Home / Portfolio shows them counts only.
   sections.push({ id: 'home', label: 'Home', icon: 'home', route: 'home', items: [] });
 
+  if (isSignedIn(viewer) && toPlatformRole(viewer.role)) {
+    sections.push(...lifecycleNavFor(viewer.role));
+    return sections;
+  }
+  // Signed in with a role the matrix does not know: Home and the public Shared Foundation only.
+  const unknownRole = isSignedIn(viewer);
+
+  // Offline viewer (no account): the Sprint-1 Muster-only navigation.
   sections.push({
     id: 'shared',
-    label: 'CES-Shared',
+    label: 'Shared Foundation',
     icon: 'shared',
     items: [
       { label: 'Overview', route: 'shared/overview', testId: 'nav-shared-overview', icon: 'overview' },
@@ -97,28 +189,9 @@ export function navFor(viewer: Viewer): NavSection[] {
       { label: 'Assessment Objectives', route: 'shared/objectives', group: 'Reference Data', testId: 'nav-shared-objectives', icon: 'objectives' },
       { label: 'Standard Evidence Catalog', route: 'shared/evidence', group: 'Standard Evidence & Evaluation Rules', testId: 'nav-shared-evidence', icon: 'catalog' },
       { label: 'Requirement-to-Evidence Mapping', route: 'shared/mapping', group: 'Standard Evidence & Evaluation Rules', testId: 'nav-shared-mapping', icon: 'mapping' },
-      { label: 'Evaluation Rules', route: 'shared/rules', group: 'Standard Evidence & Evaluation Rules', testId: 'nav-shared-rules', icon: 'rules' },
-      // S1.9: groups added from the Create Requirement mockup (decision 2026-10-27: new
-      // sidebar, Standard Evidence & Evaluation Rules kept). Screens not built are "Planned".
-      { label: 'Contract Registry', route: 'shared/registry', planned: true, testId: 'nav-shared-registry', icon: 'registry' },
-      { label: 'Golden Files', route: 'shared/contracts', group: 'Contract Validation', testId: 'nav-shared-contracts', icon: 'golden' },
-      { label: 'Contract Tests', route: 'shared/tests', group: 'Contract Validation', planned: true, testId: 'nav-shared-tests', icon: 'tests' },
-      { label: 'Version Compatibility', route: 'shared/compat', group: 'Contract Validation', planned: true, testId: 'nav-shared-compat', icon: 'compat' },
-      { label: 'Interfaces', route: 'shared/interfaces', planned: true, testId: 'nav-shared-interfaces', icon: 'interfaces' },
-      // Evidence Store holds customer evidence and operator security events: not for a
-      // platform administrator (BHD role review, doc 28 D-1).
-      ...(admin
-        ? []
-        : [
-            { label: 'AdminOps Evidence', route: 'store/adminops' as const, group: 'Evidence Store', planned: true, testId: 'nav-store-adminops', icon: 'adminops' },
-            { label: 'Approver Token Mints', route: 'store/tokens' as const, group: 'Evidence Store', planned: true, testId: 'nav-store-tokens', icon: 'tokens' },
-            { label: 'Operator Passkey Events', route: 'store/passkeys' as const, group: 'Evidence Store', planned: true, testId: 'nav-store-passkeys', icon: 'passkeys' },
-            { label: 'Storage Integrity', route: 'store/integrity' as const, group: 'Evidence Store', planned: true, testId: 'nav-store-integrity', icon: 'integrity' },
-          ]),
     ],
   });
-
-  if (!admin) {
+  if (!isAdmin(viewer) && !unknownRole) {
     sections.push({
       id: 'muster',
       label: 'Muster',
@@ -134,35 +207,6 @@ export function navFor(viewer: Viewer): NavSection[] {
         { label: 'Help', route: 'muster', view: 'help', testId: 'nav-muster-help', icon: 'help' },
       ],
     });
-    sections.push(
-      { id: 'stamper', label: 'Stamper', icon: 'stamper', mod: 'stamper', items: [{ label: 'Open Stamper', route: 'module/stamper', testId: 'nav-module-stamper', icon: 'stamper' }] },
-      { id: 'adminops', label: 'AdminOps', icon: 'adminops', mod: 'adminops', items: [{ label: 'Open AdminOps', route: 'module/adminops', testId: 'nav-module-adminops', icon: 'adminops' }] },
-      { id: 'evidenceops', label: 'EvidenceOps', icon: 'evidenceops', mod: 'evidenceops', items: [{ label: 'Open EvidenceOps', route: 'module/evidenceops', testId: 'nav-module-evidenceops', icon: 'evidenceops' }] }
-    );
-    // S1.9: the new mockup lists Engagements after the four modules.
-    sections.push({
-      id: 'engagements',
-      label: 'Engagements',
-      icon: 'engagements',
-      items: [
-        { label: 'Tenant Registration', route: 'engagements/tenants', planned: true, testId: 'nav-engagements-tenants', icon: 'tenants' },
-        { label: 'All Engagements', route: 'engagements/all', testId: 'nav-engagements-all', icon: 'engagements-all' },
-        { label: 'Create Engagement', route: 'muster', view: 'assessment', shortcut: true, testId: 'nav-engagements-create', icon: 'engagement-create' },
-        { label: 'Engagement Workspace', route: 'muster', view: 'readiness', shortcut: true, testId: 'nav-engagements-workspace', icon: 'workspace' },
-      ],
-    });
-  }
-
-  if (isSignedIn(viewer)) {
-    const items: NavItem[] = [];
-    if (admin) {
-      items.push({ label: 'Users', route: 'platform/users', testId: 'nav-platform-users', icon: 'users' });
-    }
-    items.push({ label: 'Roles & Permissions', route: 'platform/roles', testId: 'nav-platform-roles', icon: 'roles' });
-    if (admin) {
-      items.push({ label: 'Audit Log', route: 'platform/audit', testId: 'nav-platform-audit', icon: 'audit' });
-    }
-    sections.push({ id: 'platform', label: 'Platform / Administration', icon: 'platform', items });
   }
   return sections;
 }
@@ -179,43 +223,80 @@ export function routesFor(viewer: Viewer): Set<RouteId> {
   return set;
 }
 
-/** Where a viewer lands after sign-in (doc 18 §3.3). S1.9: everyone signed in lands on Home / Portfolio. */
+/** Where a viewer lands after sign-in (doc 18 §3.3). Everyone signed in lands on Home. */
 export function defaultRoute(viewer: Viewer): RouteId {
   if (viewer.kind === 'offline') return 'muster';
   return 'home';
 }
 
-export const ROUTE_TITLES: Record<RouteId, string[]> = {
+export const ROUTE_TITLES: Record<StaticRouteId, string[]> = {
   home: ['Home'],
-  'shared/overview': ['CES-Shared', 'Overview'],
-  'shared/requirements': ['CES-Shared', 'Reference Data', '110 Requirements'],
-  'shared/sprs': ['CES-Shared', 'Reference Data', 'SPRS Weight Table'],
-  'shared/objectives': ['CES-Shared', 'Reference Data', 'Assessment Objectives'],
-  'shared/evidence': ['CES-Shared', 'Standard Evidence & Evaluation Rules', 'Standard Evidence Catalog'],
-  'shared/mapping': ['CES-Shared', 'Standard Evidence & Evaluation Rules', 'Requirement-to-Evidence Mapping'],
-  'shared/rules': ['CES-Shared', 'Standard Evidence & Evaluation Rules', 'Evaluation Rules'],
-  'shared/contracts': ['CES-Shared', 'Contract Validation', 'Golden Files'],
-  'shared/tests': ['CES-Shared', 'Contract Validation', 'Contract Tests'],
-  'shared/registry': ['CES-Shared', 'Contract Registry'],
-  'shared/compat': ['CES-Shared', 'Contract Validation', 'Version Compatibility'],
-  'shared/interfaces': ['CES-Shared', 'Interfaces'],
-  'store/adminops': ['CES-Shared', 'Evidence Store', 'AdminOps Evidence'],
-  'store/tokens': ['CES-Shared', 'Evidence Store', 'Approver Token Mints'],
-  'store/passkeys': ['CES-Shared', 'Evidence Store', 'Operator Passkey Events'],
-  'store/integrity': ['CES-Shared', 'Evidence Store', 'Storage Integrity'],
-  'engagements/tenants': ['Engagements', 'Tenant Registration'],
-  'engagements/all': ['Engagements', 'All Engagements'],
+  'shared/overview': ['Shared Foundation', 'Overview'],
+  'shared/requirements': ['Shared Foundation', 'Reference Data', '110 Requirements'],
+  'shared/sprs': ['Shared Foundation', 'Reference Data', 'SPRS Weight Table'],
+  'shared/objectives': ['Assess', 'Compliance Assessment', 'Assessment Objectives'],
+  'shared/evidence': ['Collect Evidence', 'Standard Evidence Catalog', 'Standard Evidence Documents'],
+  'shared/mapping': ['Collect Evidence', 'Standard Evidence Catalog', 'Requirement-to-Evidence Mapping'],
+  'shared/rules': ['Collect Evidence', 'Standard Evidence Catalog', 'Evidence Instructions'],
+  'shared/contracts': ['Shared Foundation', 'Contract Validation', 'Golden Files'],
+  'shared/tests': ['Shared Foundation', 'Contract Validation', 'Contract Tests'],
+  'shared/registry': ['Shared Foundation', 'Contract Registry'],
+  'shared/compat': ['Shared Foundation', 'Reference Data', 'Version Compatibility'],
+  'shared/interfaces': ['Shared Foundation', 'Interfaces'],
+  'store/adminops': ['Shared Foundation', 'Evidence Store', 'AdminOps Evidence'],
+  'store/tokens': ['Shared Foundation', 'Evidence Store', 'Approver Token Mints'],
+  'store/passkeys': ['Shared Foundation', 'Evidence Store', 'Operator Passkey Events'],
+  'store/integrity': ['Shared Foundation', 'Evidence Store', 'Storage Integrity'],
+  'engagements/tenants': ['Onboard', 'Tenant Management', 'Register Tenant'],
+  'engagements/all': ['Onboard', 'Engagement Management', 'All Engagements'],
+  'onboard/organizations': ['Onboard', 'Organization Management', 'All Organizations'],
+  'onboard/tenants': ['Onboard', 'Tenant Management', 'All Tenants'],
+  'onboard/scope': ['Onboard', 'Compliance Scope', 'Scope Definition'],
+  'assess/readiness': ['Assess', 'Readiness Assessment', 'Readiness Overview'],
+  'assess/gaps': ['Assess', 'Gap Analysis', 'Gap Summary'],
+  'plan/overview': ['Plan', 'Planning Overview'],
+  'plan/actions': ['Plan', 'Action Management', 'All Action Items'],
+  'plan/poam': ['Plan', 'POA&M Planning', 'POA&M Items'],
+  'remediate/overview': ['Remediate', 'Remediation Overview', 'Remediation Dashboard'],
+  'remediate/stamper': ['Remediate', 'Configuration Management – Stamper', 'Configuration Overview'],
+  'remediate/adminops': ['Remediate', 'Administrative Operations – AdminOps', 'AdminOps Overview'],
+  'evidence/overview': ['Collect Evidence', 'Evidence Overview', 'Evidence Dashboard'],
+  'evidence/explorer': ['Collect Evidence', 'Evidence Explorer', 'All Evidence'],
+  'evidence/collect': ['Collect Evidence', 'Evidence Collection', 'Upload Evidence'],
+  'evidence/catalog': ['Collect Evidence', 'Standard Evidence Catalog', 'NIST Evidence Catalog'],
+  'monitor/overview': ['Monitor', 'Monitoring Overview', 'Compliance Dashboard'],
+  'monitor/findings': ['Monitor', 'Alerts & Notifications', 'Active Alerts'],
+  'monitor/activity': ['Monitor', 'Audit & Activity', 'Compliance Event History'],
+  'prepare/overview': ['Prepare for Assessment', 'Assessment Preparation Overview', 'Assessment Readiness Dashboard'],
+  'prepare/ssp': ['Prepare for Assessment', 'Assessment Documentation', 'System Security Plan (SSP)'],
+  'prepare/packages': ['Prepare for Assessment', 'Evidence Packages', 'All Evidence Packages'],
+  'prepare/assessor': ['Prepare for Assessment', 'Assessor Workspace', 'Assessor Read-Only View'],
+  'prepare/reports': ['Prepare for Assessment', 'Reports & Exports', 'CMMC Readiness Report'],
+  'admin/settings': ['Administration', 'Settings', 'Organization Settings'],
+  'admin/access': ['Administration', 'Access Management', 'Access Requests'],
+  'admin/health': ['Administration', 'System Health', 'Service Status'],
+  'onboard/systems': ['Onboard', 'System & Environment Registry', 'Systems Inventory'],
+  'onboard/checklist': ['Onboard', 'Onboarding Checklist', 'Onboarding Summary'],
   muster: ['Muster'],
-  'module/stamper': ['Stamper'],
-  'module/adminops': ['AdminOps'],
-  'module/evidenceops': ['EvidenceOps'],
-  'platform/users': ['Platform / Administration', 'Users'],
-  'platform/roles': ['Platform / Administration', 'Roles & Permissions'],
-  'platform/audit': ['Platform / Administration', 'Audit Log'],
+  'module/stamper': ['Remediate', 'Configuration Management – Stamper'],
+  'module/adminops': ['Remediate', 'Administrative Operations – AdminOps'],
+  'module/evidenceops': ['Collect Evidence', 'Evidence Dashboard'],
+  'platform/users': ['Administration', 'Users & Roles', 'User Management'],
+  'platform/roles': ['Administration', 'Users & Roles', 'Role Management'],
+  'platform/audit': ['Administration', 'Audit Log'],
   'account/password': ['Account', 'Change Password'],
   help: ['Help'],
 };
 
+/** Breadcrumb titles for any route, static or lifecycle. */
+export function routeTitle(route: RouteId): string[] {
+  if (isLifecycleRoute(route)) {
+    const page = LIFECYCLE_PAGES.get(lifecyclePath(route));
+    if (page) return page.group.items.length ? [page.section.label, page.group.label, page.item.label] : [page.section.label, page.group.label];
+  }
+  return ROUTE_TITLES[route as StaticRouteId] ?? ['CES'];
+}
+
 export function isRouteId(value: string): value is RouteId {
-  return Object.prototype.hasOwnProperty.call(ROUTE_TITLES, value);
+  return Object.prototype.hasOwnProperty.call(ROUTE_TITLES, value) || isLifecycleRoute(value);
 }

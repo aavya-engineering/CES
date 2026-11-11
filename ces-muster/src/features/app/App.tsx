@@ -44,6 +44,17 @@ import { SharedViewerContext, type SharedViewer } from '@/features/portal/govern
 import { ContractsInfoPage, HelpPage, ModulePage, NotBuiltPage, SharedOverviewPage } from '@/features/portal/pages/InfoPages';
 import { EngagementsPage, HomePage } from '@/features/portal/pages/HomeAndEngagements';
 import PortfolioPage from '@/features/portal/PortfolioPage';
+import LifecycleScaffoldPage from '@/features/portal/pages/LifecycleScaffoldPage';
+import { CustomerTenantsPage, OrganizationsPage, ScopePage } from '@/features/portal/pages/onboard/OnboardPages';
+import { GapAnalysisPage, ReadinessOverviewPage } from '@/features/portal/pages/assess/AssessPages';
+import { PlanActionsPage, PlanOverviewPage, PoamPage } from '@/features/portal/pages/plan/PlanPages';
+import { AdminOpsPage, RemediationOverviewPage, StamperPage } from '@/features/portal/pages/remediate/RemediatePages';
+import { EvidenceCollectPage, EvidenceExplorerPage, EvidenceOverviewPage } from '@/features/portal/pages/evidence/EvidenceCollectPages';
+import { EvidenceCatalogPage as NistEvidenceCatalogPage } from '@/features/portal/pages/evidence/EvidenceCatalogPage';
+import { MonitorActivityPage, MonitorFindingsPage, MonitorOverviewPage } from '@/features/portal/pages/monitor/MonitorPages';
+import { AssessorWorkspacePage, PackagesPage, PrepareOverviewPage, ReportsPage, SspPage } from '@/features/portal/pages/prepare/PreparePages';
+import { AccessManagementPage, OnboardingChecklistPage, SettingsPage, SystemHealthPage, SystemsRegistryPage } from '@/features/portal/pages/admin/AdminSettingsPages';
+import { isLifecycleRoute } from '@/features/portal/nav';
 import { AuditPage, ChangePasswordForm, ChangePasswordPage, RolesPage, UsersPage } from '@/features/portal/pages/AdminPages';
 import { MUSTER_AUTH_EVENT, clearMusterToken } from '@/shared/api/musterToken';
 import type { EngagementKind, InterviewFact } from '@/shared/types/engagement';
@@ -219,7 +230,7 @@ export default function App() {
   // UI-02: portal route, mirrored in the URL hash (#/shared/requirements,
   // #/muster/discovery) so the back button and deep links work.
   const viewer: Viewer =
-    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId } : { kind: 'offline' };
+    account.kind === 'signed-in' ? { kind: 'signed-in', role: account.roleId, sub: account.sub } : { kind: 'offline' };
   const resolveRoute = useCallback(
     (wanted: RouteId | null): RouteId => (wanted && routesFor(viewer).has(wanted) ? wanted : defaultRoute(viewer)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -442,6 +453,70 @@ export default function App() {
         return <NotBuiltPage route={route} />;
       case 'engagements/all':
         return <EngagementsPage viewer={viewer} openMuster={(v) => go('muster', v)} />;
+      // Sprint 3 slice "Onboard" (2026-11-10).
+      case 'onboard/organizations':
+        return <OrganizationsPage viewer={viewer} />;
+      case 'onboard/tenants':
+        return <CustomerTenantsPage viewer={viewer} />;
+      case 'onboard/scope':
+        return <ScopePage viewer={viewer} />;
+      // Sprint 3/4 slice "Assess".
+      case 'assess/readiness':
+        return <ReadinessOverviewPage viewer={viewer} />;
+      case 'assess/gaps':
+        return <GapAnalysisPage viewer={viewer} />;
+      // Sprint 4 slice "Plan".
+      case 'plan/overview':
+        return <PlanOverviewPage viewer={viewer} go={go} />;
+      case 'plan/actions':
+        return <PlanActionsPage viewer={viewer} />;
+      case 'plan/poam':
+        return <PoamPage viewer={viewer} />;
+      // Sprint 5 slice "Remediate".
+      case 'remediate/overview':
+        return <RemediationOverviewPage viewer={viewer} go={go} />;
+      case 'remediate/stamper':
+        return <StamperPage viewer={viewer} />;
+      case 'remediate/adminops':
+        return <AdminOpsPage viewer={viewer} />;
+      // Sprint 6 slice "Collect Evidence".
+      case 'evidence/overview':
+        return <EvidenceOverviewPage viewer={viewer} go={go} />;
+      case 'evidence/explorer':
+        return <EvidenceExplorerPage viewer={viewer} />;
+      case 'evidence/collect':
+        return <EvidenceCollectPage viewer={viewer} />;
+      case 'evidence/catalog':
+        return <NistEvidenceCatalogPage viewer={viewer} go={go} />;
+      // Sprint 6 slice "Monitor".
+      case 'monitor/overview':
+        return <MonitorOverviewPage viewer={viewer} go={go} />;
+      case 'monitor/findings':
+        return <MonitorFindingsPage viewer={viewer} />;
+      case 'monitor/activity':
+        return <MonitorActivityPage />;
+      // Sprint 6 slice "Prepare for Assessment".
+      case 'prepare/overview':
+        return <PrepareOverviewPage viewer={viewer} go={go} />;
+      case 'prepare/ssp':
+        return <SspPage viewer={viewer} />;
+      case 'prepare/packages':
+        return <PackagesPage viewer={viewer} />;
+      case 'prepare/assessor':
+        return <AssessorWorkspacePage viewer={viewer} />;
+      case 'prepare/reports':
+        return <ReportsPage go={go} />;
+      // Administration and Onboard leftovers.
+      case 'admin/settings':
+        return <SettingsPage viewer={viewer} />;
+      case 'admin/access':
+        return <AccessManagementPage viewer={viewer} />;
+      case 'admin/health':
+        return <SystemHealthPage />;
+      case 'onboard/systems':
+        return <SystemsRegistryPage viewer={viewer} />;
+      case 'onboard/checklist':
+        return <OnboardingChecklistPage viewer={viewer} go={go} />;
       case 'module/stamper':
         return <ModulePage module="stamper" />;
       case 'module/adminops':
@@ -459,7 +534,8 @@ export default function App() {
       case 'help':
         return <HelpPage role={account.kind === 'signed-in' ? account.roleId : null} go={go} />;
       default:
-        return null;
+        // Sprint 1 Foundation: lifecycle pages without a screen yet open the scaffold.
+        return isLifecycleRoute(route) ? <LifecycleScaffoldPage route={route} viewer={viewer} go={go} /> : null;
     }
   })();
 
