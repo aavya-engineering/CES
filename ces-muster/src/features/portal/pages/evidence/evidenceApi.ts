@@ -47,7 +47,7 @@ export interface EvidenceSummary {
   catalogue: { archetypes: number; mappings: number; rules: number };
 }
 
-const base = (eid: string) => `/api/engagements/${eid}/evidence`;
+const base = (eid: string) => `/engagements/${eid}/evidence`;
 /** BHD evidence catalog (per NIST SP 800-171A examine object / assessment objective). */
 export interface CatalogDefinition { definition_id: string; requirement_id: string; nist_ref: string; examine_index: number; examine_text: string; form_id: string; form_title: string; emx_ids: string[]; objective_ids: string[]; tier: 'must_have' | 'nice_to_have'; production: 'signal' | 'capture' | 'rendered' | 'attested'; collection_guidance?: string; status: string }
 export type CatalogState = 'covered' | 'pending' | 'missing' | 'undefined';

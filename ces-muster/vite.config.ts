@@ -13,6 +13,13 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  // Dev convenience (2026-11-11): `/api` and `/auth` on the dev server proxy to muster-api,
+  // so the portal can run same-origin (no CORS, works in browser panes that block
+  // cross-origin localhost). Opt in per browser: localStorage 'muster-api-url' = '/api',
+  // or build with VITE_MUSTER_API_URL=/api. Default stays http://localhost:4000/api.
+  server: {
+    proxy: Object.fromEntries(['/api', '/auth'].map((p) => [p, { target: process.env.MUSTER_API_PROXY ?? 'http://localhost:4000', changeOrigin: false }])),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

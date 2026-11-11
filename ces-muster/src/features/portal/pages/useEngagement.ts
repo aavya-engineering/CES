@@ -26,9 +26,9 @@ export function useEngagement() {
   const [id, setIdState] = useState<string>(() => { try { return localStorage.getItem(KEY) ?? ''; } catch { return ''; } });
   useEffect(() => {
     let live = true;
-    api.get<EngagementRow[]>('/api/engagements').then((r) => {
+    api.get<EngagementRow[]>('/engagements').then((r) => {
       if (!live) return;
-      if (r.ok) setRows(r.data);
+      if (r.ok) { setRows(r.data); setError(null); }
       else { setRows([]); setError(r.status === 403 ? 'Your role cannot list engagements.' : r.degraded ? 'muster-api is not reachable.' : r.error ?? `Request failed (${r.status}).`); }
     });
     return () => { live = false; };

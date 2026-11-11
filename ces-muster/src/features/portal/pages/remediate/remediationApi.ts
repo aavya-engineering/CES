@@ -63,7 +63,7 @@ export type RunRequest =
   | { module: 'stamper'; mode: RunMode; entry_ids: string[]; action_id?: string | null; requirement_id?: string | null; justification: string }
   | { module: 'adminops'; mode: RunMode; op_id: string; parameters: Record<string, string>; action_id?: string | null; requirement_id?: string | null; justification: string };
 
-const base = (eid: string) => `/api/engagements/${eid}/remediation`;
+const base = (eid: string) => `/engagements/${eid}/remediation`;
 export const remediationApi = {
   summary: (eid: string) => api.get<RemediationSummary>(`${base(eid)}/summary`),
   stamperRegistry: (eid: string, q?: { control?: string; q?: string }) => api.get<StamperEntry[]>(`${base(eid)}/registry/stamper${q?.control || q?.q ? `?${new URLSearchParams({ ...(q.control ? { control: q.control } : {}), ...(q.q ? { q: q.q } : {}) })}` : ''}`),

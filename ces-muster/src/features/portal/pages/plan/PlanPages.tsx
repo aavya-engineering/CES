@@ -53,7 +53,7 @@ function useLoader<T>(load: (() => Promise<{ ok: true; data: T } | { ok: false; 
   useEffect(() => {
     if (!load) { setData(null); return; }
     let live = true;
-    load().then((r) => { if (!live) return; if (r.ok) setData(r.data); else setError(failureText(r)); });
+    load().then((r) => { if (!live) return; if (r.ok) { setData(r.data); setError(null); } else setError(failureText(r)); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps]);

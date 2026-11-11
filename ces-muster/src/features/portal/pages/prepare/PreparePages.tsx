@@ -48,7 +48,7 @@ export interface AssessorOverview { packages: { id: string; name: string; versio
 export interface AssessorRequest { id: string; package_id: string | null; requirement_id: string | null; question: string; requested_by: string; status: 'open' | 'answered' | 'closed'; answer: string | null; answered_by: string | null; answered_at: string | null; evidence_item_ids: string[]; created_at: string }
 export interface SignOff { id: string; kind: string; decision: string; notes: string; package_id: string | null; signed_by: string; signed_role: string | null; signed_at: string }
 
-const base = (eid: string) => `/api/engagements/${eid}/prepare`;
+const base = (eid: string) => `/engagements/${eid}/prepare`;
 export const prepareApi = {
   readiness: (eid: string) => api.get<Readiness>(`${base(eid)}/readiness`),
   statements: (eid: string) => api.get<StatementRow[]>(`${base(eid)}/ssp/statements`),
@@ -96,7 +96,7 @@ function useLoader<T>(load: (() => Promise<{ ok: true; data: T } | { ok: false; 
   useEffect(() => {
     if (!load) { setData(null); return; }
     let live = true;
-    load().then((r) => { if (!live) return; if (r.ok) setData(r.data); else setError(failureText(r)); });
+    load().then((r) => { if (!live) return; if (r.ok) { setData(r.data); setError(null); } else setError(failureText(r)); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps]);

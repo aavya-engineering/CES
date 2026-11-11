@@ -75,7 +75,7 @@ export interface PlanSummary {
   next_due: { id: string; title: string; due_date: string; owner: string | null }[];
 }
 
-const base = (eid: string) => `/api/engagements/${eid}/plan`;
+const base = (eid: string) => `/engagements/${eid}/plan`;
 export const planApi = {
   summary: (eid: string) => api.get<PlanSummary>(`${base(eid)}/summary`),
   actions: (eid: string) => api.get<PlanAction[]>(`${base(eid)}/actions`),

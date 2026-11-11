@@ -43,7 +43,7 @@ export interface Snapshot { id: string; taken_at: string; sprs_now: number | nul
 export interface MonitorSummary { last_evaluated_at: string | null; snapshots: number; open: number; by_severity: Record<Severity, number>; by_category: Record<Category, number>; by_status: Record<FindingStatus, number>; latest: Snapshot | null; previous: Snapshot | null }
 export interface Activity { id: string; at: string; actor_user_id: string | null; actor_role: string | null; action: string; target_type: string | null; target_id: string | null; detail: Record<string, unknown> | null }
 
-const base = (eid: string) => `/api/engagements/${eid}/monitor`;
+const base = (eid: string) => `/engagements/${eid}/monitor`;
 export const monitorApi = {
   evaluate: (eid: string) => api.post<{ created: number; updated: number; cleared: number; expired_evidence: number; open: number }>(`${base(eid)}/evaluate`),
   summary: (eid: string) => api.get<MonitorSummary>(`${base(eid)}/summary`),
@@ -73,7 +73,7 @@ function useLoader<T>(load: (() => Promise<{ ok: true; data: T } | { ok: false; 
   useEffect(() => {
     if (!load) { setData(null); return; }
     let live = true;
-    load().then((r) => { if (!live) return; if (r.ok) setData(r.data); else setError(failureText(r)); });
+    load().then((r) => { if (!live) return; if (r.ok) { setData(r.data); setError(null); } else setError(failureText(r)); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps]);

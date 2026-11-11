@@ -69,7 +69,7 @@ export interface GapAnalysis {
   gaps: AssessmentResult[];
 }
 
-const base = (eid: string) => `/api/engagements/${eid}/assessments`;
+const base = (eid: string) => `/engagements/${eid}/assessments`;
 
 export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
 

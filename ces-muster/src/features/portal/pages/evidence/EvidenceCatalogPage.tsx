@@ -40,7 +40,7 @@ function EngagementSelect({ eng }: { eng: ReturnType<typeof useEngagement> }) {
 
 function Bar({ value, total, tone }: { value: number; total: number; tone?: 'good' | 'warn' }) {
   const pct = total ? Math.round((value / total) * 100) : 0;
-  return <span className="bar" title={`${value} of ${total}`} aria-label={`${value} of ${total}`}><span className="bar-fill" data-tone={tone} style={{ width: `${pct}%` }} /></span>;
+  return <span className="bar bar-inline" title={`${value} of ${total}`} aria-label={`${value} of ${total}`}><span className="bar-fill" data-tone={tone} style={{ width: `${pct}%` }} /></span>;
 }
 
 export function EvidenceCatalogPage({ viewer, go }: { viewer: Viewer; go: (r: RouteId) => void }) {
@@ -135,14 +135,17 @@ export function EvidenceCatalogPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
             <>
               {detail.requirement_text && <p className="note" data-tone="info">{detail.requirement_text}</p>}
               <h3 className="card-title">NIST SP 800-171A examine list ({detail.examine.length})</h3>
-              <ol className="checklist" data-testid="catalog-examine">
+              <ol className="cat-examine" data-testid="catalog-examine">
                 {detail.examine.map((e) => (
-                  <li key={e.examine_index}>
-                    <span className="pill" data-tone={STATE_TONE[e.state]}>{STATE_LABEL[e.state]}</span>{' '}
-                    <strong>{e.examine_text}</strong>
-                    {e.definition && <span className="hint"> · {e.definition.definition_id} · {e.definition.form_title} · {e.definition.tier === 'must_have' ? 'must have' : 'nice to have'} · {e.definition.production}{e.definition.objective_ids.length ? ` · objectives ${e.definition.objective_ids.map((o) => o.replace(/^.*\[/, '[')).join(' ')}` : ''}</span>}
-                    {e.items.length > 0 && <ul>{e.items.map((i) => <li key={i.id} className="hint">{i.title ?? i.id.slice(0, 8)} — {i.status}</li>)}</ul>}
-                    {e.definition && e.state === 'missing' && canWrite && <div><button type="button" className="btn btn-ghost" onClick={() => { try { localStorage.setItem('ces.evidence.preset', JSON.stringify({ requirement: detail.requirement_id, definition_id: e.definition!.definition_id })); } catch { /* ignore */ } go('evidence/collect'); }}>Collect this</button></div>}
+                  <li key={e.examine_index} data-state={e.state}>
+                    <div className="cat-examine-head">
+                      <span className="cat-examine-n">{e.examine_index}</span>
+                      <strong>{e.examine_text}</strong>
+                      <span className="pill" data-tone={STATE_TONE[e.state]}>{STATE_LABEL[e.state]}</span>
+                    </div>
+                    {e.definition && <div className="hint">{e.definition.definition_id} · {e.definition.form_title} · {e.definition.tier === 'must_have' ? 'must have' : 'nice to have'} · {e.definition.production}{e.definition.objective_ids.length ? ` · objectives ${e.definition.objective_ids.map((o) => o.replace(/^.*\[/, '[')).join(' ')}` : ''}</div>}
+                    {e.items.length > 0 && <ul className="cat-examine-items">{e.items.map((i) => <li key={i.id}>{i.title ?? i.id.slice(0, 8)} <span className="hint">— {i.status}</span></li>)}</ul>}
+                    {e.definition && e.state === 'missing' && canWrite && <button type="button" className="btn btn-ghost btn-sm" onClick={() => { try { localStorage.setItem('ces.evidence.preset', JSON.stringify({ requirement: detail.requirement_id, definition_id: e.definition!.definition_id })); } catch { /* ignore */ } go('evidence/collect'); }}>Collect this</button>}
                   </li>
                 ))}
               </ol>

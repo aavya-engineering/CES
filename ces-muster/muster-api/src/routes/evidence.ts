@@ -198,6 +198,7 @@ export function createEvidenceRouter(db: Db) {
       collected_at: body.collected_at ? new Date(body.collected_at) : new Date(), status: 'draft', version: 1, tenant_id: user(req).tenant_id, engagement_id: eid(req), created_by: user(req).sub, ...extra,
     };
     delete (data as { content_base64?: unknown }).content_base64;
+    delete (data as { definition_id?: unknown }).definition_id; // not a column — carried in metadata.definition_id
     const report = validateEvidence({ ...data, content, status: 'draft' } as never, cat);
     return tx(req, db, (t) => t.evidenceItem.create({ data: { ...data, validation: report } }));
   }
@@ -251,6 +252,7 @@ export function createEvidenceRouter(db: Db) {
       if (!it) return notFound(res);
       if (it.status === 'validated' || it.status === 'archived') return conflict(res, 'A validated or archived item is immutable — create a new version', 'IMMUTABLE');
       const body = req.body as z.infer<typeof itemPatch>;
+      delete (body as { definition_id?: unknown }).definition_id; // metadata.definition_id is set at creation only
       const cat = await catalogue();
       const merged = { ...it, ...body, collected_at: body.collected_at ? new Date(body.collected_at) : it.collected_at };
       const report = validateEvidence(merged, cat);

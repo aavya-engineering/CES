@@ -41,27 +41,27 @@ export interface Checklist { sections: { id: string; label: string; items: { id:
 export interface EngagementDetail { id: string; name: string | null; reference_id: string | null; engagement_kind: string; cmmc_level: number | null; status: 'planned' | 'in_progress' | 'on_hold' | 'closed'; start_date: string | null; target_date: string | null; live_access_enabled?: boolean; created_at: string }
 
 export const adminApi = {
-  settings: () => api.get<Settings>('/api/admin/settings'),
-  saveSettings: (body: Partial<Settings>) => api.put<Settings>('/api/admin/settings', body),
-  users: () => api.get<TenantUser[]>('/api/admin/access/users'),
-  createUser: (body: { email: string; display_name?: string; role: string; access_request_id?: string }) => api.post<{ user: TenantUser; temporary_password: string }>('/api/admin/access/users', body),
-  updateUser: (id: string, body: { role?: string; display_name?: string | null; disabled?: boolean }) => api.patch<TenantUser>(`/api/admin/access/users/${id}`, body),
-  resetPassword: (id: string) => api.post<{ temporary_password: string }>(`/api/admin/access/users/${id}/reset-password`),
-  requests: () => api.get<AccessRequest[]>('/api/admin/access/requests'),
-  request: (body: { subject_email: string; requested_role: string; justification: string }) => api.post<AccessRequest>('/api/admin/access/requests', body),
-  decide: (id: string, decision: string, notes: string) => api.post<AccessRequest & { note?: string }>(`/api/admin/access/requests/${id}/decide`, { decision, notes }),
-  reviews: () => api.get<AccessReview[]>('/api/admin/access/reviews'),
-  startReview: (title: string) => api.post<AccessReview>('/api/admin/access/reviews', { title }),
-  attest: (id: string, user_id: string, decision: string, note?: string) => api.post<AccessReview>(`/api/admin/access/reviews/${id}/decide`, { user_id, decision, note }),
-  completeReview: (id: string) => api.post<AccessReview>(`/api/admin/access/reviews/${id}/complete`),
-  health: () => api.get<Health>('/api/admin/health'),
-  systems: (eid: string) => api.get<SystemRecord[]>(`/api/engagements/${eid}/systems`),
-  createSystem: (eid: string, body: Partial<SystemRecord>) => api.post<SystemRecord>(`/api/engagements/${eid}/systems`, body),
-  updateSystem: (eid: string, id: string, body: Partial<SystemRecord>) => api.patch<SystemRecord>(`/api/engagements/${eid}/systems/${id}`, body),
-  deleteSystem: (eid: string, id: string) => api.delete<void>(`/api/engagements/${eid}/systems/${id}`),
-  checklist: (eid: string) => api.get<Checklist>(`/api/engagements/${eid}/onboard/checklist`),
-  engagement: (eid: string) => api.get<EngagementDetail>(`/api/engagements/${eid}`),
-  updateEngagement: (eid: string, body: Partial<EngagementDetail>) => api.patch<EngagementDetail>(`/api/engagements/${eid}`, body),
+  settings: () => api.get<Settings>('/admin/settings'),
+  saveSettings: (body: Partial<Settings>) => api.put<Settings>('/admin/settings', body),
+  users: () => api.get<TenantUser[]>('/admin/access/users'),
+  createUser: (body: { email: string; display_name?: string; role: string; access_request_id?: string }) => api.post<{ user: TenantUser; temporary_password: string }>('/admin/access/users', body),
+  updateUser: (id: string, body: { role?: string; display_name?: string | null; disabled?: boolean }) => api.patch<TenantUser>(`/admin/access/users/${id}`, body),
+  resetPassword: (id: string) => api.post<{ temporary_password: string }>(`/admin/access/users/${id}/reset-password`),
+  requests: () => api.get<AccessRequest[]>('/admin/access/requests'),
+  request: (body: { subject_email: string; requested_role: string; justification: string }) => api.post<AccessRequest>('/admin/access/requests', body),
+  decide: (id: string, decision: string, notes: string) => api.post<AccessRequest & { note?: string }>(`/admin/access/requests/${id}/decide`, { decision, notes }),
+  reviews: () => api.get<AccessReview[]>('/admin/access/reviews'),
+  startReview: (title: string) => api.post<AccessReview>('/admin/access/reviews', { title }),
+  attest: (id: string, user_id: string, decision: string, note?: string) => api.post<AccessReview>(`/admin/access/reviews/${id}/decide`, { user_id, decision, note }),
+  completeReview: (id: string) => api.post<AccessReview>(`/admin/access/reviews/${id}/complete`),
+  health: () => api.get<Health>('/admin/health'),
+  systems: (eid: string) => api.get<SystemRecord[]>(`/engagements/${eid}/systems`),
+  createSystem: (eid: string, body: Partial<SystemRecord>) => api.post<SystemRecord>(`/engagements/${eid}/systems`, body),
+  updateSystem: (eid: string, id: string, body: Partial<SystemRecord>) => api.patch<SystemRecord>(`/engagements/${eid}/systems/${id}`, body),
+  deleteSystem: (eid: string, id: string) => api.delete<void>(`/engagements/${eid}/systems/${id}`),
+  checklist: (eid: string) => api.get<Checklist>(`/engagements/${eid}/onboard/checklist`),
+  engagement: (eid: string) => api.get<EngagementDetail>(`/engagements/${eid}`),
+  updateEngagement: (eid: string, body: Partial<EngagementDetail>) => api.patch<EngagementDetail>(`/engagements/${eid}`, body),
 };
 
 function useLoader<T>(load: (() => Promise<{ ok: true; data: T } | { ok: false; status: number; degraded: boolean; error?: string }>) | null, deps: unknown[]) {
@@ -71,7 +71,7 @@ function useLoader<T>(load: (() => Promise<{ ok: true; data: T } | { ok: false; 
   useEffect(() => {
     if (!load) { setData(null); return; }
     let live = true;
-    load().then((r) => { if (!live) return; if (r.ok) setData(r.data); else setError(failureText(r)); });
+    load().then((r) => { if (!live) return; if (r.ok) { setData(r.data); setError(null); } else setError(failureText(r)); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps]);

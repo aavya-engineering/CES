@@ -48,7 +48,7 @@ function useList<T>(load: () => Promise<{ ok: true; data: T } | { ok: false; sta
     setRows(null);
     load().then((r) => {
       if (!live) return;
-      if (r.ok) setRows(r.data);
+      if (r.ok) { setRows(r.data); setError(null); }
       else setError(failureText(r));
     });
     return () => {
