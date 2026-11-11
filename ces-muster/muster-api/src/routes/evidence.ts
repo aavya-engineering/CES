@@ -39,6 +39,7 @@ import { withTenant } from '../lib/prisma.js';
 import { audit } from '../lib/audit.js';
 import { CONTROL_REFS } from './assessments.js';
 import { coverage, sha256Of, validateEvidence, type Catalogue, type ValidationReport } from '../services/evidenceValidation.js';
+import { loadCatalog, requirementCoverage, catalogSummary, validateCatalogRows, toNistRef } from '../services/evidenceCatalog.js';
 
 const READ = ['prime', 'bhd_operator', 'assessor_read_only', 'sub'] as const;
 const WRITE = ['prime', 'sub', 'bhd_operator'] as const;
@@ -66,6 +67,8 @@ const itemSchema = z.object({
   requirement_ids: z.array(reqId).min(1).max(20),
   objective_ids: z.array(z.string().trim().max(40)).max(50).default([]),
   archetype_code: z.string().trim().regex(/^EMX-[A-Z0-9]+-\d{3}$/).optional().nullable(),
+  /** File against a BHD catalog definition (`AC.L2-3.1.1#E01`): requirement, objectives and form are filled from it. */
+  definition_id: z.string().trim().regex(/^[A-Z]{2}\.L[12]-3\.\d{1,2}\.\d{1,2}#E\d{2}$/).optional().nullable(),
   form: z.string().trim().max(200).optional().nullable(),
   kind: z.enum(KINDS).default('document'),
   source: z.enum(SOURCES).default('upload'),
@@ -124,6 +127,32 @@ export function createEvidenceRouter(db: Db) {
     try { if (!(await engagementOf(req))) return notFound(res); res.json(await catalogue()); } catch (e) { next(e); }
   });
 
+  // ---------------------------------------------------------------- BHD evidence catalog (per NIST examine object / objective)
+  r.get('/nist-catalog', bearerAuth, requireRole(...READ), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }));
+      const cat = loadCatalog();
+      res.json({ releases: cat.releases, definitions: cat.definitions.length, requirements: catalogSummary(items, cat) });
+    } catch (e) { next(e); }
+  });
+  r.get('/nist-catalog/:requirementId', bearerAuth, requireRole(...READ), validate(z.object({ requirementId: reqId }).passthrough(), 'params'), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const items = await tx(req, db, (t) => t.evidenceItem.findMany({ where: { engagement_id: eid(req) } }));
+      res.json(requirementCoverage((req.params as { requirementId: string }).requirementId, items));
+    } catch (e) { next(e); }
+  });
+  /** Check a batch of catalog rows (BHD's contractor batches) before it is accepted as a release. Reference data only — nothing is stored. */
+  r.post('/nist-catalog/validate', bearerAuth, requireRole(...WRITE), validate(z.object({ rows: z.array(z.record(z.unknown())).min(1).max(2000) })), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const out = validateCatalogRows((req.body as { rows: unknown[] }).rows);
+      await audit(db, { action: 'evidence.catalog.validate', actor: user(req), target_type: 'engagement', target_id: eid(req), tenant_id: user(req).tenant_id, detail: { rows: out.total, ok: out.ok, fix: out.findings.filter((f) => f.severity === 'fix').length } });
+      res.json(out);
+    } catch (e) { next(e); }
+  });
+
   r.get('/coverage', bearerAuth, requireRole(...READ), async (req, res, next) => {
     try {
       if (!(await engagementOf(req))) return notFound(res);
@@ -177,6 +206,16 @@ export function createEvidenceRouter(db: Db) {
     try {
       if (!(await engagementOf(req))) return notFound(res);
       const body = req.body as z.infer<typeof itemSchema>;
+      if (body.definition_id) {
+        const d = loadCatalog().byId.get(body.definition_id);
+        if (!d) { res.status(422).json({ error: 'Unknown catalog definition', code: 'VALIDATION_ERROR', part: 'body', details: [{ path: 'definition_id', message: 'not in any released catalog' }] }); return; }
+        const reqIds = new Set([...body.requirement_ids, ...CONTROL_REFS.filter((c) => toNistRef(c.control_id) === d.nist_ref).map((c) => c.control_id)]);
+        body.requirement_ids = [...reqIds];
+        body.objective_ids = [...new Set([...body.objective_ids, ...d.objective_ids])];
+        body.form = body.form ?? d.form_title;
+        body.archetype_code = body.archetype_code ?? (d.emx_ids[0] ?? null);
+        body.metadata = { ...(body.metadata ?? {}), definition_id: d.definition_id, examine_text: d.examine_text, tier: d.tier, production: d.production };
+      }
       if (body.content_base64 && Buffer.byteLength(body.content_base64, 'base64') > MAX_BYTES) { res.status(413).json({ error: 'Evidence files are limited to 10 MB here; link larger files from the repository (metadata.external_url)', code: 'TOO_LARGE' }); return; }
       const row = await createItem(req, body, {});
       await audit(db, { action: 'evidence.create', actor: user(req), target_type: 'evidence_item', target_id: row.id, tenant_id: user(req).tenant_id, detail: { engagement_id: eid(req), requirement_ids: row.requirement_ids, archetype: row.archetype_code, passed: row.validation.passed } });

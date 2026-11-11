@@ -171,3 +171,29 @@ describe('requests, coverage and summary', () => {
     expect(cat.archetypes).toHaveLength(2);
   });
 });
+
+describe('BHD evidence catalog (per NIST examine object)', () => {
+  it('summary covers 110 requirements; filing an item against a definition fills requirement/objectives/form and shows as examine + objective coverage; a batch validator reports fixes', async () => {
+    const empty = await (await call('GET', '/nist-catalog', 'assessor_read_only')).json();
+    expect(empty.requirements).toHaveLength(110);
+    expect(empty.definitions).toBe(14);
+    const filed = await (await call('POST', '/items', 'it_security_admin', { ...GOOD, title: 'Access Control Policy v3 (approved)', requirement_ids: ['AC.L1-3.1.1'], archetype_code: undefined, form: undefined, kind: 'document', definition_id: 'AC.L2-3.1.1#E01' })).json();
+    expect(filed.requirement_ids).toEqual(['AC.L1-3.1.1']); // the reference lists 3.1.1 once, as its L1 id
+    expect(filed.objective_ids).toContain('AC.L1-3.1.1[a]');
+    expect(filed.form).toBe('Access Control Policy');
+    expect(filed.metadata.definition_id).toBe('AC.L2-3.1.1#E01');
+    expect((await call('POST', '/items', 'it_security_admin', { ...GOOD, definition_id: 'AC.L2-3.1.1#E99' })).status).toBe(422);
+    const cov = await (await call('GET', '/nist-catalog/AC.L1-3.1.1', 'prime')).json();
+    expect(cov.examine).toHaveLength(14);
+    expect(cov.examine[0]).toMatchObject({ examine_text: 'Access control policy', state: 'pending' }); // draft → pending until reviewed
+    expect(cov.objectives.find((o: { objective_id: string }) => o.objective_id === 'AC.L1-3.1.1[a]').state).toBe('pending');
+    expect(cov.summary.objectives_total).toBe(6);
+    const undef = await (await call('GET', '/nist-catalog/SC.L2-3.13.11', 'prime')).json();
+    expect(undef.examine.every((e: { state: string }) => e.state === 'undefined')).toBe(true);
+    expect((await call('POST', '/nist-catalog/validate', 'evidence_reviewer', { rows: [{}] })).status).toBe(403);
+    const v = await (await call('POST', '/nist-catalog/validate', 'bhd_operator', { rows: [{ definition_id: 'AC.L2-3.1.7#E01', requirement_id: 'AC.L2-3.1.7', nist_ref: '3.1.7', examine_index: 1, examine_text: 'Privacy and security policies, procedures addressing system use notification', form_id: 'x', form_title: 'X', emx_ids: [], objective_ids: [], tier: 'must_have', production: 'attested', status_effect: 'none', status: 'draft' }] })).json();
+    expect(v.total).toBe(1);
+    expect(v.findings.map((f: { code: string }) => f.code)).toContain('examine_text'); // 3.1.9's text filed under 3.1.7
+    expect(v.findings.find((f: { code: string }) => f.code === 'examine_text').suggested_fix).toBe('Access control policy');
+  });
+});
