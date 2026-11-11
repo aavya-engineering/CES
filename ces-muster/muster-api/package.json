@@ -18,6 +18,7 @@
     "seed:dev:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/seed-dev-users.ps1",
     "catalog:check": "tsx scripts/validate-catalog-rows.ts",
     "smoke:postgres": "tsx scripts/smoke-postgres.ts",
+    "runner": "tsx src/runner/bin.ts",
     "seed:rls": "tsx scripts/seed-rls-fixtures.ts",
     "mu": "tsx src/cli/bin.ts",
     "seed:ces-shared": "tsx scripts/seed-ces-shared.ts",

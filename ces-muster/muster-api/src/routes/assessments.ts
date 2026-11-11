@@ -361,7 +361,9 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
       }
       // The registry's read commands are PowerShell (liveSimSession spawns powershell.exe; the kit's simAvailable()
       // is win32-only): run in-process only on a Windows host, otherwise leave the job for the runner.
-      const local = !!(opts.runSim || opts.runLive || process.platform === 'win32' || process.env.CES_ENGINE_LOCAL === '1');
+      // CES_ENGINE_LOCAL=1 forces in-process, =0 forces the queue (to exercise the runner on a Windows dev box).
+      const forced = process.env.CES_ENGINE_LOCAL;
+      const local = !!(opts.runSim || opts.runLive || (forced === '0' ? false : forced === '1' || process.platform === 'win32'));
       const job = await tx(req, db, (t) => t.engineJob.create({ data: { tenant_id: actor.tenant_id, engagement_id: engagementId, kind: 'discovery', mode: body.mode, tenant_slug: body.tenant_slug, label, status: local ? 'running' : 'queued', requested_by: actor.sub, claimed_by: local ? 'api' : null, claimed_at: local ? new Date() : null } }));
       await audit(db, { action: 'assessment.run.start', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: job.id, mode: body.mode, tenant_slug: body.tenant_slug, where: local ? 'api' : 'runner' } });
       if (!local) { res.status(202).json({ job_id: job.id, status: 'queued', mode: body.mode, tenant_slug: body.tenant_slug, note: 'Queued for the Windows runner (registry commands are PowerShell).' }); return; }

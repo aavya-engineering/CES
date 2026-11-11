@@ -14,6 +14,7 @@
 | muster-api (Express + Prisma) | `ces-muster\muster-api` | 4000 | `npm run dev` |
 | Muster portal (Vite SPA) | `ces-muster` | 5173 | `npm run dev` |
 | Tenant simulator (stacksim, M365/Azure fake) | `tenant-stacksim` | 4390 | `npm run sim` (from repo root) |
+| Tenant runner (optional — polls queued jobs) | `ces-muster\muster-api` | — | `npm run runner` |
 | Postgres 16 | — | 5432 | Docker Desktop or EDB installer |
 
 Everything in this doc is `localhost` only. No customer data, no real tenant, no secrets beyond local dev values.
@@ -159,7 +160,14 @@ cd C:\ces\ces-muster; npm run dev                   # http://localhost:5173 (pro
 
 # 3 — Simulator (needed only for Assess › Run assessment)
 cd C:\ces; npm run sim                              # builds, creates scenario muster-partial, serves :4390
+
+# 4 — Runner (optional; only when the API is NOT on Windows or you want to exercise the queue path)
+cd C:\ces\ces-muster\muster-api
+$env:CES_API_URL='http://localhost:4000/api'; $env:CES_RUNNER_EMAIL='runner@contoso.local'; $env:CES_RUNNER_PASSWORD='Ces!Local2026'
+npm run runner -- --once                            # one pass; drop --once to poll every 30 s
 ```
+
+The runner (`src/runner/bin.ts`) is the ADR-02 pull client: it lists the engagements its account can see, claims queued discovery jobs, runs the same simulator walk the API runs in-process on Windows, and posts the envelope + captures. On a Windows dev box the API runs discovery in-process, so the queue is normally empty; start the API with `$env:CES_ENGINE_LOCAL='0'` to force jobs onto the queue and watch the runner pick them up (that is also what a macOS/Linux API does by default). Remediation lane is off unless `CES_RUNNER_REMEDIATION_CMD` points at a command that executes Stamper/AdminOps (JSON in on stdin, JSON out on stdout — see `src/runner/executors.ts`).
 
 Open http://localhost:5173, sign in as `compliance@contoso.local`. If the portal says it cannot reach the API, set in the browser console once: `localStorage.setItem('muster-api-url','/api')` and reload (the dev proxy handles the rest).
 
@@ -213,6 +221,8 @@ Commit from your own machine (`git push` stays with the developer; nothing in CI
 | `npm ci` fails on a native module (node-gyp) | Install Visual Studio Build Tools (C++ workload) and retry; report which module. |
 | `npm run sim` → `Cannot find module …/bin/stacksim.mjs` | You are inside `muster-api`; run from `C:\ces`. |
 | Run assessment → 409 `ENGINE_NEEDS_WINDOWS` | You are not on Windows (or `CES_ENGINE_LOCAL` not set on a Windows box where auto-detect failed). Set `$env:CES_ENGINE_LOCAL=1` before `npm run dev` and retry. |
+| Run assessment stays `queued` | API is not on Windows or `CES_ENGINE_LOCAL=0`: start the runner (window 4) or set `CES_ENGINE_LOCAL=1`. |
+| Runner: `login failed (401)` / `403 ROLE_MATRIX` | Account must be `bhd_operator` in the tenant (dev: `runner@contoso.local`). Check `npm run seed:dev:win` ran. |
 | Run assessment → `engine_unavailable` with ran = failed | The simulator is not serving `muster-partial` on 4390, or PowerShell execution policy blocks the spawned script. Check window 3, then `Get-ExecutionPolicy -List`. |
 | CRLF diffs on every file in `git status` | Clone was made with autocrlf=true. `git config core.autocrlf false; git rm -r --cached .; git reset --hard`. |
 | `scheduler.test.ts` fails once | Known timing-sensitive test; rerun. Everything else failing is real. |
