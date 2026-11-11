@@ -72,7 +72,7 @@ function Selectors({ eng, runs, runId, setRunId }: { eng: ReturnType<typeof useE
 /** ENGINE: start a discovery run and poll the job until the run lands. Simulator first; live only when the engagement's Live gate allows it. */
 function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string, job: EngineJob) => void }) {
   const [mode, setMode] = useState<'sim' | 'live'>('sim');
-  const [slug, setSlug] = useState('mp');
+  const [slug, setSlug] = useState('muster-partial');
   const [job, setJob] = useState<EngineJob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -90,12 +90,12 @@ function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string,
     const r = await assessApi.startRun(eid, { mode, tenant_slug: slug });
     setBusy(false);
     if (r.ok) setJob({ id: r.data.job_id, engagement_id: eid, mode, status: 'running', started_at: new Date().toISOString() });
-    else setError(r.status === 403 ? 'Live run refused: enable live access on the engagement and grant consent first (simulator needs neither).' : failureText(r));
+    else setError(r.status === 403 ? 'Live run refused: enable live access on the engagement and grant consent first (simulator needs neither).' : r.status === 409 ? 'This server cannot run the discovery engine (the registry commands are PowerShell; they run on the Windows runner). Import a readiness result here, or run the engine on the runner.' : failureText(r));
   };
   return (
     <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'nowrap' }} data-testid="engine-run">
       <select className="select" value={mode} onChange={(e) => setMode(e.target.value as 'sim' | 'live')} aria-label="Run mode" style={{ width: 150 }}><option value="sim">Simulator</option><option value="live">Live tenant</option></select>
-      <input className="input" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} aria-label="Tenant slug" style={{ width: 90 }} title="Simulated customer (S1 / S2 / S3 / mp) or the live tenant slug" />
+      <input className="input" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} aria-label="Tenant slug" style={{ width: 130 }} title="Simulated customer (s1-mach / s2-eng / s3-def / muster-partial) or the live tenant slug" />
       <button type="button" className="btn btn-secondary" disabled={busy || job?.status === 'running'} onClick={start} data-testid="engine-run-start">{job?.status === 'running' ? 'Engine running…' : 'Run assessment'}</button>
       {job?.status === 'running' && <span className="hint">walking the command registry{mode === 'live' ? ' against the tenant (read-only)' : ' against the simulator'}…</span>}
       {job?.status === 'done' && <span className="pill" data-tone="good">run landed</span>}

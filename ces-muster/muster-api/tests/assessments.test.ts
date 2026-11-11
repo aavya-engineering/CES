@@ -51,7 +51,7 @@ beforeAll(async () => {
   app.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, {
     // Engine seam: the simulator walk returns our RECORD as its envelope; the live path has no gate → refused.
     readCapture: (abs) => (abs.endsWith('captures/ac-3.1.1.txt') ? Buffer.from('Get-MgPolicy… (sim output)') : null),
-    runSim: async ({ slug }) => (slug === 'broken' ? { ok: false, code: 'sim_unreachable', message: 'ledger down' } : { ok: true, envelope: { ...RECORD, observations: RECORD.observations.map((o, i) => ({ ...o, raw_capture_ref: i < 2 ? 'captures/ac-3.1.1.txt' : i === 2 ? 'captures/missing.txt' : undefined })), provenance: { engine: { name: 'muster-api discovery', version: 'sim' }, generated_at: new Date().toISOString() } }, stats: { entries: 4 }, postures: { met: 2, unknown: 0, not_met: 1 } }),
+    runSim: async ({ slug }) => (slug === 'broken' ? { ok: false, code: 'sim_unreachable', message: 'ledger down' } : slug === 'dead' ? { ok: true, envelope: RECORD, stats: { entries: 4, ran: 4, failed: 4 }, postures: { met: 0, unknown: 4, not_met: 0 } } : { ok: true, envelope: { ...RECORD, observations: RECORD.observations.map((o, i) => ({ ...o, raw_capture_ref: i < 2 ? 'captures/ac-3.1.1.txt' : i === 2 ? 'captures/missing.txt' : undefined })), provenance: { engine: { name: 'muster-api discovery', version: 'sim' }, generated_at: new Date().toISOString() } }, stats: { entries: 4 }, postures: { met: 2, unknown: 0, not_met: 1 } }),
   }));
   server = http.createServer(app);
   await new Promise<void>((r) => server.listen(0, () => r()));
@@ -149,6 +149,13 @@ describe('runs', () => {
     expect(live.status).toBeGreaterThanOrEqual(400); // no Live gate configured → refused, never a silent sim fallback
     expect((await live.json()).code).toBe('LIVE_REFUSED');
 
+    // All registry commands failed to execute (no PowerShell on the host): nothing is recorded, the job says why.
+    const dead = await (await call('POST', '/run', 'prime', { mode: 'sim', tenant_slug: 'dead' })).json();
+    let deadJob: { status: string; error?: string } = { status: 'running' };
+    for (let i = 0; i < 20 && deadJob.status === 'running'; i++) { await new Promise((r) => setTimeout(r, 10)); deadJob = await (await call('GET', `/jobs/${dead.job_id}`, 'prime')).json(); }
+    expect(deadJob.status).toBe('failed');
+    expect(deadJob.error).toMatch(/engine_unavailable/);
+    expect(db.assessmentRun._records).toHaveLength(1); // only the good run
     const bad = await (await call('POST', '/run', 'prime', { mode: 'sim', tenant_slug: 'broken' })).json();
     let failed: { status: string; error?: string } = { status: 'running' };
     for (let i = 0; i < 20 && failed.status === 'running'; i++) { await new Promise((r) => setTimeout(r, 10)); failed = await (await call('GET', `/jobs/${bad.job_id}`, 'prime')).json(); }

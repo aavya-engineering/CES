@@ -313,7 +313,7 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
   // ---------------------------------------------------------------- ENGINE: run discovery and persist
   const runSchema = z.object({
     mode: z.enum(['sim', 'live']).default('sim'),
-    tenant_slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/).default('mp'),
+    tenant_slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/).default('muster-partial'),
     consent_ids: z.array(z.string()).optional(),
     label: z.string().trim().max(120).optional(),
   });
@@ -324,6 +324,11 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
       const engagement = await engagementOf(req);
       if (!engagement) return notFound(res);
       const body = req.body as z.infer<typeof runSchema>;
+      // The registry's read commands are PowerShell (liveSimSession spawns powershell.exe; simAvailable() is
+      // win32-only), so a discovery run only produces observations on a Windows host. Elsewhere, refuse up
+      // front instead of persisting a run in which every command failed (an empty read is not evidence).
+      const engineHost = opts.runSim || opts.runLive || process.platform === 'win32' || process.env.CES_ENGINE_LOCAL === '1';
+      if (!engineHost) { res.status(409).json({ error: 'Discovery runs execute on the Windows runner (PowerShell registry commands); this API host cannot run them. Import a readiness result, or queue the run for the runner once the runner protocol covers assessments.', code: 'ENGINE_NEEDS_WINDOWS' }); return; }
       const actor = { sub: user(req).sub, role: user(req).role, tenant_id: user(req).tenant_id };
       const engagementId = eid(req);
       const id = randomUUID();
@@ -344,6 +349,12 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
         .catch((e): SimDiscoveryOutcome => ({ ok: false, code: 'envelope_invalid', message: e instanceof Error ? e.message : String(e) }))
         .then(async (outcome) => {
           if (!outcome.ok) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `${outcome.code}: ${outcome.message}` }); await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, code: outcome.code, message: outcome.message } }); return; }
+          const st = outcome.stats as { ran?: number; failed?: number } | undefined;
+          if (st && st.ran && st.failed === st.ran) {
+            remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine_unavailable: all ${st.ran} registry commands failed to execute on this host (PowerShell not available?) — nothing was recorded` });
+            await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, code: 'engine_unavailable', stats: st } });
+            return;
+          }
           const parsed = readinessResultSchema.safeParse(outcome.envelope);
           if (!parsed.success) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine envelope did not validate: ${parsed.error.issues[0]?.message ?? 'unknown'}` }); return; }
           try {

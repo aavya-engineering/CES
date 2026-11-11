@@ -13,6 +13,6 @@ Run (Node 20+, no runtime dependencies):
 
     cd tenant-stacksim && npm ci && npm run build
     node bin/stacksim.mjs scenario muster-partial        # or s1-mach, s2-eng, s3-def
-    node bin/stacksim.mjs serve m365_azure --slug mp --port 4390
+    node bin/stacksim.mjs serve m365_azure --slug muster-partial --port 4390
 
 Not a root workspace (own lockfile). Updates come from the kit; do not edit here.
