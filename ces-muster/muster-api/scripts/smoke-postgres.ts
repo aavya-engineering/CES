@@ -67,6 +67,15 @@ async function main(): Promise<number> {
     const run = await call('cm', 'POST', `${E}/assessments`, { schema_version: 'readiness-result/1.1.0', observations: [ { control_id: 'AC.L1-3.1.1', objective_ids: ['AC.L1-3.1.1[a]'], confidence: 'high', ran_entry_ids: [], derived_posture: 'met' }, { control_id: 'IA.L2-3.5.3', objective_ids: [], confidence: 'high', ran_entry_ids: [], derived_posture: 'not_met' } ] });
     await call('cm', 'GET', `${E}/assessments/${run.id}/gaps`);
     await call('cm', 'PATCH', `${E}/assessments/${run.id}/results/IA.L2-3.5.3`, { status: 'partial', reason: 'MFA rolled out to 80% of accounts' });
+    // Discovery through the runner protocol (this host has no PowerShell → the job queues; the "runner" posts an envelope).
+    const job = await call('cm', 'POST', `${E}/assessments/run`, { mode: 'sim', tenant_slug: 'muster-partial' });
+    if (job.status !== 'queued' && job.status !== 'running') throw new Error(`assess: unexpected job status ${job.status}`);
+    if (job.status === 'queued') {
+      await call('bhd1', 'GET', `${E}/assessments/runner/queue`);
+      await call('bhd1', 'POST', `${E}/assessments/jobs/${job.job_id}/claim`, { runner: 'smoke-runner' });
+      const landed = await call('bhd1', 'POST', `${E}/assessments/jobs/${job.job_id}/result`, { runner: 'smoke-runner', outcome: 'succeeded', envelope: { schema_version: 'readiness-result/1.1.0', observations: [ { control_id: 'AC.L1-3.1.1', objective_ids: ['AC.L1-3.1.1[a]'], confidence: 'high', ran_entry_ids: ['AC.L2-3.1.1.operator-discover'], derived_posture: 'met' } ], provenance: { engine: { name: 'smoke', version: '0' } } }, stats: { entries: 1, ran: 1, failed: 0 }, captures: [{ ref: 'captures/ac.txt', content: 'Get-MgUser (smoke)', entry_id: 'AC.L2-3.1.1.operator-discover', requirement_ids: ['AC.L1-3.1.1'] }] });
+      if (landed.status !== 'done' || !landed.run_id) throw new Error(`assess: runner result did not land a run: ${JSON.stringify(landed).slice(0, 200)}`);
+    }
 
     step = 'plan';
     await call('cm', 'POST', `${E}/plan/actions/generate`, { run_id: run.id });

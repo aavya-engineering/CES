@@ -152,7 +152,7 @@ export function createApp(opts: AppOptions = {}) {
   app.use('/api/customer-tenants', bearerAuth, requireAction('onboard', { view: [/\/test-connection$/] }), createCustomerTenantsRouter(db));
   app.use('/api/engagements/:engagementId/scope', bearerAuth, requireAction('onboard', { approve: [/\/boundaries\/[^/]+\/confirm$/] }), createScopeRouter(db));
   // Sprint 3/4 slice "Assess": persisted readiness runs, gap analysis, human overrides.
-  app.use('/api/engagements/:engagementId/assessments', bearerAuth, requireAction('assess', { execute: [/^\/run$/], approve: [/\/results\/[^/]+$/] }), createAssessmentsRouter(db, { live }));
+  app.use('/api/engagements/:engagementId/assessments', bearerAuth, requireAction((req) => (req.path.startsWith('/runner') || /\/jobs\/[^/]+\/(claim|result)$/.test(req.path) ? 'remediate.stamper' : 'assess'), { execute: [/^\/run$/, /\/claim$/, /\/result$/], approve: [/\/results\/[^/]+$/] }), createAssessmentsRouter(db, { live }));
   // Sprint 4 slice "Plan": action items from gaps, POA&M register.
   app.use('/api/engagements/:engagementId/plan', bearerAuth, requireAction('plan') /* generate / from-actions derive records, they touch no tenant → edit */, createPlanActionsRouter(db));
   // Sprint 5 slice "Remediate": Stamper / AdminOps run requests with gates, approval, verification.

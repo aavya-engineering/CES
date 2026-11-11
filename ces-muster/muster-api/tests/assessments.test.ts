@@ -60,7 +60,7 @@ beforeAll(async () => {
 afterAll(() => new Promise<void>((r) => server.close(() => r())));
 
 beforeEach(async () => {
-  for (const m of ['assessmentRun', 'assessmentResult', 'auditEvent', 'engagement', 'deliveryArtifact', 'evidenceItem'] as const) db[m]._records.length = 0;
+  for (const m of ['assessmentRun', 'assessmentResult', 'auditEvent', 'engagement', 'deliveryArtifact', 'evidenceItem', 'engineJob'] as const) db[m]._records.length = 0;
   await db.engagement.create({ data: { id: ENG_A, tenant_id: TENANT_A, engagement_kind: 'prime_only' } });
 });
 
@@ -170,5 +170,40 @@ describe('runs', () => {
     expect(run).toMatchObject({ source: 'delivery_artifact', delivery_artifact_id: ARTIFACT });
     await db.deliveryArtifact.update({ where: { id: ARTIFACT }, data: { kind: 'capture' } });
     expect((await call('POST', `/from-artifact/${ARTIFACT}`, 'bhd_operator')).status).toBe(409);
+  });
+});
+
+describe('ENGINE via the Windows runner (no local engine)', () => {
+  let server2: http.Server; let base2: string;
+  const call2 = (method: string, path: string, role: string, body?: unknown, sub?: string) => fetch(`${base2}/api/engagements/${ENG_A}/assessments${path}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${mintToken({ sub: sub ?? `${role}-1`, tenant_id: TENANT_A, party_id: null, role })}` }, body: body === undefined ? undefined : JSON.stringify(body) });
+  beforeAll(async () => { const app2 = express(); app2.use(express.json({ limit: '5mb' })); app2.use('/api/engagements/:engagementId/assessments', createAssessmentsRouter(db, {})); server2 = http.createServer(app2); await new Promise<void>((r) => server2.listen(0, () => r())); base2 = `http://127.0.0.1:${(server2.address() as { port: number }).port}`; });
+  afterAll(() => new Promise<void>((r) => server2.close(() => r())));
+
+  it('queues on a non-Windows host; the runner lists, claims (once), posts the envelope + captures; a run and discovery evidence land', async () => {
+    if (process.platform === 'win32') return; // on Windows the engine runs in-process (covered above)
+    const q = await (await call2('POST', '/run', 'compliance_manager', { mode: 'sim', tenant_slug: 'muster-partial' })).json();
+    expect(q.status).toBe('queued');
+    expect((await (await call2('GET', `/jobs/${q.job_id}`, 'assessor_read_only')).json()).status).toBe('queued');
+    expect((await call2('GET', '/runner/queue', 'prime')).status).toBe(403);
+    const queue = await (await call2('GET', '/runner/queue', 'bhd_operator', undefined, 'runner:win-01')).json();
+    expect(queue.map((j: { id: string }) => j.id)).toContain(q.job_id);
+    const claims = await Promise.all(['win-01', 'win-02'].map((r) => call2('POST', `/jobs/${q.job_id}/claim`, 'bhd_operator', { runner: r }, `runner:${r}`)));
+    expect(claims.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect((await call2('POST', `/jobs/${q.job_id}/cancel`, 'compliance_manager')).status).toBe(409); // running, not cancellable
+    const done = await (await call2('POST', `/jobs/${q.job_id}/result`, 'bhd_operator', { runner: 'win-01', outcome: 'succeeded', envelope: { ...RECORD, provenance: { engine: { name: 'ces-stamper discovery', version: '2.2.3' } } }, stats: { entries: 4, ran: 4, failed: 0 }, captures: [{ ref: 'captures/ac-3.1.1.txt', content: 'Get-MgUser (runner output)', entry_id: 'AC.L2-3.1.1.operator-discover', requirement_ids: ['AC.L1-3.1.1'], objective_ids: ['AC.L1-3.1.1[a]'] }] }, 'runner:win-01')).json();
+    expect(done.status).toBe('done');
+    expect(done.run_id).toBeTruthy();
+    expect(done.evidence).toEqual({ created: 1, missing_files: 0 });
+    const run = await (await call2('GET', `/${done.run_id}`, 'prime')).json();
+    expect(run.source).toBe('engine_run');
+    expect(db.evidenceItem._records.at(-1)).toMatchObject({ source: 'discovery', status: 'draft', requirement_ids: ['AC.L1-3.1.1'] });
+    expect((await call2('POST', `/jobs/${q.job_id}/result`, 'bhd_operator', { runner: 'win-01', outcome: 'succeeded', envelope: RECORD }, 'runner:win-01')).status).toBe(409); // late duplicate
+    const q2 = await (await call2('POST', '/run', 'compliance_manager', { mode: 'sim' })).json();
+    expect((await (await call2('POST', `/jobs/${q2.job_id}/cancel`, 'compliance_manager')).json()).status).toBe('cancelled');
+    const q3 = await (await call2('POST', '/run', 'compliance_manager', { mode: 'sim' })).json();
+    await call2('POST', `/jobs/${q3.job_id}/claim`, 'bhd_operator', { runner: 'win-01' }, 'runner:win-01');
+    const failed = await (await call2('POST', `/jobs/${q3.job_id}/result`, 'bhd_operator', { runner: 'win-01', outcome: 'failed', error: 'sim_unreachable' }, 'runner:win-01')).json();
+    expect(failed).toMatchObject({ status: 'failed', error: 'sim_unreachable' });
+    expect(db.auditEvent._records.map((a) => a.action)).toEqual(expect.arrayContaining(['assessment.run.claim', 'assessment.run.result', 'assessment.run.cancel']));
   });
 });

@@ -39,7 +39,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { runSimDiscovery, type SimDiscoveryDeps, type SimDiscoveryOutcome } from '../services/simDiscoveryRun.js';
 import { runLiveDiscovery, type LiveDiscoveryDeps } from '../services/liveDiscoveryRun.js';
-import { captureRunEvidence } from '../services/runCaptures.js';
+import { captureRunEvidence, createCaptureItems } from '../services/runCaptures.js';
 import { authorizeLive, type LiveGate } from '../services/liveAccess.js';
 import CONTROLS from '../vendored/ces-shared/data/cmmc-l2-controls.reference.json';
 import SPRS_WEIGHTS from '../vendored/ces-shared/data/sprs-weights.json';
@@ -183,15 +183,11 @@ export interface AssessmentsRouterOptions {
 }
 
 type EngineSource = 'readiness_result' | 'delivery_artifact' | 'engine_run';
-interface Job { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
-const MAX_JOBS = 200;
 
 export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions = {}) {
   const r = Router({ mergeParams: true });
   const eid = (req: Request) => (req.params as { engagementId: string }).engagementId;
-  const jobs = new Map<string, Job>();
   const workRoot = opts.workRoot ?? path.join(os.tmpdir(), 'muster-assessment-runs');
-  const remember = (job: Job) => { jobs.set(job.id, job); while (jobs.size > MAX_JOBS) { const oldest = [...jobs.entries()].find(([, j]) => j.status !== 'running'); if (!oldest) break; jobs.delete(oldest[0]); } };
 
   /** Persist a readiness record as a run for (tenant, engagement). Shared by import, artifact and engine paths. */
   async function persistRun(actor: { sub: string; role: string; tenant_id: string }, engagementId: string, rec: ReadinessResultInput, source: EngineSource, extra: { artifactId?: string; label?: string } = {}) {
@@ -319,64 +315,159 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
   });
   const jobParam = z.object({ jobId: z.string().uuid() }).passthrough();
 
+  const RUNNER_ROLES = ['bhd_operator'] as const;
+  /** Status-guarded transition — the database decides who wins (two runners, a late result). */
+  const moveJob = async (req: Request, id: string, from: string, data: Record<string, unknown>) => {
+    const r = await tx(req, db, (t) => t.engineJob.updateMany({ where: { id, status: from }, data: { ...data, updated_at: new Date() } }));
+    return r.count ? tx(req, db, (t) => t.engineJob.findUnique({ where: { id } })) : null;
+  };
+  async function jobOf(req: Request) {
+    const j = await tx(req, db, (t) => t.engineJob.findUnique({ where: { id: (req.params as { jobId: string }).jobId } }));
+    return j && j.engagement_id === eid(req) && j.tenant_id === user(req).tenant_id ? j : null;
+  }
+  /** Land an envelope as a run (+ captures) and close the job. Shared by the in-process engine and the runner result. */
+  async function landEnvelope(actor: { sub: string; role: string; tenant_id: string }, engagementId: string, jobId: string, envelope: unknown, extra: { label: string; stats?: unknown; outDir?: string; readFile?: (abs: string) => Buffer | null; captures?: { ref: string; content: Buffer; content_type?: string; requirement_ids: string[]; objective_ids?: string[]; entries?: string[] }[] }) {
+    const parsed = readinessResultSchema.safeParse(envelope);
+    if (!parsed.success) {
+      await withTenant(actor.tenant_id, (t: Db) => t.engineJob.update({ where: { id: jobId }, data: { status: 'failed', finished_at: new Date(), error: `engine envelope did not validate: ${parsed.error.issues[0]?.message ?? 'unknown'}`, updated_at: new Date() } }), db);
+      return null;
+    }
+    const { run } = await persistRun(actor, engagementId, parsed.data, 'engine_run', { label: extra.label });
+    let evidence: { created: number; missing_files: number; skipped_no_ref?: number } | undefined;
+    try {
+      if (extra.captures?.length) { const ids = await createCaptureItems(db, { actor, engagementId, source: 'discovery', label: extra.label, captures: extra.captures, assessmentRunId: run.id }); evidence = { created: ids.length, missing_files: 0 }; }
+      else if (extra.outDir) evidence = await captureRunEvidence(db, { actor, engagementId, assessmentRunId: run.id, source: 'discovery', outDir: extra.outDir, observations: parsed.data.observations, label: extra.label, readFile: extra.readFile });
+    } catch { evidence = undefined; }
+    await withTenant(actor.tenant_id, (t: Db) => t.engineJob.update({ where: { id: jobId }, data: { status: 'done', finished_at: new Date(), run_id: run.id, stats: extra.stats ?? null, evidence: evidence ?? null, updated_at: new Date() } }), db);
+    return run;
+  }
+
+  /** Request a discovery run. On a Windows host (or with the test seams) the engine runs in-process;
+   *  elsewhere the job stays `queued` for the Windows runner (runner/queue → claim → result). */
   r.post('/run', bearerAuth, requireRole(...WRITE), validate(runSchema), async (req, res, next) => {
     try {
       const engagement = await engagementOf(req);
       if (!engagement) return notFound(res);
       const body = req.body as z.infer<typeof runSchema>;
-      // The registry's read commands are PowerShell (liveSimSession spawns powershell.exe; simAvailable() is
-      // win32-only), so a discovery run only produces observations on a Windows host. Elsewhere, refuse up
-      // front instead of persisting a run in which every command failed (an empty read is not evidence).
-      const engineHost = opts.runSim || opts.runLive || process.platform === 'win32' || process.env.CES_ENGINE_LOCAL === '1';
-      if (!engineHost) { res.status(409).json({ error: 'Discovery runs execute on the Windows runner (PowerShell registry commands); this API host cannot run them. Import a readiness result, or queue the run for the runner once the runner protocol covers assessments.', code: 'ENGINE_NEEDS_WINDOWS' }); return; }
       const actor = { sub: user(req).sub, role: user(req).role, tenant_id: user(req).tenant_id };
       const engagementId = eid(req);
-      const id = randomUUID();
-      const outDir = path.join(workRoot, id);
-      let started: Promise<SimDiscoveryOutcome>;
+      const label = body.label ?? `Discovery run (${body.mode === 'live' ? 'LIVE' : 'simulator'} · ${body.tenant_slug})`;
+      let grants: unknown = undefined;
       if (body.mode === 'live') {
         // Live rail: engagement flag ON + a granted consent per area, else refused (never a silent fallback to sim).
         const auth = await authorizeLive(opts.live, actor.tenant_id, engagementId, body.consent_ids);
         if (!auth.ok) { res.status(auth.status).json({ error: auth.code, code: 'LIVE_REFUSED' }); return; }
-        started = Promise.resolve().then(() => (opts.runLive ?? runLiveDiscovery)({ slug: body.tenant_slug, outDir, engagementId, grants: auth.grants }, opts.runLiveDeps));
-      } else {
-        started = Promise.resolve().then(() => (opts.runSim ?? runSimDiscovery)({ slug: body.tenant_slug, outDir }, opts.runSimDeps));
+        grants = auth.grants;
       }
-      const job: Job = { id, engagement_id: engagementId, mode: body.mode, status: 'running', started_at: new Date().toISOString() };
-      remember(job);
-      await audit(db, { action: 'assessment.run.start', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, mode: body.mode, tenant_slug: body.tenant_slug } });
+      // The registry's read commands are PowerShell (liveSimSession spawns powershell.exe; the kit's simAvailable()
+      // is win32-only): run in-process only on a Windows host, otherwise leave the job for the runner.
+      const local = !!(opts.runSim || opts.runLive || process.platform === 'win32' || process.env.CES_ENGINE_LOCAL === '1');
+      const job = await tx(req, db, (t) => t.engineJob.create({ data: { tenant_id: actor.tenant_id, engagement_id: engagementId, kind: 'discovery', mode: body.mode, tenant_slug: body.tenant_slug, label, status: local ? 'running' : 'queued', requested_by: actor.sub, claimed_by: local ? 'api' : null, claimed_at: local ? new Date() : null } }));
+      await audit(db, { action: 'assessment.run.start', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: job.id, mode: body.mode, tenant_slug: body.tenant_slug, where: local ? 'api' : 'runner' } });
+      if (!local) { res.status(202).json({ job_id: job.id, status: 'queued', mode: body.mode, tenant_slug: body.tenant_slug, note: 'Queued for the Windows runner (registry commands are PowerShell).' }); return; }
+
+      const outDir = path.join(workRoot, job.id);
+      const started: Promise<SimDiscoveryOutcome> = body.mode === 'live'
+        ? Promise.resolve().then(() => (opts.runLive ?? runLiveDiscovery)({ slug: body.tenant_slug, outDir, engagementId, grants: grants as never }, opts.runLiveDeps))
+        : Promise.resolve().then(() => (opts.runSim ?? runSimDiscovery)({ slug: body.tenant_slug, outDir }, opts.runSimDeps));
       void started
         .catch((e): SimDiscoveryOutcome => ({ ok: false, code: 'envelope_invalid', message: e instanceof Error ? e.message : String(e) }))
         .then(async (outcome) => {
-          if (!outcome.ok) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `${outcome.code}: ${outcome.message}` }); await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, code: outcome.code, message: outcome.message } }); return; }
+          const fail = async (error: string, code: string, extra: Record<string, unknown> = {}) => {
+            await withTenant(actor.tenant_id, (t: Db) => t.engineJob.update({ where: { id: job.id }, data: { status: 'failed', finished_at: new Date(), error, updated_at: new Date() } }), db);
+            await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: job.id, code, ...extra } });
+          };
+          if (!outcome.ok) return fail(`${outcome.code}: ${outcome.message}`, outcome.code, { message: outcome.message });
           const st = outcome.stats as { ran?: number; failed?: number } | undefined;
-          if (st && st.ran && st.failed === st.ran) {
-            remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine_unavailable: all ${st.ran} registry commands failed to execute on this host (PowerShell not available?) — nothing was recorded` });
-            await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: engagementId, tenant_id: actor.tenant_id, detail: { job_id: id, code: 'engine_unavailable', stats: st } });
-            return;
-          }
-          const parsed = readinessResultSchema.safeParse(outcome.envelope);
-          if (!parsed.success) { remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: `engine envelope did not validate: ${parsed.error.issues[0]?.message ?? 'unknown'}` }); return; }
-          try {
-            const label = body.label ?? `Discovery run (${body.mode === 'live' ? 'LIVE' : 'simulator'} · ${body.tenant_slug})`;
-            const { run } = await persistRun(actor, engagementId, parsed.data, 'engine_run', { label });
-            // Captures → Collect Evidence (source = discovery, draft, SHA-256). Failure here never fails the run.
-            let evidence: { created: number; missing_files: number } | undefined;
-            try { evidence = await captureRunEvidence(db, { actor, engagementId, assessmentRunId: run.id, source: 'discovery', outDir, observations: parsed.data.observations, label, readFile: opts.readCapture }); } catch { evidence = undefined; }
-            remember({ ...job, status: 'done', finished_at: new Date().toISOString(), run_id: run.id, stats: outcome.stats, evidence });
-          } catch (e) {
-            remember({ ...job, status: 'failed', finished_at: new Date().toISOString(), error: e instanceof Error ? e.message : String(e) });
-          }
+          // An empty read is not evidence: when every executed command failed, nothing is recorded.
+          if (st && st.ran && st.failed === st.ran) return fail(`engine_unavailable: all ${st.ran} registry commands failed to execute on this host (PowerShell not available?) — nothing was recorded`, 'engine_unavailable', { stats: st });
+          try { await landEnvelope(actor, engagementId, job.id, outcome.envelope, { label, stats: outcome.stats, outDir, readFile: opts.readCapture }); }
+          catch (e) { await fail(e instanceof Error ? e.message : String(e), 'persist_failed'); }
         });
-      res.status(202).json({ job_id: id, status: 'running', mode: body.mode, tenant_slug: body.tenant_slug });
+      res.status(202).json({ job_id: job.id, status: 'running', mode: body.mode, tenant_slug: body.tenant_slug });
     } catch (e) { next(e); }
   });
 
+  r.get('/jobs', bearerAuth, requireRole(...READ), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const rows = await tx(req, db, (t) => t.engineJob.findMany({ where: { engagement_id: eid(req) } }));
+      rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(b.requested_at) - +new Date(a.requested_at));
+      res.json(rows.slice(0, 50));
+    } catch (e) { next(e); }
+  });
   r.get('/jobs/:jobId', bearerAuth, requireRole(...READ), validate(jobParam, 'params'), async (req, res, next) => {
     try {
-      const job = jobs.get((req.params as { jobId: string }).jobId);
-      if (!job || job.engagement_id !== eid(req)) return notFound(res);
+      const job = await jobOf(req);
+      if (!job) return notFound(res);
       res.json(job);
+    } catch (e) { next(e); }
+  });
+  r.post('/jobs/:jobId/cancel', bearerAuth, requireRole(...WRITE), validate(jobParam, 'params'), async (req, res, next) => {
+    try {
+      const job = await jobOf(req);
+      if (!job) return notFound(res);
+      const row = await moveJob(req, job.id, 'queued', { status: 'cancelled', finished_at: new Date() });
+      if (!row) { res.status(409).json({ error: `Job is ${job.status}; only a queued job can be cancelled`, code: 'JOB_NOT_QUEUED' }); return; }
+      await audit(db, { action: 'assessment.run.cancel', actor: user(req), target_type: 'engine_job', target_id: job.id, tenant_id: user(req).tenant_id, detail: {} });
+      res.json(row);
+    } catch (e) { next(e); }
+  });
+
+  // ------------------------------------------------------------------ runner protocol (discovery)
+  // The Windows runner (BHD service identity) pulls queued discovery jobs, walks the registry against the
+  // simulator or — only when the job was requested through the Live gate — the tenant, and posts the envelope.
+  const claimSchema = z.object({ runner: z.string().trim().min(2).max(120) });
+  const captureSchema = z.object({ ref: z.string().trim().min(1).max(200), content: z.string().max(2 * 1024 * 1024), encoding: z.enum(['utf8', 'base64']).default('utf8'), content_type: z.string().max(100).optional(), entry_id: z.string().max(200).optional(), requirement_ids: z.array(z.string()).default([]), objective_ids: z.array(z.string()).default([]) });
+  const resultSchema = z.object({
+    runner: z.string().trim().min(2).max(120),
+    outcome: z.enum(['succeeded', 'failed']),
+    error: z.string().max(4000).optional(),
+    envelope: z.unknown().optional(),
+    stats: z.record(z.unknown()).optional(),
+    captures: z.array(captureSchema).max(50).default([]),
+  });
+  r.get('/runner/queue', bearerAuth, requireRole(...RUNNER_ROLES), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const rows = await tx(req, db, (t) => t.engineJob.findMany({ where: { engagement_id: eid(req), status: 'queued' } }));
+      rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(a.requested_at) - +new Date(b.requested_at));
+      res.json(rows.map((j: Record<string, unknown>) => ({ id: j.id, kind: j.kind, mode: j.mode, tenant_slug: j.tenant_slug, label: j.label, requested_by: j.requested_by, requested_at: j.requested_at })));
+    } catch (e) { next(e); }
+  });
+  r.post('/jobs/:jobId/claim', bearerAuth, requireRole(...RUNNER_ROLES), validate(jobParam, 'params'), validate(claimSchema), async (req, res, next) => {
+    try {
+      const job = await jobOf(req);
+      if (!job) return notFound(res);
+      if (job.mode === 'live') { const e = await engagementOf(req); if (!e?.live_access_enabled) { res.status(409).json({ error: 'Live access has been disabled on this engagement; the job is not handed out', code: 'LIVE_DISABLED' }); return; } }
+      const runner = (req.body as z.infer<typeof claimSchema>).runner;
+      const row = await moveJob(req, job.id, 'queued', { status: 'running', claimed_by: runner, claimed_at: new Date() });
+      if (!row) { res.status(409).json({ error: `Job is ${job.status}`, code: 'JOB_NOT_QUEUED' }); return; }
+      await audit(db, { action: 'assessment.run.claim', actor: user(req), target_type: 'engine_job', target_id: job.id, tenant_id: user(req).tenant_id, detail: { runner, mode: job.mode } }, { strict: true });
+      res.json(row);
+    } catch (e) { next(e); }
+  });
+  r.post('/jobs/:jobId/result', bearerAuth, requireRole(...RUNNER_ROLES), validate(jobParam, 'params'), validate(resultSchema), async (req, res, next) => {
+    try {
+      const job = await jobOf(req);
+      if (!job) return notFound(res);
+      if (job.status !== 'running') { res.status(409).json({ error: `Job is ${job.status}; results are accepted only for a running job`, code: 'JOB_NOT_RUNNING' }); return; }
+      const body = req.body as z.infer<typeof resultSchema>;
+      const actor = { sub: user(req).sub, role: user(req).role, tenant_id: user(req).tenant_id };
+      if (body.outcome === 'failed' || !body.envelope) {
+        const row = await moveJob(req, job.id, 'running', { status: 'failed', finished_at: new Date(), error: body.error ?? 'runner reported failure', stats: body.stats ?? null });
+        if (!row) { res.status(409).json({ error: 'A result was already recorded', code: 'JOB_NOT_RUNNING' }); return; }
+        await audit(db, { action: 'assessment.run.failed', actor, target_type: 'engagement', target_id: eid(req), tenant_id: actor.tenant_id, detail: { job_id: job.id, runner: body.runner, error: body.error ?? null } });
+        res.json(row); return;
+      }
+      // Take the job out of `running` first so a duplicate result cannot land a second run.
+      const taken = await moveJob(req, job.id, 'running', { status: 'done', finished_at: new Date() });
+      if (!taken) { res.status(409).json({ error: 'A result was already recorded', code: 'JOB_NOT_RUNNING' }); return; }
+      const captures = body.captures.map((c) => ({ ref: c.ref, content: Buffer.from(c.content, c.encoding), content_type: c.content_type, requirement_ids: c.requirement_ids, objective_ids: c.objective_ids, entries: c.entry_id ? [c.entry_id] : [] }));
+      const run = await landEnvelope(actor, eid(req), job.id, body.envelope, { label: job.label ?? `Discovery run (${job.mode} · ${job.tenant_slug})`, stats: body.stats, captures });
+      if (!run) { res.status(422).json({ error: 'Envelope is not a readiness-result record', code: 'VALIDATION_ERROR' }); return; }
+      await audit(db, { action: 'assessment.run.result', actor, target_type: 'engine_job', target_id: job.id, tenant_id: actor.tenant_id, detail: { runner: body.runner, run_id: run.id, captures: captures.length } }, { strict: true });
+      res.json(await tx(req, db, (t) => t.engineJob.findUnique({ where: { id: job.id } })));
     } catch (e) { next(e); }
   });
 

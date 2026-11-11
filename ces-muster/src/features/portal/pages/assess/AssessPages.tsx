@@ -77,11 +77,11 @@ function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string,
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (!job || job.status !== 'running') return;
+    if (!job || (job.status !== 'running' && job.status !== 'queued')) return;
     const t = setInterval(async () => {
       const r = await assessApi.job(eid, job.id);
       if (r.ok) { setJob(r.data); if (r.data.status === 'done' && r.data.run_id) onDone(r.data.run_id, r.data); if (r.data.status === 'failed') setError(r.data.error ?? 'Engine run failed.'); }
-    }, 1500);
+    }, job.status === 'queued' ? 5000 : 1500);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.id, job?.status]);
@@ -89,15 +89,16 @@ function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string,
     setBusy(true); setError(null);
     const r = await assessApi.startRun(eid, { mode, tenant_slug: slug });
     setBusy(false);
-    if (r.ok) setJob({ id: r.data.job_id, engagement_id: eid, mode, status: 'running', started_at: new Date().toISOString() });
+    if (r.ok) setJob({ id: r.data.job_id, engagement_id: eid, mode, status: r.data.status, started_at: new Date().toISOString() });
     else setError(r.status === 403 ? 'Live run refused: enable live access on the engagement and grant consent first (simulator needs neither).' : r.status === 409 ? 'This server cannot run the discovery engine (the registry commands are PowerShell; they run on the Windows runner). Import a readiness result here, or run the engine on the runner.' : failureText(r));
   };
   return (
     <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'nowrap' }} data-testid="engine-run">
       <select className="select" value={mode} onChange={(e) => setMode(e.target.value as 'sim' | 'live')} aria-label="Run mode" style={{ width: 150 }}><option value="sim">Simulator</option><option value="live">Live tenant</option></select>
       <input className="input" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} aria-label="Tenant slug" style={{ width: 130 }} title="Simulated customer (s1-mach / s2-eng / s3-def / muster-partial) or the live tenant slug" />
-      <button type="button" className="btn btn-secondary" disabled={busy || job?.status === 'running'} onClick={start} data-testid="engine-run-start">{job?.status === 'running' ? 'Engine running…' : 'Run assessment'}</button>
-      {job?.status === 'running' && <span className="hint">walking the command registry{mode === 'live' ? ' against the tenant (read-only)' : ' against the simulator'}…</span>}
+      <button type="button" className="btn btn-secondary" disabled={busy || job?.status === 'running' || job?.status === 'queued'} onClick={start} data-testid="engine-run-start">{job?.status === 'running' ? 'Engine running…' : job?.status === 'queued' ? 'Queued…' : 'Run assessment'}</button>
+      {job?.status === 'running' && <span className="hint">walking the command registry{mode === 'live' ? ' against the tenant (read-only)' : ' against the simulator'}{job.claimed_by && job.claimed_by !== 'api' ? ` on runner ${job.claimed_by}` : ''}…</span>}
+      {job?.status === 'queued' && <span className="hint">waiting for the Windows runner to pick it up (registry commands are PowerShell) · <button type="button" className="btn-link" onClick={async () => { const r = await assessApi.cancelJob(eid, job.id); if (r.ok) setJob(r.data); }}>cancel</button></span>}
       {job?.status === 'done' && <span className="pill" data-tone="good">run landed</span>}
       {error && <span className="note engine-error" data-tone="bad" role="alert">{error}</span>}
     </span>

@@ -110,6 +110,7 @@ export function createMockDb() {
     scopeAsset: makeModel(),
     scopeBoundary: makeModel(),
     assessmentRun: makeModel(),
+    engineJob: makeModel(),
     assessmentResult: makeModel(),
     planAction: makeModel(),
     poamItem: makeModel(),

@@ -71,11 +71,12 @@ export interface GapAnalysis {
 
 const base = (eid: string) => `/engagements/${eid}/assessments`;
 
-export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'running' | 'done' | 'failed'; started_at: string; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
+export interface EngineJob { id: string; engagement_id: string; mode: 'sim' | 'live'; status: 'queued' | 'running' | 'done' | 'failed' | 'cancelled'; started_at?: string; requested_at?: string; claimed_by?: string | null; finished_at?: string; run_id?: string; error?: string; stats?: unknown; evidence?: { created: number; missing_files: number } }
 
 export const assessApi = {
   /** ENGINE: walk the command registry against the simulator (or live, behind the gate) and persist the outcome as a run. */
-  startRun: (eid: string, body: { mode: 'sim' | 'live'; tenant_slug?: string; consent_ids?: string[]; label?: string }) => api.post<{ job_id: string; status: string; mode: string }>(`${base(eid)}/run`, body),
+  startRun: (eid: string, body: { mode: 'sim' | 'live'; tenant_slug?: string; consent_ids?: string[]; label?: string }) => api.post<{ job_id: string; status: 'queued' | 'running'; mode: string; note?: string }>(`${base(eid)}/run`, body),
+  cancelJob: (eid: string, jobId: string) => api.post<EngineJob>(`${base(eid)}/jobs/${jobId}/cancel`),
   job: (eid: string, jobId: string) => api.get<EngineJob>(`${base(eid)}/jobs/${jobId}`),
   runs: (eid: string) => api.get<AssessmentRun[]>(base(eid)),
   run: (eid: string, runId: string) => api.get<AssessmentRun>(`${base(eid)}/${runId}`),
