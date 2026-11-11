@@ -87,12 +87,12 @@ function RunDrawer({ eid, run, viewer, onChanged, onClose }: { eid: string; run:
   const approver = canApprove(viewer, group) || isBhd(viewer);
   const executor = canExecute(viewer, group);
   return (
-    <Drawer title={`${detail.module === 'stamper' ? 'Stamper' : 'AdminOps'} run — ${RUN_STATUS_LABEL[detail.status]}`} subtitle={`${detail.mode === 'live' ? 'LIVE' : 'Simulate'} · requested by ${detail.requested_by} on ${fmt(detail.requested_at)}`} onClose={onClose} testId="run-drawer" wide
+    <Drawer title={`${detail.module === 'stamper' ? 'Stamper' : 'AdminOps'} run — ${RUN_STATUS_LABEL[detail.status]}`} subtitle={`${detail.mode === 'live' ? 'LIVE' : 'Simulate'} · requested by ${detail.requested_by_label ?? detail.requested_by} on ${fmt(detail.requested_at)}`} onClose={onClose} testId="run-drawer" wide
       footer={<button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>}>
       {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
       <div className="stats">
         <Stat icon="sprs" value={detail.cost_estimate} label="DP-1 cost (units)" />
-        <Stat icon="roles" value={detail.requires_approval ? 'Two-person' : 'Not needed'} label="DP-2 approval" tone={detail.requires_approval ? 'warn' : 'good'} sub={detail.approved_by ? `by ${detail.approved_by} · ${fmt(detail.approved_at)}` : undefined} />
+        <Stat icon="roles" value={detail.requires_approval ? 'Two-person' : 'Not needed'} label="DP-2 approval" tone={detail.requires_approval ? 'warn' : 'good'} sub={detail.approved_by ? `by ${detail.approved_by_label ?? detail.approved_by} · ${fmt(detail.approved_at)}` : undefined} />
         <Stat icon="stamper" value={detail.module === 'stamper' ? detail.entry_ids.length : detail.op_id ?? '—'} label={detail.module === 'stamper' ? 'Registry entries' : 'Operation'} />
       </div>
       <p><strong>Justification.</strong> {detail.justification}</p>
@@ -123,7 +123,7 @@ function RunDrawer({ eid, run, viewer, onChanged, onClose }: { eid: string; run:
           {detail.result.steps && detail.result.steps.length > 0 && <ol>{detail.result.steps.map((s) => <li key={s.step}>{s.label ?? s.entry_id ?? s.op_id} <span className="hint">({s.kind ?? s.op_id ?? 'step'} · {s.outcome}{s.duration_ms != null ? ` · ${(s.duration_ms / 1000).toFixed(1)}s` : ''}){s.detail ? ` — ${s.detail}` : ''}</span></li>)}</ol>}
         </>
       )}
-      {detail.verified_by && <p className="note" data-tone={detail.status === 'verified' ? 'good' : 'bad'}>{detail.status === 'verified' ? 'Verified' : 'Marked failed'} by {detail.verified_by} on {fmt(detail.verified_at)}: {detail.verification_notes}</p>}
+      {detail.verified_by && <p className="note" data-tone={detail.status === 'verified' ? 'good' : 'bad'}>{detail.status === 'verified' ? 'Verified' : 'Marked failed'} by {detail.verified_by_label ?? detail.verified_by} on {fmt(detail.verified_at)}: {detail.verification_notes}</p>}
 
       <h3 className="card-title">Actions</h3>
       <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
@@ -158,9 +158,9 @@ function RunsTable({ runs, onOpen, testId }: { runs: RemediationRun[]; onOpen: (
             const blocked = r.gates.filter((g) => g.blocking && !g.ok).length;
             return (
               <tr key={r.id}>
-                <td>{fmt(r.requested_at)}<div className="hint">{r.requested_by}</div></td>
+                <td>{fmt(r.requested_at)}<div className="hint">{r.requested_by_label ?? r.requested_by}</div></td>
                 <td>{r.module === 'stamper' ? 'Stamper' : 'AdminOps'}</td>
-                <td>{r.module === 'stamper' ? `${r.entry_ids.length} entr${r.entry_ids.length === 1 ? 'y' : 'ies'}` : r.op_id}{r.requirement_id && <div className="hint">{r.requirement_id}</div>}</td>
+                <td>{r.module === 'stamper' ? `${r.entry_ids.length} entr${r.entry_ids.length === 1 ? 'y' : 'ies'}` : <>{r.op_id}{r.op_title && <> · {r.op_title}</>}</>}{r.requirement_id && <div className="hint">{r.requirement_id}</div>}</td>
                 <td><span className="pill" data-tone={r.mode === 'live' ? 'bad' : undefined}>{r.mode}</span></td>
                 <td className="num">{r.cost_estimate}</td>
                 <td>{blocked ? <span className="pill" data-tone="bad">{blocked} blocking</span> : <span className="pill" data-tone="good">pass</span>}</td>
@@ -191,7 +191,7 @@ export function RemediationOverviewPage({ viewer, go }: { viewer: Viewer; go: (r
       <PageHeader icon="stamper" title="Remediation" lede="What is being fixed and how far it is: plan actions in flight, runs awaiting a second person, runs finished and waiting for a human to verify. Stamper (configuration) is BHD's console; AdminOps is the customer's." actions={<EngagementSelect eng={eng} />} />
       {(eng.error || s.error || runs.error) && <p className="note" data-tone="bad" role="alert">{eng.error ?? s.error ?? runs.error}</p>}
       {d && (
-        <div className="stats">
+        <div className="stats stats-6">
           <Stat icon="plan" value={d.actions.open + d.actions.in_progress} label="Actions in flight" sub={`${d.actions.in_progress} in progress · ${d.actions.blocked} blocked`} tone={d.actions.blocked ? 'warn' : undefined} />
           <Stat icon="roles" value={d.runs.pending_approval} label="Awaiting approval" tone={d.runs.pending_approval ? 'warn' : 'good'} sub="DP-2 second person" />
           <Stat icon="readiness" value={d.runs.pending_verification} label="Pending verification" tone={d.runs.pending_verification ? 'warn' : 'good'} sub="finished runs a person must confirm" />

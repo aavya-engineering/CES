@@ -167,6 +167,13 @@ export function createRemediationRouter(db: Db) {
     return e && e.tenant_id === user(req).tenant_id ? e : null;
   }
   const isBhd = (req: Request) => user(req).role === 'bhd_operator';
+  /** id → "Display Name" or e-mail for the ids given (users are a platform table; only this tenant's rows are read). */
+  async function peopleFor(req: Request, ids: (string | null | undefined)[]): Promise<Map<string, string>> {
+    const want = [...new Set(ids.filter((x): x is string => !!x))];
+    if (!want.length) return new Map();
+    const users: { id: string; email: string; display_name: string | null }[] = await db.user.findMany({ where: { id: { in: want }, tenant_id: user(req).tenant_id } });
+    return new Map(users.map((u) => [u.id, u.display_name ?? u.email]));
+  }
   /** Stamper is BHD-only end to end: customers never see Stamper runs (walkthrough 2026-11-04). */
   const visible = (req: Request, run: { module: string } | null) => !!run && (run.module !== 'stamper' || isBhd(req));
   async function runOf(req: Request) {
@@ -236,7 +243,9 @@ export function createRemediationRouter(db: Db) {
       const q = req.query as z.infer<typeof listQuery>;
       const rows = (await tx(req, db, (t) => t.remediationRun.findMany({ where: { engagement_id: eid(req), ...(q.module ? { module: q.module } : {}), ...(q.status ? { status: q.status } : {}) } }))).filter((x: { module: string }) => visible(req, x));
       rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(b.requested_at) - +new Date(a.requested_at));
-      res.json(rows);
+      // People, not ids (UX 2026-11-11): requester / approver names and the operation title for the list.
+      const who = await peopleFor(req, rows.flatMap((r: { requested_by: string; approved_by: string | null }) => [r.requested_by, r.approved_by]));
+      res.json(rows.map((r: Record<string, unknown>) => ({ ...r, requested_by_label: who.get(r.requested_by as string) ?? r.requested_by, approved_by_label: r.approved_by ? who.get(r.approved_by as string) ?? r.approved_by : null, op_title: r.module === 'adminops' && r.op_id ? OP.get(r.op_id as string)?.title ?? null : null })));
     } catch (e) { next(e); }
   });
 
@@ -264,7 +273,8 @@ export function createRemediationRouter(db: Db) {
       const run = await runOf(req);
       if (!run) return notFound(res);
       const detail = run.module === 'stamper' ? { entries: run.entry_ids.map((id: string) => ENTRY.get(id) ?? { entry_id: id, label: 'unknown' }) } : { op: OP.get(run.op_id) ?? null };
-      res.json({ ...run, ...detail });
+      const who = await peopleFor(req, [run.requested_by, run.approved_by, run.verified_by]);
+      res.json({ ...run, ...detail, requested_by_label: who.get(run.requested_by) ?? run.requested_by, approved_by_label: run.approved_by ? who.get(run.approved_by) ?? run.approved_by : null, verified_by_label: run.verified_by ? who.get(run.verified_by) ?? run.verified_by : null });
     } catch (e) { next(e); }
   });
 

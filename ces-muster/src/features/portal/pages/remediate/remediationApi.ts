@@ -39,6 +39,10 @@ export interface RemediationRun {
   cost_estimate: number;
   requires_approval: boolean;
   requested_by: string;
+  requested_by_label?: string;
+  approved_by_label?: string | null;
+  verified_by_label?: string | null;
+  op_title?: string | null;
   requested_at: string;
   approved_by: string | null;
   approved_at: string | null;
