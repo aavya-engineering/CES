@@ -184,6 +184,9 @@ describe('ENGINE via the Windows runner (no local engine)', () => {
     const q = await (await call2('POST', '/run', 'compliance_manager', { mode: 'sim', tenant_slug: 'muster-partial' })).json();
     expect(q.status).toBe('queued');
     expect((await (await call2('GET', `/jobs/${q.job_id}`, 'assessor_read_only')).json()).status).toBe('queued');
+    const list = await call2('GET', '/jobs', 'compliance_manager'); // literal path must not be swallowed by GET /:runId
+    expect(list.status).toBe(200);
+    expect((await list.json()).map((j: { id: string }) => j.id)).toContain(q.job_id);
     expect((await call2('GET', '/runner/queue', 'prime')).status).toBe(403);
     const queue = await (await call2('GET', '/runner/queue', 'bhd_operator', undefined, 'runner:win-01')).json();
     expect(queue.map((j: { id: string }) => j.id)).toContain(q.job_id);

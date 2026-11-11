@@ -257,6 +257,16 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
     } catch (e) { next(e); }
   });
 
+  // Registered before '/:runId' — a literal segment must not be swallowed by the uuid param (GET /jobs → 422 otherwise).
+  r.get('/jobs', bearerAuth, requireRole(...READ), async (req, res, next) => {
+    try {
+      if (!(await engagementOf(req))) return notFound(res);
+      const rows = await tx(req, db, (t) => t.engineJob.findMany({ where: { engagement_id: eid(req) } }));
+      rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(b.requested_at) - +new Date(a.requested_at));
+      res.json(rows.slice(0, 50));
+    } catch (e) { next(e); }
+  });
+
   r.get('/:runId', bearerAuth, requireRole(...READ), validate(runParam, 'params'), async (req, res, next) => {
     try {
       const run = await runOf(req);
@@ -390,14 +400,6 @@ export function createAssessmentsRouter(db: Db, opts: AssessmentsRouterOptions =
     } catch (e) { next(e); }
   });
 
-  r.get('/jobs', bearerAuth, requireRole(...READ), async (req, res, next) => {
-    try {
-      if (!(await engagementOf(req))) return notFound(res);
-      const rows = await tx(req, db, (t) => t.engineJob.findMany({ where: { engagement_id: eid(req) } }));
-      rows.sort((a: { requested_at: Date }, b: { requested_at: Date }) => +new Date(b.requested_at) - +new Date(a.requested_at));
-      res.json(rows.slice(0, 50));
-    } catch (e) { next(e); }
-  });
   r.get('/jobs/:jobId', bearerAuth, requireRole(...READ), validate(jobParam, 'params'), async (req, res, next) => {
     try {
       const job = await jobOf(req);
