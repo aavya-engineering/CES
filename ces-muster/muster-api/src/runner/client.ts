@@ -9,7 +9,8 @@
 
 /**
  * Runner HTTP client — the only thing in the runner that talks to muster-api (ADR-02 pull protocol).
- * One method per endpoint the runner uses; no retries, no state beyond the bearer token.
+ * One method per endpoint the runner uses. Tokens expire (JWT_EXPIRES_IN, 8h default / 30m in the kit), so
+ * the client takes a `getToken` source: on a 401 it asks for a fresh token once and retries the call.
  */
 
 export interface Engagement { id: string; name?: string; status?: string; live_access_enabled?: boolean }
@@ -35,21 +36,32 @@ export interface RunnerClient {
 }
 
 type Fetch = typeof fetch;
+const TIMEOUT_MS = 60_000; // result bodies can be tens of MB
 
 /** `apiBase` ends in `/api` (e.g. http://localhost:4000/api). Login lives beside it at `/auth/login`. */
 export async function login(apiBase: string, email: string, password: string, f: Fetch = fetch): Promise<string> {
-  const res = await f(`${apiBase.replace(/\/api$/, '')}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) });
-  const data = (await res.json().catch(() => ({}))) as { token?: string; error?: unknown };
+  const res = await f(`${apiBase.replace(/\/api$/, '')}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }), signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const data = (await res.json().catch(() => ({}))) as { token?: string; must_change_password?: boolean };
   if (!res.ok || !data.token) throw new ApiError(res.status, undefined, `login failed (${res.status})`);
+  if (data.must_change_password) throw new ApiError(403, 'MUST_CHANGE_PASSWORD', 'runner account must change its password before it can be used (sign in once in the portal)');
   return data.token;
 }
 
-export function createClient(apiBase: string, token: string, f: Fetch = fetch): RunnerClient {
+/** `token` is a string (static — a 401 is fatal) or a function that returns a fresh one (re-login on 401). */
+export function createClient(apiBase: string, token: string | (() => Promise<string>), f: Fetch = fetch): RunnerClient {
+  let current: string | undefined = typeof token === 'string' ? token : undefined;
+  const fresh = async () => { if (typeof token === 'string') return token; current = await token(); return current; };
+  const once = async <T>(method: 'GET' | 'POST', path: string, bearer: string, body?: unknown): Promise<{ ok: true; data: T } | { ok: false; err: ApiError }> => {
+    const res = await f(`${apiBase}${path}`, { method, headers: { authorization: `Bearer ${bearer}`, ...(body ? { 'content-type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const data = (await res.json().catch(() => ({}))) as T & { code?: string };
+    if (!res.ok) return { ok: false, err: new ApiError(res.status, data.code, `${method} ${path} → ${res.status}${data.code ? ` ${data.code}` : ''}`) };
+    return { ok: true, data };
+  };
   const call = async <T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> => {
-    const res = await f(`${apiBase}${path}`, { method, headers: { authorization: `Bearer ${token}`, ...(body ? { 'content-type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
-    const data = (await res.json().catch(() => ({}))) as T & { error?: unknown; code?: string };
-    if (!res.ok) throw new ApiError(res.status, data.code, `${method} ${path} → ${res.status}${data.code ? ` ${data.code}` : ''}`);
-    return data;
+    let r = await once<T>(method, path, current ?? (await fresh()), body);
+    if (!r.ok && r.err.status === 401 && typeof token !== 'string') r = await once<T>(method, path, await fresh(), body);
+    if (!r.ok) throw r.err;
+    return r.data;
   };
   const eng = (id: string) => `/engagements/${encodeURIComponent(id)}`;
   return {

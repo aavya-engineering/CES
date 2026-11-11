@@ -9,7 +9,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError, createClient, login, type RunnerClient } from '../src/runner/client.js';
-import { collectCaptures, simDiscoveryExecutor } from '../src/runner/executors.js';
+import { collectCaptures, sanitizeRemediationOutput, shellRemediationExecutor, simDiscoveryExecutor } from '../src/runner/executors.js';
 import { pollOnce } from '../src/runner/poll.js';
 
 function fakeApi(over: Partial<RunnerClient> = {}): RunnerClient & { calls: string[] } {
@@ -28,6 +28,7 @@ function fakeApi(over: Partial<RunnerClient> = {}): RunnerClient & { calls: stri
   } as RunnerClient & { calls: string[] };
 }
 const job = { id: 'j1', kind: 'discovery', mode: 'sim' as const, tenant_slug: 'muster-partial' };
+const uuidJob = { ...job, id: '0b7d3c1e-5a2f-4c8e-9d1a-2b3c4d5e6f70' };
 
 describe('pollOnce — discovery lane', () => {
   it('claims, executes and posts a succeeded result', async () => {
@@ -52,11 +53,14 @@ describe('pollOnce — discovery lane', () => {
     expect(s.discovery).toEqual({ seen: 2, done: 1, failed: 0, skipped: 1 });
     expect(exec).toHaveBeenCalledTimes(1);
   });
-  it('other API errors propagate (the pass fails loudly)', async () => {
+  it('other API errors are counted and logged, not swallowed', async () => {
+    const lines: string[] = [];
     const api = fakeApi({ discoveryQueue: async () => [job], claimDiscovery: async () => { throw new ApiError(403, 'ROLE_MATRIX', 'nope'); } });
-    await expect(pollOnce(api, { runner: 'r', discovery: async () => ({ outcome: 'succeeded', captures: [] }) })).rejects.toThrow('nope');
+    const s = await pollOnce(api, { runner: 'r', discovery: async () => ({ outcome: 'succeeded', captures: [] }), log: (l) => lines.push(l) });
+    expect(s.errors).toBe(1);
+    expect(lines.join('\n')).toContain('nope');
   });
-  it('live jobs are left queued unless allowLive', async () => {
+  it('live jobs are never claimed', async () => {
     const live = { ...job, id: 'jl', mode: 'live' as const };
     const api = fakeApi({ discoveryQueue: async () => [live] });
     const exec = vi.fn(async () => ({ outcome: 'succeeded' as const, captures: [] }));
@@ -64,8 +68,20 @@ describe('pollOnce — discovery lane', () => {
     expect(s.discovery.skipped).toBe(1);
     expect(exec).not.toHaveBeenCalled();
     expect(api.calls.some((c) => c.startsWith('dclaim'))).toBe(false);
-    await pollOnce(api, { runner: 'r', discovery: exec, allowLive: true });
-    expect(exec).toHaveBeenCalledTimes(1);
+  });
+  it('a rejected result POST (413/422) is followed by a minimal failed result so the job closes', async () => {
+    const posted: { outcome: string; captures: unknown[] }[] = [];
+    const api = fakeApi({ discoveryQueue: async () => [job], resultDiscovery: async (_e, _j, b) => { posted.push(b); if (posted.length === 1) throw new ApiError(413, undefined, 'too large'); } });
+    const s = await pollOnce(api, { runner: 'r', discovery: async () => ({ outcome: 'succeeded', envelope: {}, captures: [{ ref: 'x', content: 'y', encoding: 'utf8', requirement_ids: [] }] }) });
+    expect(posted.map((p) => p.outcome)).toEqual(['succeeded', 'failed']);
+    expect(posted[1].captures).toEqual([]);
+    expect(s.discovery.failed).toBe(1);
+  });
+  it('one engagement failing does not stop the others', async () => {
+    const api = fakeApi({ engagements: async () => [{ id: 'bad' }, { id: 'good' }], discoveryQueue: async (e) => { if (e === 'bad') throw new ApiError(500, undefined, 'boom'); return [job]; } });
+    const s = await pollOnce(api, { runner: 'r', discovery: async () => ({ outcome: 'succeeded', envelope: {}, captures: [] }) });
+    expect(s.errors).toBe(1);
+    expect(s.discovery.done).toBe(1);
   });
 });
 
@@ -105,6 +121,13 @@ describe('collectCaptures', () => {
     expect(Buffer.from(r.captures[0].content, 'base64').toString()).toBe('{"a":1}');
     expect(r.missing).toBe(2);
     expect(r.oversize).toBe(0);
+    expect(r.cut).toBe(0);
+  });
+  it('stops at 50 captures and counts the rest as cut', () => {
+    const many = { observations: Array.from({ length: 60 }, (_, i) => ({ control_id: `c${i}`, raw_capture_ref: `captures/${i}.txt` })) };
+    const r = collectCaptures('/w/j1', many, () => Buffer.from('x'), () => 1);
+    expect(r.captures.length).toBe(50);
+    expect(r.cut).toBe(10);
   });
   it('oversize files are skipped', () => {
     const r = collectCaptures('/w/j1', envelope, read, (p) => { read(p); return 3 * 1024 * 1024; });
@@ -115,10 +138,10 @@ describe('collectCaptures', () => {
 
 describe('simDiscoveryExecutor', () => {
   it('maps engine failures and the all-failed walk to failed results', async () => {
-    const ex = simDiscoveryExecutor('/w', (async () => ({ ok: false, code: 'sim_unreachable', message: 'no sim' })) as never);
-    expect(await ex(job, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', error: 'sim_unreachable: no sim' });
-    const ex2 = simDiscoveryExecutor('/w', (async () => ({ ok: true, envelope: { observations: [] }, stats: { ran: 5, failed: 5 }, postures: { met: 0, unknown: 0, not_met: 0 } })) as never);
-    expect(await ex2(job, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', error: expect.stringContaining('engine_unavailable') });
+    const ex = simDiscoveryExecutor('/w', (async () => ({ ok: false, code: 'sim_unreachable', message: 'no sim' })) as never, () => {});
+    expect(await ex(uuidJob, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', error: 'sim_unreachable: no sim' });
+    const ex2 = simDiscoveryExecutor('/w', (async () => ({ ok: true, envelope: { observations: [] }, stats: { ran: 5, failed: 5 }, postures: { met: 0, unknown: 0, not_met: 0 } })) as never, () => {});
+    expect(await ex2(uuidJob, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', error: expect.stringContaining('engine_unavailable') });
   });
   it('refuses live jobs', async () => {
     const run = vi.fn();
@@ -126,10 +149,17 @@ describe('simDiscoveryExecutor', () => {
     expect(await ex({ ...job, mode: 'live' }, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed' });
     expect(run).not.toHaveBeenCalled();
   });
-  it('posts the envelope with capture stats on success', async () => {
-    const ex = simDiscoveryExecutor('/w', (async () => ({ ok: true, envelope: { observations: [{ control_id: 'x' }] }, stats: { ran: 2, failed: 0 }, postures: { met: 1, unknown: 0, not_met: 0 } })) as never);
-    const r = await ex(job, { engagementId: 'e1' });
+  it('posts the envelope with capture stats on success and cleans the work dir', async () => {
+    const cleaned: string[] = [];
+    const ex = simDiscoveryExecutor('/w', (async () => ({ ok: true, envelope: { observations: [{ control_id: 'x' }] }, stats: { ran: 2, failed: 0 }, postures: { met: 1, unknown: 0, not_met: 0 } })) as never, (d) => cleaned.push(d));
+    const r = await ex(uuidJob, { engagementId: 'e1' });
     expect(r).toMatchObject({ outcome: 'succeeded', stats: { ran: 2, captures_posted: 0 }, captures: [] });
+    expect(cleaned[0].replace(/\\/g, '/')).toBe('/w/' + uuidJob.id);
+  });
+  it('refuses a job id that is not a UUID (it becomes a path segment)', async () => {
+    const run = vi.fn();
+    expect(await simDiscoveryExecutor('/w', run as never)({ ...job, id: '../x' }, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed' });
+    expect(run).not.toHaveBeenCalled();
   });
 });
 
@@ -151,8 +181,45 @@ describe('client', () => {
     ]);
     expect((calls[1].init.headers as Record<string, string>).authorization).toBe('Bearer t0k');
   });
+  it('re-logs in once on 401 when a token source is given; static token fails', async () => {
+    let n = 0;
+    const f401 = (async (_u: string, init: RequestInit) => { n += 1; const ok = (init.headers as Record<string, string>).authorization === 'Bearer fresh'; return { ok, status: ok ? 200 : 401, json: async () => (ok ? [] : { code: 'UNAUTHORIZED' }) }; }) as unknown as typeof fetch;
+    const src = vi.fn(async () => (src.mock.calls.length > 1 ? 'fresh' : 'stale'));
+    expect(await createClient('http://h/api', src, f401).engagements()).toEqual([]);
+    expect(src).toHaveBeenCalledTimes(2);
+    expect(n).toBe(2);
+    await expect(createClient('http://h/api', 'stale', f401).engagements()).rejects.toMatchObject({ status: 401 });
+  });
+  it('rejects a login that demands a password change', async () => {
+    const f2 = (async () => ({ ok: true, status: 200, json: async () => ({ token: 't', must_change_password: true }) })) as unknown as typeof fetch;
+    await expect(login('http://h/api', 'a@b', 'p', f2)).rejects.toMatchObject({ code: 'MUST_CHANGE_PASSWORD' });
+  });
   it('non-2xx becomes ApiError with the API code', async () => {
     const f2 = (async () => ({ ok: false, status: 409, json: async () => ({ error: 'taken', code: 'JOB_NOT_QUEUED' }) })) as unknown as typeof fetch;
     await expect(createClient('http://h/api', 't', f2).claimDiscovery('e', 'j', 'r')).rejects.toMatchObject({ status: 409, code: 'JOB_NOT_QUEUED' });
+  });
+});
+
+describe('remediation command seam', () => {
+  it('sanitizeRemediationOutput clamps to the API schema', () => {
+    const r = sanitizeRemediationOutput({ outcome: 'succeeded', summary: 'x'.repeat(5000), steps: [{ step: 0, outcome: 'weird', label: 'L'.repeat(400) }, { outcome: 'held' }], captures: [{ ref: 'a', content: 'b' }, { ref: 'bad' }], execution_results: { m: 1 } });
+    expect(r.summary.length).toBe(4000);
+    expect(r.steps).toEqual([{ step: 1, outcome: 'failed', label: 'L'.repeat(300), entry_id: undefined, op_id: undefined, detail: undefined, duration_ms: undefined }, { step: 2, outcome: 'held', entry_id: undefined, op_id: undefined, label: undefined, detail: undefined, duration_ms: undefined }]);
+    expect(r.captures).toEqual([{ ref: 'a', content: 'b', encoding: 'utf8', content_type: undefined, entry_id: undefined, requirement_ids: [] }]);
+    expect(r.execution_results).toEqual({ m: 1 });
+    expect(sanitizeRemediationOutput({ outcome: 'failed' }).summary).toBe('failed (no summary from command)');
+    expect(() => sanitizeRemediationOutput({ outcome: 'maybe' })).toThrow();
+  });
+  const run = { id: 'r1', module: 'stamper' as const, entry_ids: ['e'], op_id: null, parameters: { a: 1 }, requirement_id: null, action_id: null };
+  it('runs the command with the run on stdin, parses stdout, and hides CES_RUNNER_* from the child', async () => {
+    process.env.CES_RUNNER_PASSWORD = 'secret';
+    const ex = shellRemediationExecutor(process.execPath, ['-e', "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const i=JSON.parse(d);console.log(JSON.stringify({outcome:'succeeded',summary:'got '+i.run.id+' env='+(process.env.CES_RUNNER_PASSWORD??'none'),steps:[{step:1,outcome:'ok'}]}))})"]);
+    delete process.env.CES_RUNNER_PASSWORD;
+    expect(await ex(run, { engagementId: 'e1' })).toMatchObject({ outcome: 'succeeded', summary: 'got r1 env=none', steps: [{ step: 1, outcome: 'ok' }] });
+  });
+  it('non-JSON output, a failing command and an early exit all become failed results', async () => {
+    expect(await shellRemediationExecutor(process.execPath, ['-e', "console.log('nope')"])(run, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', summary: expect.stringContaining('unusable output') });
+    expect(await shellRemediationExecutor(process.execPath, ['-e', "process.exit(3)"])(run, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed', summary: expect.stringContaining('command failed') });
+    expect(await shellRemediationExecutor('/definitely/not/a/command')(run, { engagementId: 'e1' })).toMatchObject({ outcome: 'failed' });
   });
 });

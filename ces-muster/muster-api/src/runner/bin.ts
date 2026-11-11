@@ -13,19 +13,19 @@
  * `npm run runner` here, or install as a service (docs/DEV-SETUP-WINDOWS.md, project doc 45 Part C).
  *
  * Environment (no CLI flags beyond --once):
- *   CES_API_URL                  http://localhost:4000/api            (must end in /api)
- *   CES_RUNNER_EMAIL / _PASSWORD  bhd_operator account (e.g. runner@contoso.local in dev) — or
- *   CES_RUNNER_TOKEN              a bearer token instead of a password
- *   CES_RUNNER_NAME               label stored on claims/results (default: hostname)
- *   CES_RUNNER_INTERVAL_MS        poll interval (default 30000)
- *   CES_RUNNER_WORK               work root for engine output (default <os.tmpdir()>/ces-runner)
- *   CES_RUNNER_REMEDIATION_CMD    optional command for the remediation lane (see executors.ts)
- *   CES_RUNNER_ALLOW_LIVE=1       claim live discovery jobs (fails them until live execution lands)
- * The password is read once and never logged or echoed.
+ *   CES_API_URL                    http://localhost:4000/api            (must end in /api)
+ *   CES_RUNNER_EMAIL / _PASSWORD   bhd_operator account (dev: runner@contoso.local); re-logs in on 401 — or
+ *   CES_RUNNER_TOKEN               a static bearer token (a 401 then exits non-zero for the service manager)
+ *   CES_RUNNER_NAME                label stored on claims/results (default: hostname)
+ *   CES_RUNNER_INTERVAL_MS         poll interval, ≥ 1000 (default 30000)
+ *   CES_RUNNER_WORK                work root for engine output (default <os.tmpdir()>/ces-runner)
+ *   CES_RUNNER_REMEDIATION_CMD     optional command for the remediation lane (see executors.ts)
+ *   CES_RUNNER_REMEDIATION_ARGS    optional JSON array of arguments for that command
+ * The password is read once and never logged, echoed or passed to child processes.
  */
 import os from 'node:os';
 import path from 'node:path';
-import { createClient, login } from './client.js';
+import { ApiError, createClient, login } from './client.js';
 import { shellRemediationExecutor, simDiscoveryExecutor } from './executors.js';
 import { pollOnce } from './poll.js';
 
@@ -36,39 +36,35 @@ async function main() {
   const apiBase = env('CES_API_URL', 'http://localhost:4000/api')!;
   if (!/\/api$/.test(apiBase)) throw new Error('CES_API_URL must end in /api');
   const runner = env('CES_RUNNER_NAME', os.hostname())!;
-  const interval = Number(env('CES_RUNNER_INTERVAL_MS', '30000'));
+  const interval = Math.max(1000, Number(env('CES_RUNNER_INTERVAL_MS', '30000')) || 30000);
   const once = process.argv.includes('--once');
   const workRoot = env('CES_RUNNER_WORK', path.join(os.tmpdir(), 'ces-runner'))!;
   const remCmd = env('CES_RUNNER_REMEDIATION_CMD');
+  const remArgs = JSON.parse(env('CES_RUNNER_REMEDIATION_ARGS', '[]')!) as unknown;
+  if (!Array.isArray(remArgs) || !remArgs.every((a) => typeof a === 'string')) throw new Error('CES_RUNNER_REMEDIATION_ARGS must be a JSON array of strings');
 
-  let token = env('CES_RUNNER_TOKEN');
-  if (!token) {
-    const email = env('CES_RUNNER_EMAIL'); const password = process.env.CES_RUNNER_PASSWORD;
-    if (!email || !password) throw new Error('set CES_RUNNER_TOKEN, or CES_RUNNER_EMAIL and CES_RUNNER_PASSWORD');
-    token = await login(apiBase, email, password);
-    delete process.env.CES_RUNNER_PASSWORD;
-  }
-  const api = createClient(apiBase, token);
-  const opts = {
-    runner,
-    discovery: simDiscoveryExecutor(workRoot),
-    remediation: remCmd ? shellRemediationExecutor(remCmd) : undefined,
-    allowLive: env('CES_RUNNER_ALLOW_LIVE') === '1',
-    log,
-  };
-  log(`${runner} → ${apiBase} every ${interval} ms; discovery=sim${opts.allowLive ? '+live' : ''}; remediation=${remCmd ? 'cmd' : 'off'}; platform=${process.platform}`);
+  const staticToken = env('CES_RUNNER_TOKEN');
+  const email = env('CES_RUNNER_EMAIL'); const password = process.env.CES_RUNNER_PASSWORD;
+  delete process.env.CES_RUNNER_PASSWORD; delete process.env.CES_RUNNER_TOKEN;
+  if (!staticToken && !(email && password)) throw new Error('set CES_RUNNER_TOKEN, or CES_RUNNER_EMAIL and CES_RUNNER_PASSWORD');
+  const api = createClient(apiBase, staticToken ?? (() => login(apiBase, email!, password!)));
+  const opts = { runner, discovery: simDiscoveryExecutor(workRoot), remediation: remCmd ? shellRemediationExecutor(remCmd, remArgs) : undefined, log };
+  log(`${runner} → ${apiBase} every ${interval} ms; discovery=sim; remediation=${remCmd ? 'cmd' : 'off'}; platform=${process.platform}`);
   if (process.platform !== 'win32') log('warning: registry commands are PowerShell — discovery jobs will fail on this platform (ENGINE_NEEDS_WINDOWS)');
 
-  let stopping = false;
-  process.on('SIGINT', () => { stopping = true; log('stopping after this pass'); });
-  process.on('SIGTERM', () => { stopping = true; });
+  let stopping = false; let timer: NodeJS.Timeout | undefined; let wake: (() => void) | undefined;
+  const stop = (sig: string) => { if (stopping) { log(`second ${sig}: exiting now`); process.exit(130); } stopping = true; log(`${sig}: stopping after this pass`); if (timer) clearTimeout(timer); wake?.(); };
+  process.on('SIGINT', () => stop('SIGINT')); process.on('SIGTERM', () => stop('SIGTERM'));
   do {
     try {
       const s = await pollOnce(api, opts);
-      if (s.discovery.seen || s.remediation.seen || once) log(`pass: ${s.engagements} engagements; discovery ${JSON.stringify(s.discovery)}; remediation ${JSON.stringify(s.remediation)}`);
-    } catch (e) { log(`pass failed: ${e instanceof Error ? e.message : String(e)}`); }
+      if (s.discovery.seen || s.remediation.seen || s.errors || once) log(`pass: ${s.engagements} engagements, ${s.errors} errors; discovery ${JSON.stringify(s.discovery)}; remediation ${JSON.stringify(s.remediation)}`);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) throw new Error('token rejected (401) and no credentials to re-login — restart the runner with a fresh token');
+      log(`pass failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
     if (once || stopping) break;
-    await new Promise((r) => setTimeout(r, interval));
+    await new Promise<void>((r) => { wake = r; timer = setTimeout(r, interval); });
   } while (!stopping);
 }
 
