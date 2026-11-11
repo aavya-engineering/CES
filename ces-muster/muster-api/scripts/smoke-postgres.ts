@@ -35,11 +35,11 @@ async function main(): Promise<number> {
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
   const tenant = await db.tenant.create({ data: { name: `Smoke ${RUN}` } });
   const hash = await bcrypt.hash(PW, 4);
-  const mk = (role: 'compliance_manager' | 'bhd_operator' | 'senior_approver', who: string) => db.user.create({ data: { tenant_id: tenant.id, email: `${who}-${RUN}@smoke.local`, role, password_hash: hash } });
-  await mk('compliance_manager', 'cm'); await mk('bhd_operator', 'bhd1'); await mk('bhd_operator', 'bhd2'); await mk('senior_approver', 'sa');
+  const mk = (role: 'compliance_manager' | 'bhd_operator' | 'senior_approver' | 'org_admin' | 'it_security_admin', who: string) => db.user.create({ data: { tenant_id: tenant.id, email: `${who}-${RUN}@smoke.local`, role, password_hash: hash } });
+  await mk('compliance_manager', 'cm'); await mk('bhd_operator', 'bhd1'); await mk('bhd_operator', 'bhd2'); await mk('senior_approver', 'sa'); await mk('org_admin', 'oa'); await mk('it_security_admin', 'cis');
   const tokens: Record<string, string> = {};
   const login = async (who: string) => { const r = await fetch(`${base}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: `${who}-${RUN}@smoke.local`, password: PW }) }); const j = await r.json() as { token?: string }; if (!r.ok || !j.token) throw new Error(`login ${who} → ${r.status}`); tokens[who] = j.token; };
-  for (const w of ['cm', 'bhd1', 'bhd2', 'sa']) await login(w);
+  for (const w of ['cm', 'bhd1', 'bhd2', 'sa', 'oa', 'cis']) await login(w);
 
   let step = '';
   const call = async (who: string, method: string, path: string, body?: unknown, expect: number[] = [200, 201, 202]) => {
@@ -58,7 +58,8 @@ async function main(): Promise<number> {
     const E = `/engagements/${eng.id}`;
     await call('cm', 'POST', `${E}/scope/assets`, { name: 'FS-01', asset_type: 'file server', category: 'cui' });
     const b = await call('cm', 'POST', `${E}/scope/boundaries`, { description: 'CUI enclave' });
-    await call('cm', 'POST', `${E}/scope/boundaries/${b.id}/confirm`, {});
+    await call('cm', 'POST', `${E}/scope/boundaries/${b.id}/confirm`, {}, [403]); // matrix: confirming the CUI boundary is the organisation administrator's approval
+    await call('oa', 'POST', `${E}/scope/boundaries/${b.id}/confirm`, {});
     await call('cm', 'POST', `${E}/systems`, { name: 'File services', kind: 'system', hosting: 'gcc_high', handles_cui: true });
     await call('cm', 'GET', `${E}/onboard/checklist`);
 
@@ -73,10 +74,11 @@ async function main(): Promise<number> {
     await call('cm', 'POST', `${E}/plan/poam/from-actions`, {});
 
     step = 'remediate';
-    const ao = await call('cm', 'POST', `${E}/remediation/runs`, { module: 'adminops', op_id: 'A-01', parameters: { upn: `u${RUN}@smoke.onmicrosoft.us`, displayName: 'Smoke User' }, justification: 'New starter onboarding (smoke)' });
+    await call('cm', 'POST', `${E}/remediation/runs`, { module: 'adminops', op_id: 'A-01', parameters: {}, justification: 'matrix: compliance manager only views AdminOps' }, [403]);
+    const ao = await call('cis', 'POST', `${E}/remediation/runs`, { module: 'adminops', op_id: 'A-01', parameters: { upn: `u${RUN}@smoke.onmicrosoft.us`, displayName: 'Smoke User' }, justification: 'New starter onboarding (smoke)' });
     await call('sa', 'POST', `${E}/remediation/runs/${ao.id}/approve`, {});
-    await call('cm', 'POST', `${E}/remediation/runs/${ao.id}/execute`, {});
-    await call('cm', 'POST', `${E}/remediation/runs/${ao.id}/verify`, { verified: true, notes: 'Simulated run verified (smoke)' });
+    await call('cis', 'POST', `${E}/remediation/runs/${ao.id}/execute`, {});
+    await call('cis', 'POST', `${E}/remediation/runs/${ao.id}/verify`, { verified: true, notes: 'Simulated run verified (smoke)' });
     const st = await call('bhd1', 'POST', `${E}/remediation/runs`, { module: 'stamper', entry_ids: ['AC.L2-3.1.1.operator-discover'], justification: 'Evidence read only (smoke)' });
     await call('bhd2', 'POST', `${E}/remediation/runs/${st.id}/approve`, {}, [200, 409]);
     await call('cm', 'GET', `${E}/remediation/runs/${st.id}`, undefined, [404]);
@@ -99,8 +101,11 @@ async function main(): Promise<number> {
     await call('cm', 'GET', `${E}/prepare/reports/evidence?format=csv`, undefined, [200, 404]);
 
     step = 'admin';
-    await call('cm', 'GET', '/admin/settings');
-    await call('cm', 'GET', '/admin/health');
+    await call('cm', 'GET', '/admin/settings', undefined, [403]); // matrix: Administration is org_admin / BHD / platform_admin
+    await call('oa', 'GET', '/admin/settings');
+    await call('oa', 'PUT', '/admin/settings', { system: { monitoring_cadence_hours: 12 } });
+    await call('oa', 'GET', '/admin/health');
+    await call('oa', 'GET', '/admin/access/users');
     console.log(`smoke: every slice wrote and read against Postgres (tenant ${tenant.name}).`);
     return 0;
   } catch (e) {

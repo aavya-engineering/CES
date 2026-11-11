@@ -79,9 +79,11 @@ export const RBAC_MATRIX: Matrix = {
   assess: { bhd_operator: VEX, org_admin: V, compliance_manager: ['view', 'edit', 'execute', 'approve'], it_security_admin: VEX, evidence_reviewer: V, senior_approver: V },
   plan: { bhd_operator: VEX, org_admin: VA, compliance_manager: VEA, it_security_admin: VE, evidence_reviewer: V, senior_approver: VA },
   // Stamper: BHD only (walkthrough 2026-11-04 01:00:11). Customers never see it.
-  'remediate.stamper': { bhd_operator: VEX },
+  // DP-2 (walkthrough 2026-11-04): a Stamper run is requested by one BHD operator and approved by a second one.
+  'remediate.stamper': { bhd_operator: ['view', 'edit', 'approve', 'execute'] },
   // AdminOps: the customer's CIS administrator runs it; second person approves.
-  'remediate.adminops': { bhd_operator: ['view', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
+  // AdminOps: the customer's CIS administrator requests and executes; a senior approver or BHD approves.
+  'remediate.adminops': { bhd_operator: ['view', 'approve', 'execute'], org_admin: V, compliance_manager: V, it_security_admin: VEX, senior_approver: VA },
   'remediate.tracking': { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: V, senior_approver: V },
   remediate: {}, // resolved per group, see scopeFor()
   evidence: { bhd_operator: VE, org_admin: V, compliance_manager: VE, it_security_admin: VE, evidence_reviewer: VA, senior_approver: V },
