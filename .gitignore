@@ -118,7 +118,9 @@ Desktop.ini
 # --------------------------------------------------------------------
 # 8. Nested Standalone Repositories / Archived Branches
 # --------------------------------------------------------------------
-tenant-stacksim/
+# tenant-stacksim is vendored from the BHD kit since 2026-11-11 (see tenant-stacksim/VENDORED-FROM-KIT.md); only its build output is ignored.
+tenant-stacksim/node_modules/
+tenant-stacksim/dist/
 ces-tester/
 ces-strategy/
 cse-eo.archived/

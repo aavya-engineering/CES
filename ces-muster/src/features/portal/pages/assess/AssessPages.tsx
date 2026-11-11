@@ -48,7 +48,7 @@ function useRuns(eid: string) {
   return { runs, runId, setRunId, error, reload: () => setTick((t) => t + 1) };
 }
 
-function Selectors({ eng, runs, runId, setRunId, extra }: { eng: ReturnType<typeof useEngagement>; runs: AssessmentRun[] | null; runId: string; setRunId: (id: string) => void; extra?: React.ReactNode }) {
+function Selectors({ eng, runs, runId, setRunId }: { eng: ReturnType<typeof useEngagement>; runs: AssessmentRun[] | null; runId: string; setRunId: (id: string) => void }) {
   return (
     <div className="toolbar">
       <label>
@@ -65,7 +65,6 @@ function Selectors({ eng, runs, runId, setRunId, extra }: { eng: ReturnType<type
           {(runs ?? []).map((r) => <option key={r.id} value={r.id}>{runLabel(r)}</option>)}
         </select>
       </label>
-      {extra}
     </div>
   );
 }
@@ -94,13 +93,13 @@ function RunEngineButton({ eid, onDone }: { eid: string; onDone: (runId: string,
     else setError(r.status === 403 ? 'Live run refused: enable live access on the engagement and grant consent first (simulator needs neither).' : failureText(r));
   };
   return (
-    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }} data-testid="engine-run">
-      <select className="select" value={mode} onChange={(e) => setMode(e.target.value as 'sim' | 'live')} aria-label="Run mode"><option value="sim">Simulator</option><option value="live">Live tenant</option></select>
+    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'nowrap' }} data-testid="engine-run">
+      <select className="select" value={mode} onChange={(e) => setMode(e.target.value as 'sim' | 'live')} aria-label="Run mode" style={{ width: 150 }}><option value="sim">Simulator</option><option value="live">Live tenant</option></select>
       <input className="input" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} aria-label="Tenant slug" style={{ width: 90 }} title="Simulated customer (S1 / S2 / S3 / mp) or the live tenant slug" />
       <button type="button" className="btn btn-secondary" disabled={busy || job?.status === 'running'} onClick={start} data-testid="engine-run-start">{job?.status === 'running' ? 'Engine running…' : 'Run assessment'}</button>
       {job?.status === 'running' && <span className="hint">walking the command registry{mode === 'live' ? ' against the tenant (read-only)' : ' against the simulator'}…</span>}
       {job?.status === 'done' && <span className="pill" data-tone="good">run landed</span>}
-      {error && <span className="note" data-tone="bad" role="alert">{error}</span>}
+      {error && <span className="note engine-error" data-tone="bad" role="alert">{error}</span>}
     </span>
   );
 }
@@ -153,12 +152,19 @@ export function ReadinessOverviewPage({ viewer }: { viewer: Viewer }) {
   return (
     <div className="pg" data-testid="page-assess-readiness">
       <PageHeader icon="readiness" title="Readiness assessment" lede="The engagement's SPRS position from the latest assessed record — one calculator, conservative (only Met counts), with the registry-fixable projection labelled as such." />
-      <Selectors eng={eng} runs={runs} runId={runId} setRunId={setRunId} extra={writable && eng.id ? <span className="grow" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}><RunEngineButton eid={eng.id} onDone={(id, job) => { setToast(`Engine run landed — new SPRS below.${job.evidence?.created ? ` ${job.evidence.created} capture${job.evidence.created === 1 ? '' : 's'} added to Collect Evidence as drafts.` : ''}`); reload(); setRunId(id); }} /><ImportButton eid={eng.id} onDone={(r) => { setToast(`Run imported — SPRS ${r.sprs_now}.`); reload(); }} /></span> : undefined} />
+      <Selectors eng={eng} runs={runs} runId={runId} setRunId={setRunId} />
+      {writable && eng.id && (
+        <div className="toolbar toolbar-actions" data-testid="assess-actions">
+          <RunEngineButton eid={eng.id} onDone={(id, job) => { setToast(`Engine run landed — new SPRS below.${job.evidence?.created ? ` ${job.evidence.created} capture${job.evidence.created === 1 ? '' : 's'} added to Collect Evidence as drafts.` : ''}`); reload(); setRunId(id); }} />
+          <span className="grow" />
+          <ImportButton eid={eng.id} onDone={(r) => { setToast(`Run imported — SPRS ${r.sprs_now}.`); reload(); }} />
+        </div>
+      )}
       {(eng.error || error) && <p className="note" data-tone="bad" role="alert">{eng.error ?? error}</p>}
       {runs && runs.length === 0 && eng.id && <Empty>No assessment run for this engagement yet.{writable ? ' Run the engine against the simulator (needs tenant-stacksim on the server), or import a readiness-result JSON (Muster › Readiness export, ces-tester output, or a delivered record).' : ''}</Empty>}
       {run && (
         <>
-          <div className="stats">
+          <div className="stats stats-6">
             <Stat icon="sprs" value={run.sprs_now} label="SPRS score (now)" tone={run.sprs_now >= 88 ? 'good' : run.sprs_now >= 0 ? 'warn' : 'bad'} sub="of 110 · only Met counts" testId="sprs-now" />
             <Stat icon="plan" value={run.sprs_after ?? '—'} label="Projected after registry fixes" tone="muster" sub="PROJECTION — not a score" testId="sprs-after" />
             <Stat icon="requirements" value={run.met_count} label="Met" tone="good" />
