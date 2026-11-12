@@ -1202,7 +1202,8 @@ model TenantSettings {
   notifications Json     @default("{}")
   security      Json     @default("{}")
   retention     Json     @default("{}")
-  /** Module visibility (demo / phased roll-out): { onboard, assess, plan, remediate, evidence, monitor, prepare } → boolean. Hides sections in the portal only; the API still enforces the role matrix. */
+  // Module visibility (demo / phased roll-out): { onboard, assess, plan, remediate, evidence, monitor, prepare } -> boolean.
+  // Hides sections in the portal only; the API still enforces the role matrix.
   modules       Json     @default("{}")
   version       Int      @default(1)
   updated_by    String?
