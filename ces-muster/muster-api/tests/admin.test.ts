@@ -17,6 +17,7 @@ import { createAdminRouter } from '../src/routes/admin.js';
 import { createOnboardChecklistRouter, createSystemsRouter } from '../src/routes/systems.js';
 import { mintToken } from '../src/lib/jwt.js';
 import { createMockDb } from './helpers/mockDb.js';
+import authRouter from '../src/routes/auth.js';
 
 const TENANT_A = '00000000-aaaa-0000-0000-000000000001';
 const ENG_A = '00000000-0000-aaaa-0000-000000000001';
@@ -32,6 +33,7 @@ beforeAll(async () => {
   const app = express();
   app.use(express.json());
   app.use('/api/admin', createAdminRouter(db));
+  app.locals.db = db; app.use('/auth', authRouter); // /auth/me carries module visibility
   app.use('/api/engagements/:engagementId/systems', createSystemsRouter(db));
   app.use('/api/engagements/:engagementId/onboard', createOnboardChecklistRouter(db));
   server = http.createServer(app);
@@ -64,7 +66,14 @@ describe('settings', () => {
     const read = await (await call('GET', '/api/admin/settings', 'org_admin')).json();
     expect(read.retention.evidence_days).toBe(2000);
     expect(read.retention.audit_days).toBe(2555); // default still filled
-    expect(db.auditEvent._records.filter((a) => a.action === 'settings.update')).toHaveLength(2);
+    // Module visibility (demo show/hide): defaults all on; org_admin hides Monitor; /auth/me carries it for every role; unknown keys rejected.
+    expect(read.modules).toEqual({ onboard: true, assess: true, plan: true, remediate: true, evidence: true, monitor: true, prepare: true });
+    expect((await call('PUT', '/api/admin/settings', 'org_admin', { modules: { admin: false } })).status).toBe(422);
+    const hid = await (await call('PUT', '/api/admin/settings', 'org_admin', { modules: { monitor: false } })).json();
+    expect(hid.modules.monitor).toBe(false);
+    const me = await (await call('GET', '/auth/me', 'compliance_manager')).json();
+    expect(me.modules).toMatchObject({ monitor: false, assess: true });
+    expect(db.auditEvent._records.filter((a) => a.action === 'settings.update')).toHaveLength(3); // two sections + the modules change
   });
 });
 

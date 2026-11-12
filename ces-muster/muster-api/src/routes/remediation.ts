@@ -395,6 +395,8 @@ export function createRemediationRouter(db: Db) {
       if (!run) return notFound(res);
       if (run.status !== 'running') return conflict(res, `Run is ${run.status}; results are accepted only for a running run`, 'RUN_NOT_RUNNING');
       const body = req.body as z.infer<typeof resultSchema>;
+      const claimedBy = (run.result as { claimed_by?: string } | null)?.claimed_by;
+      if (claimedBy && claimedBy !== body.runner) return conflict(res, `Run was claimed by ${claimedBy}; results are accepted from that runner only`, 'RUNNER_MISMATCH');
       // Take the run out of `running` first so a duplicate/late result is refused and never files evidence twice.
       const taken = await transition(req, run.id, 'running', { status: body.outcome, finished_at: new Date() });
       if (!taken) return conflict(res, 'A result was already recorded for this run', 'RUN_NOT_RUNNING');

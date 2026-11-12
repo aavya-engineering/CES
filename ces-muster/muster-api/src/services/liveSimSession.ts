@@ -24,6 +24,7 @@ import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { DiscoverySession, DiscoveryExecResult } from './discoveryService.js';
+import { childEnv } from '../lib/childEnv.js';
 
 export const SIM_URL = 'http://127.0.0.1:4390';
 
@@ -60,7 +61,7 @@ export function simAvailable(root: string = simRoot()): boolean {
  */
 function simEnv(psmodules: string, simUrl: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
-  for (const [k, v] of Object.entries(process.env)) {
+  for (const [k, v] of Object.entries(childEnv())) { // API secrets never reach PowerShell (doc 49 H2)
     if (k.toLowerCase() === 'psmodulepath') continue;
     env[k] = v;
   }

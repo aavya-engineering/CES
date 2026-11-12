@@ -24,14 +24,14 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /lifecycle-walk/,
+      testIgnore: /lifecycle-walk|screenshots/,
     },
     {
       // Lifecycle walk against the running local stack (API :4000 + Postgres + `npm run dev` on :5173).
       // `CES_E2E_LIVE=1 npm run test:e2e:live`; the spec skips itself without that flag. No webServer:
       // the dev server's /api proxy is what reaches muster-api.
       name: 'live',
-      testMatch: /lifecycle-walk/,
+      testMatch: /lifecycle-walk|screenshots/,
       use: { ...devices['Desktop Chrome'], baseURL: process.env.CES_E2E_BASE ?? 'http://localhost:5173' },
     },
   ],

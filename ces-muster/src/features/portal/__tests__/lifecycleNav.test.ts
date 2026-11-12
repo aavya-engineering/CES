@@ -113,3 +113,20 @@ describe('routes', () => {
     expect(navFor({ kind: 'offline' }).map((s) => s.id)).toEqual(['home', 'shared', 'muster']);
   });
 });
+
+describe('module visibility (Administration › Settings › Modules)', () => {
+  it('a module set to false disappears from the sidebar and from the allowed routes, for every role; Administration never hides', () => {
+    const v: Viewer = { kind: 'signed-in', role: 'compliance_manager', modules: { monitor: false, prepare: false } };
+    const ids = navFor(v).map((s) => s.id);
+    expect(ids).not.toContain('monitor');
+    expect(ids).not.toContain('prepare');
+    expect(ids).toContain('assess');
+    expect(routesFor(v).has('monitor/overview')).toBe(false);
+    const admin: Viewer = { kind: 'signed-in', role: 'org_admin', modules: { admin: false, onboard: false } as Record<string, boolean> };
+    expect(navFor(admin).map((s) => s.id)).toContain('admin');
+    expect(navFor(admin).map((s) => s.id)).not.toContain('onboard');
+  });
+  it('without modules (not fetched yet) everything the role may see is shown', () => {
+    expect(navFor(signedIn('compliance_manager')).map((s) => s.id)).toContain('monitor');
+  });
+});

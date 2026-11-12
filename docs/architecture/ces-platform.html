@@ -1,0 +1,74 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  body{margin:0;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1f2937}
+  .canvas{position:relative;width:1600px;height:980px;background:#fff}
+  .box{position:absolute;border:2px solid #666;border-radius:10px;padding:8px 10px;box-sizing:border-box;font-size:12px;line-height:1.3;background:#fff}
+  .box b{display:block;font-size:14px;margin-bottom:3px}
+  .box small{font-size:11px;color:#444;display:block}
+  .zone{position:absolute;border:3px solid;border-radius:14px;box-sizing:border-box;padding:10px 14px;font-size:14px;font-weight:bold}
+  .zone span{font-weight:normal;font-size:12px;color:#444;display:block;margin-top:2px}
+  .p{border-color:#1a73e8;background:#e8f0fe}
+  .r{border-color:#188038;background:#e6f4ea}
+  .c{border-color:#8430ce;background:#f3e8fd}
+  .pb{border-color:#1a73e8}
+  .rb{border-color:#188038}
+  .lbl{position:absolute;font-size:12px;color:#333;background:#fff;padding:2px 5px;border-radius:4px;border:1px solid #ddd}
+  svg{position:absolute;left:0;top:0}
+  .title{position:absolute;left:20px;top:14px;font-size:22px;font-weight:bold}
+  .sub{position:absolute;left:20px;top:44px;font-size:13px;color:#555}
+  .note{position:absolute;border:1px solid #bbb;background:#fafafa;border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.45;box-sizing:border-box}
+</style></head><body>
+<div class="canvas">
+  <div class="title">CES — Compliance Evidence System · as built (2026-11-11)</div>
+  <div class="sub">Three boxes: the platform (runs anywhere) · the tenant runner (Windows, inside the customer boundary) · the customer's Microsoft cloud. Solid = runtime calls, dashed = dev/test only.</div>
+
+  <svg width="1600" height="980">
+    <defs>
+      <marker id="ab" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+      <marker id="ag" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+      <marker id="ap" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8430ce"/></marker>
+      <marker id="ar" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c5221f"/></marker>
+    </defs>
+    <line x1="170" y1="165" x2="170" y2="268" stroke="#1a73e8" stroke-width="2.5" marker-end="url(#ab)"/>
+    <line x1="280" y1="310" x2="338" y2="310" stroke="#1a73e8" stroke-width="2.5" marker-end="url(#ab)"/>
+    <line x1="170" y1="350" x2="170" y2="408" stroke="#1a73e8" stroke-width="2.5" marker-end="url(#ab)"/>
+    <line x1="330" y1="550" x2="330" y2="608" stroke="#1a73e8" stroke-width="2.5" marker-end="url(#ab)"/>
+    <line x1="690" y1="465" x2="642" y2="465" stroke="#1a73e8" stroke-width="2.5" marker-end="url(#ab)"/>
+    <path d="M 920 380 L 860 380 L 860 450 L 642 450" fill="none" stroke="#188038" stroke-width="3.5" marker-end="url(#ag)"/>
+    <line x1="1090" y1="425" x2="1090" y2="478" stroke="#188038" stroke-width="2.5" marker-end="url(#ag)"/>
+    <line x1="1090" y1="585" x2="1090" y2="638" stroke="#188038" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#ag)"/>
+    <line x1="1302" y1="530" x2="1352" y2="490" stroke="#8430ce" stroke-width="3.5" marker-end="url(#ap)"/>
+    <line x1="960" y1="585" x2="960" y2="718" stroke="#c5221f" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#ar)"/>
+    <path d="M 642 525 L 870 525 L 870 532 L 918 532" fill="none" stroke="#188038" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#ag)"/>
+  </svg>
+
+  <div class="box" style="left:40px;top:80px;width:330px;height:85px;background:#f5f5f5"><b>People (browser)</b><small>org admin · compliance manager · IT security admin · evidence reviewer · senior approver · assessor · BHD operator · platform admin</small></div>
+
+  <div class="zone p" style="left:40px;top:270px;width:800px;height:520px"><div style="position:absolute;right:14px;bottom:6px;text-align:right">PLATFORM — Linux / macOS / Windows, Docker in production<span>holds engagement state · never a tenant credential (PB-02)</span></div></div>
+  <div class="box pb" style="left:60px;top:290px;width:220px;height:75px"><b>nginx (TLS 443)</b><small>serves the SPA, proxies /api · dev: vite :5173</small></div>
+  <div class="box pb" style="left:340px;top:290px;width:300px;height:100px"><b>Muster portal (React + Vite SPA)</b><small>Onboard · Assess · Plan · Remediate · Evidence · Monitor · Prepare · Admin</small><small>sidebar permissions = the same role matrix the API enforces</small></div>
+  <div class="box pb" style="left:60px;top:410px;width:580px;height:140px"><b>muster-api (Express + Prisma + zod) :4000</b><small>Every router: bearerAuth → requireAction (role matrix) → route rules (DP-2 second person, BHD-only, last org admin)</small><small>routes: onboard · systems · assessments · plan · remediation · evidence · monitor · prepare · admin · auth</small><small>services: discovery engine run · captures → evidence · NIST catalog · monitor evaluate / scheduler</small><small>lib: withTenant (RLS) · audit · permissions · openapi · jwt · childEnv</small></div>
+  <div class="box pb" style="left:685px;top:430px;width:145px;height:80px"><b style="font-size:13px">Monitor scheduler</b><small>in-process · MONITOR_SCHEDULER=1</small></div>
+  <div class="box" style="left:690px;top:525px;width:130px;height:150px;border-color:#f9a825;background:#fff8e1"><b style="font-size:13px">Vendored BHD reference data</b><small>110 controls · SPRS weights · registry (201 reads) · NIST 800-171A catalog</small><small>read-only, SHA-256 noted</small></div>
+  <div class="box pb" style="left:60px;top:610px;width:580px;height:140px"><b>PostgreSQL 16 — muster_db</b><small>app role muster_app NOBYPASSRLS · 24 migrations · RLS: tenant_id = current_setting('app.tenant_id'), fail-closed</small><small>engagements · engine_jobs · assessment_runs / results · plan_actions · poam_items · remediation_runs</small><small>evidence_items (content + SHA-256) · monitor findings / snapshots · SSP statements · evidence_packages · audit_events · users</small></div>
+
+  <div class="zone r" style="left:900px;top:270px;width:420px;height:520px"><div style="position:absolute;left:14px;top:6px">TENANT EXECUTION HOST — Windows · PowerShell 5.1<span>inside the customer boundary · holds the tenant certificate · no platform state</span></div></div>
+  <div class="box rb" style="left:920px;top:335px;width:380px;height:100px"><b>Tenant runner — npm run runner</b><small>signs in as a BHD operator · polls: queue → claim → execute → result</small><small>discovery lane: engine + captures · remediation lane: command seam for the kit</small><small>invariant: a claimed job always gets a result</small></div>
+  <div class="box rb" style="left:920px;top:480px;width:380px;height:105px"><b>BHD engines (PowerShell)</b><small>discovery: powershell.exe runs the 201 registry reads (read-only, zero-write assertion)</small><small>Stamper · AdminOps · EvidenceOps · Evidence Collector</small><small>kit CLI entry for live Stamper/AdminOps: pending</small></div>
+  <div class="box rb" style="left:920px;top:640px;width:380px;height:55px"><b>Windows certificate store / DPAPI</b><small>tenant app certificate · Graph PowerShell modules</small></div>
+  <div class="box" style="left:920px;top:720px;width:380px;height:55px;border-color:#c5221f;background:#fdecea;border-style:dashed"><b>tenant-stacksim :4390 — dev / test only</b><small>fake M365 / Azure · scenario muster-partial · npm run sim</small></div>
+
+  <div class="zone c" style="left:1350px;top:360px;width:230px;height:230px;border-radius:115px;padding:48px 22px;text-align:center">Customer Microsoft cloud<span>M365 GCC / GCC High + Azure Government<br>Graph / Exchange / Intune over .us endpoints<br>reads always · writes only after approval + live gate + consent</span></div>
+
+  <div class="lbl" style="left:180px;top:200px">HTTPS · Bearer JWT</div>
+  <div class="lbl" style="left:345px;top:568px">Prisma · withTenant sets app.tenant_id per transaction</div>
+  <div class="lbl" style="left:650px;top:292px;width:195px;color:#188038;line-height:1.3">HTTPS pull — outbound only from the customer side<br>queue → claim → result (envelope + captures)</div>
+  <div class="lbl" style="left:655px;top:695px;width:180px;color:#188038;line-height:1.3">dashed: engine runs in-process when the API itself is on Windows (CES_ENGINE_LOCAL)</div>
+  <div class="lbl" style="left:1225px;top:455px;color:#8430ce">Graph / PowerShell (.us)</div>
+  <div class="lbl" style="left:975px;top:702px;color:#c5221f">PSModulePath shims → facade</div>
+
+  <div class="note" style="left:40px;top:805px;width:800px;height:160px"><b>Guardrails the design enforces</b><br>PB-01 platform admin reads no customer data (platformAdminFence) · PB-02 no secrets in run parameters, logs, responses or child environments · DP-2 set-commands need a second person, requester ≠ approver · live gate re-checked at request → execute → claim (LIVE_DISABLED) · GR1 an all-failed read records nothing (engine_unavailable) · tenancy by Postgres RLS, not by code discipline<br><br><b>Open (docs 47–50):</b> dedicated runner role + signed results · MFA / SSO · live grants on the runner · kit CLI for Stamper/AdminOps · WORM evidence store · SIEM forwarding</div>
+  <div class="note" style="left:900px;top:805px;width:680px;height:160px"><b>Assessment flow</b><br>1 compliance manager presses Run assessment → engine_jobs row (queued; in-process on Windows)<br>2 runner claims → PowerShell walks the 201 reads → readiness-result envelope + captures<br>3 API validates → assessment_runs + 110 results + SPRS → captures become draft evidence (SHA-256)<br>4 portal: Readiness · Gaps · Plan actions · Remediate (simulate → approve → live) · Evidence review · Prepare package · Monitor</div>
+</div>
+</body></html>

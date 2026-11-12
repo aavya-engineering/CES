@@ -193,6 +193,7 @@ describe('ENGINE via the Windows runner (no local engine)', () => {
     const claims = await Promise.all(['win-01', 'win-02'].map((r) => call2('POST', `/jobs/${q.job_id}/claim`, 'bhd_operator', { runner: r }, `runner:${r}`)));
     expect(claims.map((r) => r.status).sort()).toEqual([200, 409]);
     expect((await call2('POST', `/jobs/${q.job_id}/cancel`, 'compliance_manager')).status).toBe(409); // running, not cancellable
+    expect((await call2('POST', `/jobs/${q.job_id}/result`, 'bhd_operator', { runner: 'win-02', outcome: 'failed', error: 'not mine' }, 'runner:win-02')).status).toBe(409); // H1: only the claiming runner may post
     const done = await (await call2('POST', `/jobs/${q.job_id}/result`, 'bhd_operator', { runner: 'win-01', outcome: 'succeeded', envelope: { ...RECORD, provenance: { engine: { name: 'ces-stamper discovery', version: '2.2.3' } } }, stats: { entries: 4, ran: 4, failed: 0 }, captures: [{ ref: 'captures/ac-3.1.1.txt', content: 'Get-MgUser (runner output)', entry_id: 'AC.L2-3.1.1.operator-discover', requirement_ids: ['AC.L1-3.1.1'], objective_ids: ['AC.L1-3.1.1[a]'] }] }, 'runner:win-01')).json();
     expect(done.status).toBe('done');
     expect(done.run_id).toBeTruthy();

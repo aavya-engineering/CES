@@ -30,7 +30,7 @@ const role = (v: Viewer) => (isSignedIn(v) ? v.role : '');
 const isOrgAdmin = (v: Viewer) => ['org_admin', 'compliance_manager', 'bhd_operator'].includes(role(v));
 const canEditOnboard = (v: Viewer, group: string) => isSignedIn(v) && actionsFor(v.role, 'onboard', group).includes('edit');
 
-export interface Settings { organization: { display_name: string; timezone: string; locale: string; support_contact: string }; system: { monitoring_cadence_hours: number; evidence_currency_days: number; session_idle_minutes: number }; notifications: { alert_min_severity: string; digest: string; recipients: string[] }; security: { password_min_length: number; session_ttl_hours: number; require_mfa_note: string; ip_allowlist: string[] }; retention: { evidence_days: number; audit_days: number; package_days: number }; version: number; updated_by: string | null; updated_at: string | null; editable: boolean }
+export interface Settings { organization: { display_name: string; timezone: string; locale: string; support_contact: string }; system: { monitoring_cadence_hours: number; evidence_currency_days: number; session_idle_minutes: number }; notifications: { alert_min_severity: string; digest: string; recipients: string[] }; security: { password_min_length: number; session_ttl_hours: number; require_mfa_note: string; ip_allowlist: string[] }; retention: { evidence_days: number; audit_days: number; package_days: number }; modules: Record<'onboard' | 'assess' | 'plan' | 'remediate' | 'evidence' | 'monitor' | 'prepare', boolean>; version: number; updated_by: string | null; updated_at: string | null; editable: boolean }
 export interface TenantUser { id: string; email: string; display_name: string | null; role: string; last_login_at: string | null; disabled: boolean; created_at: string }
 export interface AccessRequest { id: string; requested_by: string; subject_email: string; requested_role: string; engagement_id: string | null; justification: string; status: 'open' | 'approved' | 'rejected' | 'fulfilled'; decided_by: string | null; decided_at: string | null; decision_notes: string | null; created_at: string }
 export interface AccessReview { id: string; title: string; snapshot: TenantUser[]; decisions: { user_id: string; decision: 'keep' | 'remove' | 'change_role'; note?: string | null; by: string; at: string }[]; status: 'open' | 'completed'; started_by: string; started_at: string; completed_by: string | null; completed_at: string | null }
@@ -89,10 +89,10 @@ function EngagementSelect({ eng }: { eng: ReturnType<typeof useEngagement> }) {
 }
 
 // ====================================================================== settings
-export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'organization' | 'system' | 'notifications' | 'security' | 'retention' }) {
+export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'organization' | 'system' | 'notifications' | 'security' | 'retention' | 'modules' }) {
   const s = useLoader<Settings>(() => adminApi.settings(), []);
   const [draft, setDraft] = useState<Settings | null>(null);
-  const [tab, setTab] = useState<'organization' | 'system' | 'notifications' | 'security' | 'retention'>(section ?? 'organization');
+  const [tab, setTab] = useState<'organization' | 'system' | 'notifications' | 'security' | 'retention' | 'modules'>(section ?? 'organization');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'o
     if (r.ok) { setToast(`${tab} settings saved (v${r.data.version}).`); s.reload(); } else setErr(failureText(r));
   };
   const d = draft;
-  const TABS: [typeof tab, string][] = [['organization', 'Organisation'], ['system', 'System'], ['notifications', 'Notifications'], ['security', 'Security'], ['retention', 'Retention']];
+  const TABS: [typeof tab, string][] = [['organization', 'Organisation'], ['system', 'System'], ['notifications', 'Notifications'], ['security', 'Security'], ['retention', 'Retention'], ['modules', 'Modules']];
   return (
     <div className="pg" data-testid="page-admin-settings">
       <PageHeader icon="platform" title="Settings" lede="The organisation's own configuration of CES: identity, monitoring cadence, who gets alerted, session and password policy, and how long evidence, audit records and packages are kept. Every change is versioned and audited." />
@@ -140,6 +140,14 @@ export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'o
                 <label className="form-row">Session lifetime (hours)<input className="input" type="number" min={1} max={72} value={d.security.session_ttl_hours} onChange={(e) => set('security', { session_ttl_hours: Number(e.target.value) })} /></label>
                 <label className="form-row">IP allow-list (CIDR, comma-separated)<input className="input" value={d.security.ip_allowlist.join(', ')} onChange={(e) => set('security', { ip_allowlist: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="203.0.113.0/24" /></label>
                 <label className="form-row">MFA statement<textarea className="input" rows={3} value={d.security.require_mfa_note} onChange={(e) => set('security', { require_mfa_note: e.target.value })} /></label>
+              </div>}
+              {tab === 'modules' && <div data-testid="settings-modules">
+                <p className="hint">Hide a lifecycle section from everyone in this organisation — for a phased roll-out or a demo. Hidden is not disallowed: the API keeps enforcing the role matrix, and Administration cannot be hidden. Takes effect at the next sign-in or page reload.</p>
+                <div className="form-grid-2">
+                  {([['onboard', 'Onboard'], ['assess', 'Assess'], ['plan', 'Plan'], ['remediate', 'Remediate'], ['evidence', 'Collect Evidence'], ['monitor', 'Monitor'], ['prepare', 'Prepare for Assessment']] as const).map(([k, label]) => (
+                    <label key={k} className="check"><input type="checkbox" checked={d.modules?.[k] !== false} disabled={!editable} onChange={(e) => set('modules', { [k]: e.target.checked } as Partial<Settings['modules']>)} data-testid={`module-${k}`} /> {label}</label>
+                  ))}
+                </div>
               </div>}
               {tab === 'retention' && <div className="form-grid-2">
                 <label className="form-row">Evidence (days)<input className="input" type="number" min={365} max={3650} value={d.retention.evidence_days} onChange={(e) => set('retention', { evidence_days: Number(e.target.value) })} /></label>

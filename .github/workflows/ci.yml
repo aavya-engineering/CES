@@ -72,10 +72,11 @@ jobs:
       - name: Muster portal — install, typecheck, test
         run: cd ces-muster && npm ci && npx tsc --noEmit -p tsconfig.json && npm test
       - name: muster-api — install, generate Prisma client, typecheck, test
+        # No DATABASE_URL here on purpose: the unit suites run on the in-memory mock, and tests/rls.test.ts
+        # (live RLS, describe.skipIf(!DATABASE_URL)) must not run against the not-yet-migrated service DB.
         run: cd ces-muster/muster-api && npm ci && npx prisma generate && npx tsc --noEmit -p tsconfig.json && npm test
         env:
           JWT_SECRET: ci-only-not-a-secret
-          DATABASE_URL: postgresql://postgres:ci@localhost:5432/muster_db
 
       # Real-database smoke (2026-11-11): migrations 001–023, the least-privilege
       # app role (RLS, no BYPASSRLS), then one write per lifecycle slice through

@@ -173,13 +173,18 @@ function runPs(command: string, fx: Fixture, status?: number) {
     timeout: 60000,
     env: {
       ...process.env,
+      // GitHub's ubuntu runners ship pwsh with update/telemetry banners that land on stdout ("WARNING: …") and break JSON parsing.
+      POWERSHELL_UPDATECHECK: 'Off', POWERSHELL_TELEMETRY_OPTOUT: '1', NO_COLOR: '1', TERM: 'dumb',
       FX_CLI: JSON.stringify(fx.cli, null, 2),
       FX_ARM_PAGES: fx.arm.map((p) => JSON.stringify(p)).join(String.fromCharCode(30)),
       FX_STATUS: status ? String(status) : '',
     },
   });
   const calls = /CALLS=(.*)/.exec(r.stderr ?? '')?.[1]?.trim() ?? '';
-  return { status: r.status, stdout: (r.stdout ?? '').trim(), stderr: r.stderr ?? '', calls: calls ? calls.split('|') : [] };
+  // Drop ANSI sequences and any non-JSON preamble a host may print before the first { or [.
+  const raw = (r.stdout ?? '').replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+  const start = raw.search(/[[{]/);
+  return { status: r.status, stdout: (start >= 0 ? raw.slice(start) : raw).trim(), stderr: r.stderr ?? '', calls: calls ? calls.split('|') : [] };
 }
 
 describe.skipIf(!SHELL)('FC-MU-5 step 2 — same output shape (stubbed local PowerShell; no network)', () => {
