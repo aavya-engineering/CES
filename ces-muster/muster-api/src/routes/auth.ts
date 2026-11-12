@@ -110,8 +110,12 @@ router.post('/login', async (req, res, next) => {
 router.get('/me', bearerAuth, async (req, res, next) => {
   try {
     // Module visibility for this tenant (Administration › Settings › Modules) — the portal hides sections, the API keeps enforcing.
-    const row = await withTenant(req.user!.tenant_id, (t) => t.tenantSettings.findUnique({ where: { tenant_id: req.user!.tenant_id } }), req.app.locals.db ?? db).catch(() => null);
-    const modules = { ...DEFAULT_SETTINGS.modules, ...(((row as { modules?: unknown } | null)?.modules as object) ?? {}) };
+    let stored: object = {};
+    try {
+      const row = await withTenant(req.user!.tenant_id, (t) => t.tenantSettings.findUnique({ where: { tenant_id: req.user!.tenant_id } }), req.app.locals.db ?? db);
+      stored = ((row as { modules?: unknown } | null)?.modules as object) ?? {};
+    } catch { /* no settings store (or none yet): every module shown */ }
+    const modules = { ...DEFAULT_SETTINGS.modules, ...stored };
     res.json({ ...req.user, permissions: permissionsFor(req.user!.role), modules });
   } catch (e) { next(e); }
 });
