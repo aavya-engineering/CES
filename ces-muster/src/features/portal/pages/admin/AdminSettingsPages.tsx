@@ -141,7 +141,7 @@ export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'o
                 <label className="form-row">IP allow-list (CIDR, comma-separated)<input className="input" value={d.security.ip_allowlist.join(', ')} onChange={(e) => set('security', { ip_allowlist: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="203.0.113.0/24" /></label>
                 <label className="form-row">MFA statement<textarea className="input" rows={3} value={d.security.require_mfa_note} onChange={(e) => set('security', { require_mfa_note: e.target.value })} /></label>
               </div>}
-              {tab === 'modules' && <div data-testid="settings-modules">
+              {tab === 'modules' && <div data-testid="settings-modules-grid">
                 <p className="hint">Hide a lifecycle section from everyone in this organisation — for a phased roll-out or a demo. Hidden is not disallowed: the API keeps enforcing the role matrix, and Administration cannot be hidden. Takes effect at the next sign-in or page reload.</p>
                 <div className="form-grid-2">
                   {([['onboard', 'Onboard'], ['assess', 'Assess'], ['plan', 'Plan'], ['remediate', 'Remediate'], ['evidence', 'Collect Evidence'], ['monitor', 'Monitor'], ['prepare', 'Prepare for Assessment']] as const).map(([k, label]) => (

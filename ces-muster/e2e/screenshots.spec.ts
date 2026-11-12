@@ -104,7 +104,7 @@ test('31 settings — modules tab (org admin)', async ({ page }) => {
   await page.goto('/#/admin/settings');
   await expect(page.getByTestId('page-admin-settings')).toBeVisible({ timeout: 15_000 });
   await page.getByTestId('settings-tab-modules').click();
-  await expect(page.getByTestId('settings-modules')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('settings-modules-grid')).toBeVisible({ timeout: 15_000 });
   await quiet(page);
   await page.screenshot({ path: file(31, 'admin-settings-modules'), fullPage: false });
 });
