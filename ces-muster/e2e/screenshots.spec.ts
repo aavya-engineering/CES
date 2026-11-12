@@ -99,7 +99,17 @@ for (const s of SHOTS) {
   });
 }
 
-test('31 remediation run drawer (BHD operator)', async ({ page }) => {
+test('31 settings — modules tab (org admin)', async ({ page }) => {
+  await signIn(page, OA);
+  await page.goto('/#/admin/settings');
+  await expect(page.getByTestId('page-admin-settings')).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('settings-tab-modules').click();
+  await expect(page.getByTestId('settings-modules')).toBeVisible({ timeout: 15_000 });
+  await quiet(page);
+  await page.screenshot({ path: file(31, 'admin-settings-modules'), fullPage: false });
+});
+
+test('33 remediation run drawer (BHD operator)', async ({ page }) => {
   await signIn(page, BHD);
   await page.goto('/#/remediate/overview');
   await expect(page.getByTestId('page-remediate-overview')).toBeVisible({ timeout: 15_000 });
@@ -108,11 +118,11 @@ test('31 remediation run drawer (BHD operator)', async ({ page }) => {
     await open.click();
     await expect(page.getByTestId('run-gates')).toBeVisible({ timeout: 15_000 });
     await quiet(page);
-    await page.screenshot({ path: file(31, 'remediate-run-drawer'), fullPage: false });
+    await page.screenshot({ path: file(33, 'remediate-run-drawer'), fullPage: false });
   }
 });
 
-test('32 gap drawer with override (compliance manager)', async ({ page }) => {
+test('34 gap drawer with override (compliance manager)', async ({ page }) => {
   await signIn(page, CM);
   await page.goto('/#/assess/gaps');
   await expect(page.getByTestId('page-assess-gaps')).toBeVisible({ timeout: 15_000 });
@@ -121,6 +131,6 @@ test('32 gap drawer with override (compliance manager)', async ({ page }) => {
     await open.click();
     await page.getByTestId('override-reason').waitFor({ timeout: 15_000 }).catch(() => {});
     await quiet(page);
-    await page.screenshot({ path: file(32, 'assess-gap-drawer'), fullPage: false });
+    await page.screenshot({ path: file(34, 'assess-gap-drawer'), fullPage: false });
   }
 });
