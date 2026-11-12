@@ -1,0 +1,415 @@
+[
+ {
+  "n": 1,
+  "file": "01-sign-in.jpg",
+  "section": "Getting in",
+  "title": "Sign in",
+  "role": "everyone",
+  "route": "/",
+  "what": "Email and password. A temporary password forces a change on first sign-in; 'remember me' keeps the session on this browser. Five wrong passwords in 15 minutes pauses the account.",
+  "bullets": [
+   "Reset link goes to e-mail (demo build: printed in the API log)",
+   "Theme switch (light/dark) top right",
+   "Account menu after sign-in: change password, sign out"
+  ]
+ },
+ {
+  "n": 2,
+  "file": "02-onboard-organizations.jpg",
+  "section": "Onboard",
+  "title": "Organizations",
+  "role": "org admin",
+  "route": "#/onboard/organizations",
+  "what": "The customer's legal entities. Everything else in the engagement hangs off one of these.",
+  "bullets": [
+   "Create organization: legal name and basics",
+   "Table lists what exists; open a row to edit",
+   "Deleting is a soft close, history stays"
+  ]
+ },
+ {
+  "n": 3,
+  "file": "03-onboard-tenants.jpg",
+  "section": "Onboard",
+  "title": "Tenants",
+  "role": "org admin",
+  "route": "#/onboard/tenants",
+  "what": "The Microsoft 365 / Azure tenants in scope (GCC or GCC High). In the demo the tenant points at the simulator.",
+  "bullets": [
+   "Register tenant: name, cloud, identifiers",
+   "Connection checks show whether the platform can reach it",
+   "No credentials are stored here — the runner holds the certificate"
+  ]
+ },
+ {
+  "n": 4,
+  "file": "04-onboard-scope.jpg",
+  "section": "Onboard",
+  "title": "Scope — CUI boundary",
+  "role": "compliance manager drafts · org admin confirms",
+  "route": "#/onboard/scope",
+  "what": "Which systems and assets handle CUI. Confirming a boundary version is a formal act: it is what the assessor sees as 'what you said was in scope'.",
+  "bullets": [
+   "Assets by category: CUI, SPA, CRMA, Specialized, Out of scope",
+   "Draft → Confirm (org admin only); every version kept",
+   "Narrative and data flows attached to the boundary"
+  ]
+ },
+ {
+  "n": 5,
+  "file": "05-onboard-systems.jpg",
+  "section": "Onboard",
+  "title": "Systems inventory",
+  "role": "compliance manager · org admin",
+  "route": "#/onboard/systems",
+  "what": "The systems and environments registry: name, environment, owner. Feeds the SSP system description later.",
+  "bullets": [
+   "Add a system with its environment and owner",
+   "Everyone reads; compliance manager and org admin edit"
+  ]
+ },
+ {
+  "n": 6,
+  "file": "06-onboard-checklist.jpg",
+  "section": "Onboard",
+  "title": "Onboarding checklist",
+  "role": "everyone",
+  "route": "#/onboard/checklist",
+  "what": "What is done and what is still missing before an assessment makes sense. No actions here — it tells you where to go.",
+  "bullets": [
+   "Organization, tenant, boundary, systems, first run",
+   "Each item links to the page that completes it"
+  ]
+ },
+ {
+  "n": 7,
+  "file": "07-assess-readiness.jpg",
+  "section": "Assess",
+  "title": "Readiness assessment",
+  "role": "compliance manager · IT security admin · BHD operator",
+  "route": "#/assess/readiness",
+  "what": "The main screen. Pick the engagement and a run; the family table shows met / partial / not met / unknown per control family and the SPRS score. Run assessment reads the tenant (simulator or live) — never writes.",
+  "bullets": [
+   "Run assessment: 'Engine running…' on Windows, 'Queued…' until a runner picks it up elsewhere",
+   "Unknown is honest: ~150 of 320 objectives need a document or a person",
+   "Import readiness result: load a result file produced elsewhere (BHD)"
+  ]
+ },
+ {
+  "n": 8,
+  "file": "08-assess-gaps.jpg",
+  "section": "Assess",
+  "title": "Gap analysis",
+  "role": "compliance manager · BHD operator (override)",
+  "route": "#/assess/gaps",
+  "what": "Every requirement that is not met or unknown, heaviest first (SPRS weights 1/3/5). Open a gap for its objectives; Override sets a status by hand with a reason, recorded under your name.",
+  "bullets": [
+   "Export CSV for the working session with the customer",
+   "Override needs a reason of at least ten characters and is audited",
+   "Fixable gaps point at Stamper registry entries"
+  ]
+ },
+ {
+  "n": 9,
+  "file": "09-plan-overview.jpg",
+  "section": "Plan",
+  "title": "Planning overview",
+  "role": "everyone",
+  "route": "#/plan/overview",
+  "what": "Counts by priority and status across actions and POA&M items.",
+  "bullets": [
+   "Open vs in progress vs done",
+   "Which gaps have no action yet"
+  ]
+ },
+ {
+  "n": 10,
+  "file": "10-plan-actions.jpg",
+  "section": "Plan",
+  "title": "Action items",
+  "role": "compliance manager",
+  "route": "#/plan/actions",
+  "what": "One row per thing to do: requirement, owner, priority, due date, fix kind. 'Registry' fix kind means Stamper can do it automatically.",
+  "bullets": [
+   "Generate from gaps, or add by hand",
+   "open → in progress → done / won't fix",
+   "Export CSV"
+  ]
+ },
+ {
+  "n": 11,
+  "file": "11-plan-poam.jpg",
+  "section": "Plan",
+  "title": "POA&M",
+  "role": "compliance manager edits · senior approver approves",
+  "route": "#/plan/poam",
+  "what": "The Plan of Action & Milestones an assessor expects: weakness, mitigation, milestones with dates, and whether a POA&M is even allowed for that requirement.",
+  "bullets": [
+   "Build from actions in one click",
+   "Rows marked NO cannot be deferred — they must be met"
+  ]
+ },
+ {
+  "n": 12,
+  "file": "12-remediate-overview.jpg",
+  "section": "Remediate",
+  "title": "Remediation overview",
+  "role": "everyone (Stamper runs: BHD only)",
+  "route": "#/remediate/overview",
+  "what": "Every run across both engines: who requested, module, mode (simulate / live), cost, gates, status. Open a run for its drawer: gates, result, and the actions your role has.",
+  "bullets": [
+   "Awaiting approval → Approved → (Queued → Running) → Finished · verify → Verified",
+   "Rejected, Blocked by gate, Cancelled are terminal",
+   "Simulate never touches the tenant"
+  ]
+ },
+ {
+  "n": 13,
+  "file": "13-remediate-stamper.jpg",
+  "section": "Remediate",
+  "title": "Stamper — configuration management",
+  "role": "BHD operator only",
+  "route": "#/remediate/stamper",
+  "what": "Configuration changes from BHD's registry. Pick entries (get = read-only check, set = changes something, HELD = manual), choose simulate or live, justify, request.",
+  "bullets": [
+   "A get-only run is approved on request; any set entry needs a second BHD operator (DP-2)",
+   "Live needs the engagement's live-access flag and consent, re-checked at every hop",
+   "Execute records the plan (simulate) or queues it for the Windows runner (live)"
+  ]
+ },
+ {
+  "n": 14,
+  "file": "14-remediate-adminops.jpg",
+  "section": "Remediate",
+  "title": "AdminOps — governed admin operations",
+  "role": "IT security admin requests · senior approver or BHD approves",
+  "route": "#/remediate/adminops",
+  "what": "Day-2 admin operations by domain (Identity & Access, Devices, Credentials, Data Protection, Audit…). Pick an operation, fill its parameters, justify, request.",
+  "bullets": [
+   "Parameters never hold secrets — the platform refuses them (PB-02)",
+   "Same approval and execute flow as Stamper",
+   "Other customer roles see the queue, cannot request"
+  ]
+ },
+ {
+  "n": 15,
+  "file": "15-evidence-overview.jpg",
+  "section": "Collect Evidence",
+  "title": "Evidence overview",
+  "role": "everyone",
+  "route": "#/evidence/overview",
+  "what": "Counts by status (draft, submitted, validated, rejected) and by source (discovery, stamper, adminops, manual).",
+  "bullets": [
+   "Coverage: which requirements have evidence, which do not",
+   "Evidence requests outstanding"
+  ]
+ },
+ {
+  "n": 16,
+  "file": "16-evidence-explorer.jpg",
+  "section": "Collect Evidence",
+  "title": "Evidence explorer",
+  "role": "everyone",
+  "route": "#/evidence/explorer",
+  "what": "Every item: title, requirement(s), objective(s), source, SHA-256, size, status. Open one for the content preview, who created and reviewed it, and the run it came from.",
+  "bullets": [
+   "Lists never load content — open the item",
+   "Captures from assessment runs arrive here as drafts automatically"
+  ]
+ },
+ {
+  "n": 17,
+  "file": "17-evidence-collect.jpg",
+  "section": "Collect Evidence",
+  "title": "Collect evidence",
+  "role": "compliance manager · IT security admin · BHD operator",
+  "route": "#/evidence/collect",
+  "what": "Upload a file or paste text; choose requirement and objectives; optionally pick a catalog definition — what the assessor expects for that requirement. Submit for review.",
+  "bullets": [
+   "Inline evidence up to 10 MB; hash computed on save",
+   "Pre-set definition from the catalog page lands here"
+  ]
+ },
+ {
+  "n": 18,
+  "file": "18-evidence-catalog.jpg",
+  "section": "Collect Evidence",
+  "title": "NIST evidence catalog",
+  "role": "everyone",
+  "route": "#/evidence/catalog",
+  "what": "Per requirement, the NIST 800-171A examine items and the evidence definitions (form ids, what to collect, which objectives it satisfies). Release 0 covers AC.L2-3.1.1; BHD delivers the rest in batches.",
+  "bullets": [
+   "Click a definition → pre-filled Collect form",
+   "Batch validator checks new releases before they are vendored"
+  ]
+ },
+ {
+  "n": 19,
+  "file": "19-evidence-review-as-reviewer.jpg",
+  "section": "Collect Evidence",
+  "title": "Review (as evidence reviewer)",
+  "role": "evidence reviewer",
+  "route": "#/evidence/explorer",
+  "what": "The same explorer seen by the reviewer: submitted items can be approved or rejected with a note. You cannot review what you submitted yourself — the page says so.",
+  "bullets": [
+   "Separation of duties enforced by the API, hinted by the UI",
+   "New version supersedes, keeps the chain"
+  ]
+ },
+ {
+  "n": 20,
+  "file": "20-monitor-overview.jpg",
+  "section": "Monitor",
+  "title": "Monitoring overview",
+  "role": "IT security admin runs · everyone reads",
+  "route": "#/monitor/overview",
+  "what": "Compliance posture over time: findings open / acknowledged / resolved, last evaluation, drift since the last assessment. Evaluate now re-reads what it can; the scheduler does it on the engagement's cadence when switched on.",
+  "bullets": [
+   "Snapshots per evaluation",
+   "Drift = requirements that were met and no longer are"
+  ]
+ },
+ {
+  "n": 21,
+  "file": "21-monitor-findings.jpg",
+  "section": "Monitor",
+  "title": "Alerts",
+  "role": "anyone with edit acknowledges · senior approver resolves / escalates",
+  "route": "#/monitor/findings",
+  "what": "Findings by family and status. Open one to acknowledge with notes, resolve, or escalate.",
+  "bullets": [
+   "open → acknowledged → resolved; escalated from either",
+   "Every change lands in Activity"
+  ]
+ },
+ {
+  "n": 22,
+  "file": "22-monitor-activity.jpg",
+  "section": "Monitor",
+  "title": "Audit & activity",
+  "role": "everyone",
+  "route": "#/monitor/activity",
+  "what": "The audit trail for this engagement: who did what, when, filterable by text. This is the answer to 'who changed that'.",
+  "bullets": [
+   "Actor, action, target, time",
+   "Approvals, executions, claims, results, overrides all appear here"
+  ]
+ },
+ {
+  "n": 23,
+  "file": "23-prepare-overview.jpg",
+  "section": "Prepare",
+  "title": "Assessment readiness",
+  "role": "everyone",
+  "route": "#/prepare/overview",
+  "what": "The checklist for the package: boundary confirmed, assessment run exists, POA&M present, evidence coverage, SSP statements, sign-offs.",
+  "bullets": [
+   "Each line says what is missing and where to fix it"
+  ]
+ },
+ {
+  "n": 24,
+  "file": "24-prepare-ssp.jpg",
+  "section": "Prepare",
+  "title": "System Security Plan (SSP)",
+  "role": "compliance manager edits and approves",
+  "route": "#/prepare/ssp",
+  "what": "One row per requirement: implementation statement (draft → approved), implementation status, linked evidence. Generate drafts from the assessment and evidence; export as Markdown.",
+  "bullets": [
+   "Status: implemented · partially · planned · alternative · not applicable",
+   "Approving a statement is a separate, audited click"
+  ]
+ },
+ {
+  "n": 25,
+  "file": "25-prepare-packages.jpg",
+  "section": "Prepare",
+  "title": "Evidence packages",
+  "role": "compliance manager builds and signs (not the same person)",
+  "route": "#/prepare/packages",
+  "what": "Build an evidence package for a scope (all, a family, a requirement list): Build → Validate → Sign off. Versions are kept; a signed package is immutable.",
+  "bullets": [
+   "The builder cannot sign their own package",
+   "Export the manifest for the assessor"
+  ]
+ },
+ {
+  "n": 26,
+  "file": "26-prepare-assessor.jpg",
+  "section": "Prepare",
+  "title": "Assessor workspace (read-only)",
+  "role": "assessor",
+  "route": "#/prepare/assessor",
+  "what": "What the C3PAO assessor sees: the package, read-only, and a request list. They ask for an item; the compliance manager answers with evidence or a note.",
+  "bullets": [
+   "Nothing in this view can change the engagement",
+   "Requests: open → answered → closed"
+  ]
+ },
+ {
+  "n": 27,
+  "file": "27-prepare-reports.jpg",
+  "section": "Prepare",
+  "title": "Reports & exports",
+  "role": "everyone",
+  "route": "#/prepare/reports",
+  "what": "Readiness, coverage, gaps, SPRS, POA&M and evidence inventory as JSON, Markdown or CSV.",
+  "bullets": [
+   "CSV cells are formula-safe",
+   "Same numbers as the screens — one calculator"
+  ]
+ },
+ {
+  "n": 28,
+  "file": "28-admin-settings.jpg",
+  "section": "Administration",
+  "title": "Settings",
+  "role": "org admin edits · others view",
+  "route": "#/admin/settings",
+  "what": "Engagement details (name, reference, CMMC level, status, dates), monitoring cadence, notification settings, and the Modules tab: hide lifecycle sections for everyone in this organisation — a phased roll-out or a demo. Hidden is not disallowed; the API keeps enforcing the role matrix.",
+  "bullets": [
+   "Some settings are recorded but not yet enforced — the tab says which (open with BHD)",
+   "Modules: Administration cannot be hidden; takes effect at the next sign-in or reload",
+   "Every save is versioned and audited"
+  ]
+ },
+ {
+  "n": 29,
+  "file": "29-admin-access.jpg",
+  "section": "Administration",
+  "title": "Access management",
+  "role": "org admin",
+  "route": "#/admin/access",
+  "what": "Requests (anyone asks for a role, org admin decides), periodic access reviews (completion attested by a different admin), and Users: org-scoped user admin with customer roles only.",
+  "bullets": [
+   "Never grants platform or BHD roles",
+   "Temporary password shown once; last org admin cannot be removed"
+  ]
+ },
+ {
+  "n": 30,
+  "file": "30-admin-health.jpg",
+  "section": "Administration",
+  "title": "System health",
+  "role": "BHD operator",
+  "route": "#/admin/health",
+  "what": "Database, integrations (simulator / Graph reachability), the scheduler (on/off, last tick), and when a runner last claimed work. If Run assessment sits in Queued…, look here.",
+  "bullets": [
+   "Platform admin is fenced from tenant health (PB-01) — decision pending with BHD"
+  ]
+ },
+ {
+  "n": 31,
+  "file": "31-admin-settings-modules.jpg",
+  "section": "Administration",
+  "title": "Settings — Modules (show / hide sections)",
+  "role": "org admin",
+  "route": "#/admin/settings",
+  "what": "Untick a lifecycle section to hide it from every role in this organisation — for a demo, or to switch sections on as the engagement progresses. Save, then sign in again (or reload) to see the sidebar change.",
+  "bullets": [
+   "Hidden ≠ disallowed: the API still enforces the role matrix",
+   "Administration and Shared Foundation cannot be hidden",
+   "Audited like every settings change; the BHD operator sees it in Activity"
+  ]
+ }
+]

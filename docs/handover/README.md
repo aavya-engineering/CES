@@ -4,7 +4,10 @@ Hand-over pack for new users and new engineers, generated from the running demo 
 
 - `CES-User-Guide-and-Training.docx` — user guide screen by screen (30 screenshots), architecture, roles, run-it-yourself, five-day training, troubleshooting.
 - `CES-Platform-Walkthrough.pptx` — the same as a 50-slide walkthrough deck.
-- `build/` — how they are made: `screens.json` (one entry per screen: title, role, route, text), `make-docx.js`, `make-pptx.js` (docx / pptxgenjs; run with Node from a folder that has `docx`, `pptxgenjs` and the cropped screenshots).
+- `CES-Evidence-Traceability.pptx` — 8 slides for the customer/assessor question: how evidence is generated and checked, how the 110 requirements reach "met", where the reports are, what the assessor sees.
+- `CES-Installation-Guide-Windows.docx` — developer laptop setup (Windows 11), same content as `docs/DEV-SETUP-WINDOWS.md`.
+- `CES-Deployment-Guide-Server.docx` — Windows Server 2022 deployment, same content as project doc 29/42.
+- `build/` — how they are made: `screens.json` (one entry per screen: title, role, route, text), `make-docx.js`, `make-pptx.js`, `make-trace.js`, `make-install-windows.js`, `make-deploy-server.js` (docx / pptxgenjs; run with Node from a folder that has `docx`, `pptxgenjs` and the cropped screenshots).
 
 Regenerate after a UI change:
 1. `cd ces-muster && CES_E2E_LIVE=1 npx playwright test --project=live e2e/screenshots.spec.ts` → `docs/screenshots/*.png`
