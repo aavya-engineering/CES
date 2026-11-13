@@ -155,7 +155,7 @@ function AddUserDrawer({
           </label>
           <label className="form-row">
             Display name
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} data-testid="add-user-name" />
+            <input className="input" maxLength={200} value={name} onChange={(e) => setName(e.target.value)} data-testid="add-user-name" />
           </label>
           <label className="form-row">
             Role *
@@ -186,7 +186,7 @@ function AddUserDrawer({
               <input type="radio" name="org-mode" checked={orgMode === 'new'} onChange={() => setOrgMode('new')} data-testid="add-user-org-new" /> New organisation
             </label>
             {orgMode === 'new' && (
-              <input className="input" placeholder="Organisation name" value={orgName} onChange={(e) => setOrgName(e.target.value)} data-testid="add-user-org-name" />
+              <input className="input" maxLength={200} placeholder="Organisation name" value={orgName} onChange={(e) => setOrgName(e.target.value)} data-testid="add-user-org-name" />
             )}
             {fieldErrors.org && (
               <span className="field-error" role="alert" data-testid="add-user-org-error">

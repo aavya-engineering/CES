@@ -120,11 +120,11 @@ function FindingDrawer({ eid, f, viewer, onChanged, onClose }: { eid: string; f:
       {writable && f.status !== 'resolved' && (
         <>
           <h3 className="card-title">Act</h3>
-          <label className="form-row">Notes / resolution<textarea className="input" rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="What was done or decided" data-testid="finding-notes" /></label>
+          <label className="form-row">Notes / resolution<textarea maxLength={2000} className="input" rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="What was done or decided" data-testid="finding-notes" /></label>
           <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
             {f.status === 'open' && <button type="button" className="btn btn-secondary" disabled={!!busy || text.length < 3} onClick={() => act('ack', () => monitorApi.ack(eid, f.id, text), 'Acknowledged.')} data-testid="finding-ack">Acknowledge</button>}
             <button type="button" className="btn btn-primary" disabled={!!busy || text.length < 3} onClick={() => act('resolve', () => monitorApi.resolve(eid, f.id, text), 'Resolved.')} data-testid="finding-resolve">Resolve</button>
-            <span style={{ display: 'flex', gap: 6 }}><input className="input" placeholder="Escalate to (name / role)" value={to} onChange={(e) => setTo(e.target.value)} style={{ width: 200 }} /><button type="button" className="btn btn-secondary" disabled={!!busy || to.length < 2} onClick={() => act('esc', () => monitorApi.escalate(eid, f.id, to, text || undefined), `Escalated to ${to}.`)}>Escalate</button></span>
+            <span style={{ display: 'flex', gap: 6 }}><input className="input" maxLength={200} placeholder="Escalate to (name / role)" value={to} onChange={(e) => setTo(e.target.value)} style={{ width: 200 }} /><button type="button" className="btn btn-secondary" disabled={!!busy || to.length < 2} onClick={() => act('esc', () => monitorApi.escalate(eid, f.id, to, text || undefined), `Escalated to ${to}.`)}>Escalate</button></span>
           </div>
         </>
       )}

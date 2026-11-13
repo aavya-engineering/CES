@@ -257,10 +257,10 @@ function OverrideDrawer({ eid, runId, row, viewer, onSaved, onClose }: { eid: st
           <span className="hint">The engine's status stays on record. Overrides are visible to the assessor and written to the audit trail as {viewer.kind === 'signed-in' ? viewer.role : 'you'}.</span>
         </label>
         <label className="form-row">
-          Reason * <textarea className="input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} required minLength={10} placeholder="What was verified, where, and when" data-testid="override-reason" />
+          Reason * <textarea maxLength={2000} className="input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} required minLength={10} placeholder="What was verified, where, and when" data-testid="override-reason" />
         </label>
         <label className="form-row">
-          Notes <textarea className="input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          Notes <textarea maxLength={2000} className="input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </label>
       </form>
     </Drawer>

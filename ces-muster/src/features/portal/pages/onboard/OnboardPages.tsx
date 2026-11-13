@@ -147,7 +147,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
       <form id="org-form" onSubmit={submit} noValidate>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <p className="form-legend">Fields marked <span className="req-mark">*</span> are required.</p>
-        <Field label="Legal name" required error={fe.legal_name}><input className="input" value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} aria-invalid={!!fe.legal_name} data-testid="org-legal-name" /></Field>
+        <Field label="Legal name" required error={fe.legal_name}><input className="input" maxLength={200} value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} aria-invalid={!!fe.legal_name} data-testid="org-legal-name" /></Field>
         <Field label="Doing business as" error={fe.dba_name} hint="Trade name, if different from the legal name"><input className="input" value={f.dba_name ?? ''} onChange={(e) => set('dba_name', e.target.value)} maxLength={200} /></Field>
         <div className="form-grid-2">
           <Field label="UEI" hint="Unique Entity ID from SAM.gov — 12 letters/digits" error={fe.uei}><input className="input" value={f.uei ?? ''} onChange={(e) => set('uei', e.target.value.toUpperCase())} maxLength={12} placeholder="ABC123DEF456" aria-invalid={!!fe.uei} /></Field>
@@ -173,7 +173,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
             <option value="inactive">Inactive</option>
           </select>
         </Field>
-        <Field label="Notes"><textarea className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+        <Field label="Notes"><textarea maxLength={2000} className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
       </form>
     </Drawer>
   );
@@ -224,10 +224,11 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
             <tbody>
               {shown.map((o) => (
                 <tr key={o.id}>
-                  <td><strong>{o.legal_name}</strong>{o.dba_name && <div className="hint dba">dba {o.dba_name}</div>}</td>
-                  <td>{o.uei ?? '—'} / {o.cage ?? '—'}</td>
+                  {/* QA 2026-11-13 (Windows screenshot): long test values no longer stretch the row or push Status/Actions off-screen — clamped, full text on hover. */}
+                  <td className="org-cell"><strong className="clamp-2" title={o.legal_name}>{o.legal_name}</strong>{o.dba_name && <div className="hint dba clamp-2" title={`dba ${o.dba_name}`}>dba {o.dba_name}</div>}</td>
+                  <td className="nowrap">{o.uei ?? '—'} / {o.cage ?? '—'}</td>
                   <td>{o.contract_clauses.length ? o.contract_clauses.map((c) => <span key={c} className="pill" style={{ marginRight: 4 }}>{c.replace('DFARS 252.204-', '').replace('FAR 52.204-', 'FAR ')}</span>) : '—'}</td>
-                  <td>{o.primary_contact_name ?? '—'}{o.primary_contact_email && <div className="hint">{o.primary_contact_email}</div>}</td>
+                  <td className="contact-cell"><span className="clip-1" title={o.primary_contact_name ?? undefined}>{o.primary_contact_name ?? '—'}</span>{o.primary_contact_email && <div className="hint clip-1" title={o.primary_contact_email}>{o.primary_contact_email}</div>}</td>
                   <td><span className="pill" data-tone={o.status === 'active' ? 'good' : undefined} title={o.status === 'active' ? 'Counted as active' : 'Set to inactive on the organisation'}>{o.status}</span></td>
                   <td>
                     {writable && (
@@ -300,7 +301,7 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
       <form id="tenant-form" onSubmit={submit} noValidate>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <p className="form-legend">Fields marked <span className="req-mark">*</span> are required. Everything else can be filled in later, before the connection test.</p>
-        <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
+        <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" maxLength={200} value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
         <Field label="Organisation" hint="The contractor this tenant belongs to (from Organisations)">
           <select className="select" value={f.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value || null)}>
             <option value="">— none —</option>
@@ -330,7 +331,7 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
             <option value="disabled">Disabled</option>
           </select>
         </Field>
-        <Field label="Notes"><textarea className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+        <Field label="Notes"><textarea maxLength={2000} className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
       </form>
     </Drawer>
   );
@@ -398,7 +399,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
             <tbody>
               {rows.map((t) => (
                 <tr key={t.id}>
-                  <td><strong>{t.display_name}</strong>{t.primary_domain && <div className="hint">{t.primary_domain}</div>}</td>
+                  <td className="org-cell"><strong className="clamp-2" title={t.display_name}>{t.display_name}</strong>{t.primary_domain && <div className="hint clip-1" title={t.primary_domain}>{t.primary_domain}</div>}</td>
                   <td>{orgName(t.organization_id)}</td>
                   <td>{t.cloud === 'gcc_high' ? 'GCC High' : t.cloud === 'gcc' ? 'GCC' : 'Commercial'}</td>
                   <td><span className="pill" data-tone={TENANT_STATUS_TONE[t.status]}>{t.status.replace('_', ' ')}</span></td>
@@ -451,9 +452,9 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
       footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="asset-form" className="btn btn-primary" disabled={busy} data-testid="asset-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add asset'}</button></>}>
       <form id="asset-form" onSubmit={submit}>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
-        <Field label="Name *"><input className="input" value={f.name} onChange={(e) => set('name', e.target.value)} required data-testid="asset-name" /></Field>
+        <Field label="Name *"><input className="input" maxLength={200} value={f.name} onChange={(e) => set('name', e.target.value)} required data-testid="asset-name" /></Field>
         <div className="form-grid-2">
-          <Field label="Asset type *" hint="e.g. file server, laptop, SharePoint site, MFA service"><input className="input" value={f.asset_type} onChange={(e) => set('asset_type', e.target.value)} required /></Field>
+          <Field label="Asset type *" hint="e.g. file server, laptop, SharePoint site, MFA service"><input className="input" maxLength={100} value={f.asset_type} onChange={(e) => set('asset_type', e.target.value)} required /></Field>
           <Field label="Category *">
             <select className="select" value={f.category} onChange={(e) => set('category', e.target.value as ScopeCategory)} data-testid="asset-category">
               {SCOPE_CATEGORIES.map((c) => <option key={c} value={c}>{SCOPE_CATEGORY_LABEL[c]}</option>)}
@@ -461,11 +462,11 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
           </Field>
         </div>
         <div className="form-grid-2">
-          <Field label="Location"><input className="input" value={f.location ?? ''} onChange={(e) => set('location', e.target.value)} placeholder="GCC High / on-prem / ESP" /></Field>
-          <Field label="Owner"><input className="input" value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} /></Field>
+          <Field label="Location"><input className="input" maxLength={200} value={f.location ?? ''} onChange={(e) => set('location', e.target.value)} placeholder="GCC High / on-prem / ESP" /></Field>
+          <Field label="Owner"><input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} /></Field>
         </div>
         <label className="form-row" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.external_provider} onChange={(e) => set('external_provider', e.target.checked)} /> Operated by an external service provider (ESP / CSP)</label>
-        <Field label="Notes"><textarea className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+        <Field label="Notes"><textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
       </form>
     </Drawer>
   );
@@ -569,7 +570,7 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
           <p className="hint">Each confirmation creates a new version; the previous one is kept as history (assessor evidence for CA.L2-3.12.4 / SSP scope).</p>
           {writable && !draft && (
             <div className="form-grid-2" style={{ alignItems: 'end' }}>
-              <Field label="Boundary narrative (optional)"><textarea className="input" rows={2} value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Where CUI enters, lives and leaves; what sits outside." /></Field>
+              <Field label="Boundary narrative (optional)"><textarea maxLength={2000} className="input" rows={2} value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Where CUI enters, lives and leaves; what sits outside." /></Field>
               <div><button type="button" className="btn btn-secondary" onClick={createDraft} disabled={rows.length === 0} data-testid="boundary-draft">Draft v{((boundaries.rows ?? [])[0]?.version ?? 0) + 1} from {rows.length} assets</button></div>
             </div>
           )}

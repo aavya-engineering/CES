@@ -154,7 +154,7 @@ export function PrepareOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
               <select className="select" value={kind} onChange={(e) => setKind(e.target.value)}><option value="internal_review">Internal assessment review</option><option value="evidence_completeness">Evidence completeness review</option><option value="gap_closure">Gap closure verification</option><option value="final">Final sign-off (needs all items green)</option></select>
             </label>
             <label className="form-row">Decision<select className="select" value={decision} onChange={(e) => setDecision(e.target.value as 'approved' | 'rejected')}><option value="approved">Approved</option><option value="rejected">Rejected — rework</option></select></label>
-            <label className="form-row">Notes *<textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} required minLength={5} data-testid="signoff-notes" /></label>
+            <label className="form-row">Notes *<textarea maxLength={2000} className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} required minLength={5} data-testid="signoff-notes" /></label>
             <button type="submit" className="btn btn-primary" disabled={notes.length < 5} data-testid="signoff-submit">Sign as {role(viewer)}</button>
           </form>
         )}
@@ -197,9 +197,9 @@ function StatementDrawer({ eid, row, viewer, onSaved, onClose }: { eid: string; 
       <form id="stmt-form" onSubmit={save}>
         <div className="form-grid-2">
           <label className="form-row">Implementation status<select className="select" value={status} onChange={(e) => setStatus(e.target.value as ImplStatus)} disabled={!editor} data-testid="statement-status">{IMPL_STATUSES.map((x) => <option key={x} value={x}>{IMPL_LABEL[x]}</option>)}</select></label>
-          <label className="form-row">Responsible role<input className="input" value={roleName} onChange={(e) => setRoleName(e.target.value)} disabled={!editor} placeholder="e.g. CIS administrator" /></label>
+          <label className="form-row">Responsible role<input className="input" maxLength={200} value={roleName} onChange={(e) => setRoleName(e.target.value)} disabled={!editor} placeholder="e.g. CIS administrator" /></label>
         </div>
-        <label className="form-row">Implementation statement<textarea className="input" rows={8} value={text} onChange={(e) => setText(e.target.value)} disabled={!editor} data-testid="statement-text" /></label>
+        <label className="form-row">Implementation statement<textarea maxLength={2000} className="input" rows={8} value={text} onChange={(e) => setText(e.target.value)} disabled={!editor} data-testid="statement-text" /></label>
         <label className="form-row">Systems (comma-separated)<input className="input" value={systems} onChange={(e) => setSystems(e.target.value)} disabled={!editor} placeholder="Entra ID, Intune, Purview" /></label>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}><legend style={{ marginBottom: 6 }}>Evidence cited</legend>
           {row.validated_evidence.length === 0 && <span className="hint">No validated evidence for this requirement yet.</span>}
@@ -279,7 +279,7 @@ export function PackagesPage({ viewer }: { viewer: Viewer }) {
     if (r.ok) { setToast(what === 'validate' ? `Re-validated: ${r.data.status}.` : `Version ${r.data.version} built.`); list.reload(); } else setErr(failureText(r));
   };
   const sign = async () => { if (!signing) return; const r = await prepareApi.signPkg(eng.id, signing.id, notes); if (r.ok) { setToast('Package signed off.'); setSigning(null); setNotes(''); list.reload(); } else setErr(failureText(r)); };
-  const openPkg = async (p: Package) => { const r = await prepareApi.pkg(eng.id, p.id); if (r.ok) setOpen(r.data); };
+  const openPkg = async (p: Package) => { const r = await prepareApi.pkg(eng.id, p.id); if (r.ok) setOpen(r.data); else setToast(`Could not open the package: ${failureText(r)}`); };
   return (
     <div className="pg" data-testid="page-prepare-packages">
       <PageHeader icon="golden" title="Evidence packages" lede="A package freezes the validated evidence for a scope — titles, requirements, archetypes and SHA-256 hashes — and checks it against the required mappings. A second person signs it off; re-validation catches any item that changed afterwards." actions={<EngagementSelect eng={eng} />} />
@@ -288,7 +288,7 @@ export function PackagesPage({ viewer }: { viewer: Viewer }) {
         <form className="card card-pad" onSubmit={build} data-testid="package-build">
           <h2 className="card-title">Build a package</h2>
           <div className="form-grid-2">
-            <label className="form-row">Name *<input className="input" value={name} onChange={(e) => setName(e.target.value)} required minLength={3} placeholder="Assessment package — Q4 2026" data-testid="package-name" /></label>
+            <label className="form-row">Name *<input className="input" maxLength={200} value={name} onChange={(e) => setName(e.target.value)} required minLength={3} placeholder="Assessment package — Q4 2026" data-testid="package-name" /></label>
             <label className="form-row">Scope<select className="select" value={scopeType} onChange={(e) => setScopeType(e.target.value)} data-testid="package-scope"><option value="all">All requirements</option><option value="requirement">Requirements…</option><option value="family">Control families…</option><option value="objective">Assessment objectives…</option></select></label>
           </div>
           {scopeType !== 'all' && <label className="form-row">{scopeType === 'requirement' ? 'Requirement ids' : scopeType === 'family' ? 'Family codes' : 'Objective ids'} (comma-separated)<input className="input" value={scopeValues} onChange={(e) => setScopeValues(e.target.value)} placeholder={scopeType === 'requirement' ? 'AC.L1-3.1.1, AC.L1-3.1.2' : scopeType === 'family' ? 'AC, IA, SC' : 'AC.L1-3.1.1[a]'} list={scopeType === 'requirement' ? 'pkg-req' : undefined} /><datalist id="pkg-req">{REQ_IDS.map((id) => <option key={id} value={id} />)}</datalist></label>}
@@ -318,7 +318,7 @@ export function PackagesPage({ viewer }: { viewer: Viewer }) {
           <div className="table-wrap"><table className="tbl"><thead><tr><th scope="col">Evidence</th><th scope="col">Requirements</th><th scope="col">Archetype</th><th scope="col">Status</th><th scope="col">SHA-256</th></tr></thead><tbody>{(open.manifest?.items ?? []).map((i) => <tr key={i.id}><td><strong>{i.title}</strong><div className="hint">{i.file_name ?? 'link'} · {i.classification.toUpperCase()}</div></td><td className="hint">{i.requirement_ids.join(', ')}</td><td className="hint">{i.archetype_code ?? '—'}</td><td><span className="pill" data-tone={i.status === 'validated' ? 'good' : 'warn'}>{i.status}{i.strength ? ` · ${i.strength}` : ''}</span></td><td className="hint" style={{ fontFamily: 'monospace' }}>{i.sha256?.slice(0, 16) ?? '—'}…</td></tr>)}</tbody></table></div>
         </Drawer>
       )}
-      {signing && <ConfirmDialog title={`Sign off ${signing.name} v${signing.version}`} confirmLabel="Sign off" onConfirm={sign} onCancel={() => setSigning(null)} error={err}><p>You are confirming, as <strong>{me}</strong>, that this package's {signing.item_count ?? signing.item_ids.length} items were reviewed against their requirements. Built by {signing.built_by}; separation of duties applies.</p><label className="form-row">Notes *<textarea className="input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} data-testid="package-sign-notes" /></label></ConfirmDialog>}
+      {signing && <ConfirmDialog title={`Sign off ${signing.name} v${signing.version}`} confirmLabel="Sign off" onConfirm={sign} onCancel={() => setSigning(null)} error={err}><p>You are confirming, as <strong>{me}</strong>, that this package's {signing.item_count ?? signing.item_ids.length} items were reviewed against their requirements. Built by {signing.built_by}; separation of duties applies.</p><label className="form-row">Notes *<textarea maxLength={2000} className="input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} data-testid="package-sign-notes" /></label></ConfirmDialog>}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
   );
@@ -381,7 +381,7 @@ export function AssessorWorkspacePage({ viewer }: { viewer: Viewer }) {
           {open.poam && <p className="note" data-tone={open.poam.eligible ? 'info' : 'bad'}>POA&M: {open.poam.status}{open.poam.scheduled_completion ? `, scheduled ${fmt(open.poam.scheduled_completion)}` : ''}{open.poam.eligible ? '' : ' — this requirement cannot remain on a POA&M at certification'}</p>}
         </Drawer>
       )}
-      {answerFor && <ConfirmDialog title={`Answer: ${answerFor.requirement_id ?? 'general'}`} confirmLabel="Send answer" onConfirm={doAnswer} onCancel={() => setAnswerFor(null)} error={err}><p className="hint">{answerFor.question}</p><label className="form-row">Answer *<textarea className="input" rows={4} value={answer} onChange={(e) => setAnswer(e.target.value)} data-testid="assessor-answer" /></label></ConfirmDialog>}
+      {answerFor && <ConfirmDialog title={`Answer: ${answerFor.requirement_id ?? 'general'}`} confirmLabel="Send answer" onConfirm={doAnswer} onCancel={() => setAnswerFor(null)} error={err}><p className="hint">{answerFor.question}</p><label className="form-row">Answer *<textarea maxLength={2000} className="input" rows={4} value={answer} onChange={(e) => setAnswer(e.target.value)} data-testid="assessor-answer" /></label></ConfirmDialog>}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
   );
