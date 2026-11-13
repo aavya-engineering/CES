@@ -457,3 +457,37 @@ body {
 body::before {
   display: none;
 }
+
+/* QA 2026-11-13: Coach — unavailable notice with a reason, first-time intro, reference guidance. */
+.coach-unavailable { margin: 10px 16px 0; }
+.coach-unavailable p { margin: 4px 0 8px; font-size: 13px; }
+.coach-intro { text-align: left; margin-top: 8px; }
+.coach-intro ul { margin: 6px 0 10px; padding-left: 18px; }
+.coach-intro li { margin-bottom: 4px; }
+.coach-examples-label { margin: 0 0 6px; font-weight: 600; }
+.coach-examples { display: flex; flex-direction: column; gap: 6px; }
+.coach-example {
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  color: var(--co-primary);
+  background: var(--co-surface);
+  border: 1px solid var(--co-border-strong);
+  border-radius: var(--co-radius);
+  cursor: pointer;
+}
+.coach-example:hover:not(:disabled) { background: var(--co-primary-subtle); }
+.coach-example:disabled { opacity: 0.6; cursor: not-allowed; }
+.coach-guidance {
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px dashed var(--co-border-strong);
+  border-radius: var(--co-radius);
+  background: var(--co-surface);
+}
+.coach-guidance ul { margin: 6px 0; padding-left: 16px; }
+.coach-guidance li { margin-bottom: 6px; }
+.coach-guidance-family { color: var(--co-text-muted); margin-left: 4px; }
+.coach-guidance small { color: var(--co-text-muted); }
+.coach-input:disabled { opacity: 0.6; }

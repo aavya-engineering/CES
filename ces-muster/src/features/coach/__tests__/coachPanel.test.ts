@@ -13,7 +13,7 @@
 // React Testing Library is not available in this project. The degraded rendering
 // logic is fully covered by testing sendChatMessage return values.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { sendChatMessage } from '../coachApi';
+import { referenceGuidance, sendChatMessage } from '../coachApi';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -102,5 +102,27 @@ describe('sendChatMessage', () => {
     expect(Array.isArray(body.messages)).toBe(true);
     expect((body.messages[0] as { role: string }).role).toBe('user');
     vi.unstubAllGlobals();
+  });
+});
+
+describe('QA 2026-11-13 — the panel can say why, and guidance differs per question', () => {
+  it('a 503 with reason not_configured is reported as not_configured', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({ degraded: true, reason: 'not_configured', error: 'not_configured' }) }));
+    const r = await sendChatMessage('s', [{ role: 'user', content: 'x' }]);
+    expect(r.degraded).toBe(true);
+    expect(r.reason).toBe('not_configured');
+    vi.unstubAllGlobals();
+  });
+  it('a network failure is "offline"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('down')));
+    expect((await sendChatMessage('s', [{ role: 'user', content: 'x' }])).reason).toBe('offline');
+    vi.unstubAllGlobals();
+  });
+  it('reference guidance names the mapped requirements with their practice text', () => {
+    const g = referenceGuidance(['AC.L1-3.1.1', 'IA.L2-3.5.3', 'NOPE-1']);
+    expect(g.map((x) => x.id)).toEqual(['AC.L1-3.1.1', 'IA.L2-3.5.3']);
+    expect(g[0].practice.length).toBeGreaterThan(10);
+    expect(g[0].family).toBe('Access Control');
+    expect(referenceGuidance([])).toEqual([]);
   });
 });
