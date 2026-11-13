@@ -19,6 +19,7 @@ import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { api } from '@/shared/api/musterApi';
 import { engagementLabel, useEngagement } from '../useEngagement';
@@ -182,6 +183,7 @@ export function MonitorOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
           </div>
           {d.latest?.by_family && Object.keys(d.latest.by_family).length > 0 && (
             <section className="card card-pad"><h2 className="card-title">Control status by family (latest run)</h2>
+              <TableSearch target='[data-testid="monitor-family"]' />
               <div className="table-wrap"><table className="tbl" data-testid="monitor-family"><thead><tr><th scope="col">Family</th><th scope="col" className="num">Met</th><th scope="col" className="num">Total</th><th scope="col" style={{ width: '40%' }}>Met share</th></tr></thead><tbody>{Object.entries(d.latest.by_family).sort().map(([f, x]) => <tr key={f}><td><strong>{f}</strong></td><td className="num">{x.met}</td><td className="num">{x.total}</td><td><div className="bar"><div className="bar-fill" data-tone={x.met === x.total ? 'good' : x.met ? 'warn' : 'bad'} style={{ width: `${(x.met / x.total) * 100}%` }} /></div></td></tr>)}</tbody></table></div>
             </section>
           )}

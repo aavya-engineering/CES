@@ -16,10 +16,12 @@
 // under Shared Foundation: EvidencePages.tsx / pages/shared.)
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { PERSON_NAME_HELP, PERSON_NAME_PATTERN } from '../../validators';
 import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { getMusterToken } from '@/shared/api/musterToken';
 import { engagementLabel, useEngagement } from '../useEngagement';
@@ -148,7 +150,7 @@ function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype,
           </label>
         )}
         <div className="form-grid-2">
-          <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Who can speak to this evidence" /></label>
+          <label className="form-row">Owner<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Who can speak to this evidence" /></label>
           <label className="form-row">Retention until<input className="input" type="date" value={f.retention_until ?? ''} onChange={(e) => set('retention_until', e.target.value || null)} /></label>
         </div>
         <div className="form-grid-2">
@@ -248,7 +250,7 @@ export function EvidenceOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: R
       {byFamily.length > 0 && (
         <section className="card card-pad">
           <h2 className="card-title">Coverage by control family</h2>
-          <div className="table-wrap"><table className="tbl" data-testid="coverage-family"><thead><tr><th scope="col">Family</th><th scope="col" className="num">Requirements</th><th scope="col" className="num">Covered</th><th scope="col" className="num">Partial</th><th scope="col" className="num">Missing</th><th scope="col" style={{ width: '30%' }}>Progress</th></tr></thead>
+          <div className="table-wrap"><TableSearch target='[data-testid="coverage-family"]' /><table className="tbl" data-testid="coverage-family"><thead><tr><th scope="col">Family</th><th scope="col" className="num">Requirements</th><th scope="col" className="num">Covered</th><th scope="col" className="num">Partial</th><th scope="col" className="num">Missing</th><th scope="col" style={{ width: '30%' }}>Progress</th></tr></thead>
             <tbody>{byFamily.map(([f, x]) => <tr key={f}><td><strong>{f}</strong> <span className="hint">{FAMILY.get(f)}</span></td><td className="num">{x.total}</td><td className="num">{x.covered}</td><td className="num">{x.partial}</td><td className="num">{x.missing}</td><td><div className="bar"><div className="bar-fill" data-tone={x.missing === 0 && x.partial === 0 ? 'good' : x.covered > 0 ? 'warn' : 'bad'} style={{ width: `${(x.covered / x.total) * 100}%` }} /></div></td></tr>)}</tbody></table></div>
         </section>
       )}
@@ -354,7 +356,7 @@ export function EvidenceCollectPage({ viewer }: { viewer: Viewer }) {
         <h2 className="card-title">Evidence requests <label style={{ fontWeight: 400, marginLeft: 12 }}><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} /> show fulfilled / cancelled</label></h2>
         {requests.data && rows.length === 0 && <Empty>No open request.{editor ? ' Generate them from the mapping, or add evidence directly.' : ''}</Empty>}
         {rows.length > 0 && (
-          <div className="table-wrap"><table className="tbl" data-testid="requests-table"><thead><tr><th scope="col">Requirement</th><th scope="col">Evidence wanted</th><th scope="col">Assignee</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+          <div className="table-wrap"><TableSearch target='[data-testid="requests-table"]' /><table className="tbl" data-testid="requests-table"><thead><tr><th scope="col">Requirement</th><th scope="col">Evidence wanted</th><th scope="col">Assignee</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>{rows.map((q) => { const overdue = q.status === 'open' && q.due_date && new Date(q.due_date) < new Date(); return (
               <tr key={q.id}><td><strong>{q.requirement_id}</strong><div className="hint" style={{ maxWidth: 360 }}>{PRACTICE.get(q.requirement_id)}</div></td><td>{archName(q.archetype_code)}<div className="hint" style={{ maxWidth: 360 }}>{q.instructions}</div></td><td>{q.assignee ?? '—'}</td><td style={{ color: overdue ? 'var(--co-violation)' : undefined }}>{fmtDate(q.due_date)}</td><td><span className="pill" data-tone={q.status === 'fulfilled' ? 'good' : q.status === 'submitted' ? 'info' : overdue ? 'bad' : q.status === 'cancelled' ? undefined : 'warn'}>{q.status}</span></td>
                 <td>{editor && q.status === 'open' && <><button type="button" className="row-btn" onClick={() => setAdding({ requirement: q.requirement_id, archetype: q.archetype_code, request: q })} data-testid={`request-fulfil-${q.id}`}>Provide</button> <button type="button" className="row-btn" onClick={async () => { await evidenceApi.updateRequest(eng.id, q.id, { status: 'cancelled' }); requests.reload(); }}>Cancel</button></>}</td></tr>); })}</tbody></table></div>

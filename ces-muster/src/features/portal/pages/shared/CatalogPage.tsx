@@ -19,6 +19,7 @@ import { DOMAIN_LABELS, domainLabel } from '../../evidenceData';
 import { describeFailure, matchesText, shownData, statusOf, useGovernedList, useItemDetail, useSharedViewer } from '../../governedState';
 import { DeleteItemDialog, Drawer, GovernanceBar, LinesInput, RowActions, StatusPill, Toast, VersionHistory } from '../../governed';
 import { Empty, PageHeader, Pager, RowsPerPage, SortTh, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { usePaged, useSort } from '../../paging';
 import { REQUIREMENTS } from '../../referenceData';
 
@@ -158,7 +159,8 @@ export default function CatalogPage() {
             <div className="card-bar">
               <strong>{rows.length} Evidence Archetypes</strong>
             </div>
-            <div className="table-wrap">
+              <div className="table-wrap">
+              <TableSearch target='[data-testid="catalog-table"]' />
               <table className="tbl" data-testid="catalog-table">
                 <thead>
                   <tr>

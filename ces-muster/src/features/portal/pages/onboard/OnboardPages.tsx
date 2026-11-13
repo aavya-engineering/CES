@@ -14,11 +14,14 @@
 // the same rule (prime | bhd_operator, platform roles by inheritance).
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { PERSON_NAME_HELP, PERSON_NAME_PATTERN } from '../../validators';
 import type { Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { issuesByField } from '@/shared/api/musterApi';
+import { personName, thingName } from '../../validators';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import {
   CONTRACT_CLAUSES,
@@ -78,6 +81,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function checkOrganization(f: OrganizationInput): Record<string, string> {
   const e: Record<string, string> = {};
   if (f.legal_name.trim().length < 2) e.legal_name = 'Legal name needs at least 2 characters.';
+  else if (thingName(f.legal_name, 'Legal name')) e.legal_name = thingName(f.legal_name, 'Legal name');
+  if (f.dba_name && thingName(f.dba_name, 'Doing business as')) e.dba_name = thingName(f.dba_name, 'Doing business as');
+  if (personName(f.primary_contact_name)) e.primary_contact_name = personName(f.primary_contact_name);
   if (f.uei && !/^[A-Z0-9]{12}$/i.test(f.uei)) e.uei = 'A UEI is 12 letters or digits.';
   if (f.cage && !/^[A-Z0-9]{5}$/i.test(f.cage)) e.cage = 'A CAGE code is 5 letters or digits.';
   if (f.website && !/^https?:\/\/\S+\.\S+$/i.test(f.website)) e.website = 'Enter a full address starting with https://';
@@ -88,6 +94,7 @@ function checkOrganization(f: OrganizationInput): Record<string, string> {
 function checkTenant(f: CustomerTenantInput): Record<string, string> {
   const e: Record<string, string> = {};
   if (f.display_name.trim().length < 2) e.display_name = 'Display name needs at least 2 characters.';
+  else if (thingName(f.display_name, 'Display name')) e.display_name = thingName(f.display_name, 'Display name');
   if (f.entra_tenant_id && !UUID.test(f.entra_tenant_id)) e.entra_tenant_id = 'A tenant id is a GUID, e.g. 11111111-2222-3333-4444-555555555555';
   if (f.primary_domain && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(f.primary_domain)) e.primary_domain = 'A domain such as contoso.onmicrosoft.us';
   if (f.app_registration_id && !UUID.test(f.app_registration_id)) e.app_registration_id = 'An app registration id is a GUID.';
@@ -156,7 +163,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
         <Field label="Website" error={fe.website} hint="Full address, including https://"><input className="input" type="url" value={f.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://www.example.com" aria-invalid={!!fe.website} /></Field>
         <Field label="Address"><textarea className="input" rows={2} value={f.address ?? ''} onChange={(e) => set('address', e.target.value)} maxLength={500} /></Field>
         <div className="form-grid-2">
-          <Field label="Primary contact" error={fe.primary_contact_name} hint="Name of the person CES correspondence goes to"><input className="input" value={f.primary_contact_name ?? ''} onChange={(e) => set('primary_contact_name', e.target.value)} maxLength={200} aria-invalid={!!fe.primary_contact_name} /></Field>
+          <Field label="Primary contact" error={fe.primary_contact_name} hint="Name of the person CES correspondence goes to"><input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} value={f.primary_contact_name ?? ''} onChange={(e) => set('primary_contact_name', e.target.value)} maxLength={200} aria-invalid={!!fe.primary_contact_name} /></Field>
           <Field label="Contact email" error={fe.primary_contact_email}><input className="input" type="email" value={f.primary_contact_email ?? ''} onChange={(e) => set('primary_contact_email', e.target.value)} placeholder="name@company.com" aria-invalid={!!fe.primary_contact_email} /></Field>
         </div>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}>
@@ -301,7 +308,7 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
       <form id="tenant-form" onSubmit={submit} noValidate>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <p className="form-legend">Fields marked <span className="req-mark">*</span> are required. Everything else can be filled in later, before the connection test.</p>
-        <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" maxLength={200} value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
+        <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
         <Field label="Organisation" hint="The contractor this tenant belongs to (from Organisations)">
           <select className="select" value={f.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value || null)}>
             <option value="">— none —</option>
@@ -393,7 +400,8 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
       {tenants.error && <p className="note" data-tone="bad" role="alert">{tenants.error}</p>}
       {tenants.rows && rows.length === 0 && <Empty>No tenant registered yet.</Empty>}
       {rows.length > 0 && (
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="tenant-table"]' />
           <table className="tbl" data-testid="tenant-table">
             <thead><tr><th scope="col">Tenant</th><th scope="col">Organisation</th><th scope="col">Cloud</th><th scope="col">Status</th><th scope="col">Connection</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
@@ -463,7 +471,7 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
         </div>
         <div className="form-grid-2">
           <Field label="Location"><input className="input" maxLength={200} value={f.location ?? ''} onChange={(e) => set('location', e.target.value)} placeholder="GCC High / on-prem / ESP" /></Field>
-          <Field label="Owner"><input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} /></Field>
+          <Field label="Owner"><input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} /></Field>
         </div>
         <label className="form-row" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.external_provider} onChange={(e) => set('external_provider', e.target.checked)} /> Operated by an external service provider (ESP / CSP)</label>
         <Field label="Notes"><textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
@@ -544,7 +552,8 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
       {!eid && engagements.rows && <Empty>Create an engagement first (Onboard › Engagement Management).</Empty>}
       {eid && assets.rows && shown.length === 0 && <Empty>{rows.length === 0 ? 'No asset recorded for this engagement yet.' : 'No asset in this category.'}</Empty>}
       {shown.length > 0 && (
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="asset-table"]' />
           <table className="tbl" data-testid="asset-table">
             <thead><tr><th scope="col">Asset</th><th scope="col">Type</th><th scope="col">Category</th><th scope="col">Location</th><th scope="col">Owner</th><th scope="col">ESP</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>

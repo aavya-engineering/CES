@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react';
 import { FAMILIES, REQUIREMENTS } from '../referenceData';
 import { OBJECTIVES, objectiveCounts } from '../objectivesData';
 import { PageHeader, Pager, Stat, Empty } from '../ui';
+import { TableSearch } from '../tableSearch';
 import { usePaged } from '../paging';
 
 export default function ObjectivesPage() {
@@ -178,7 +179,8 @@ export default function ObjectivesPage() {
         </section>
       ) : (
         <section className="card" aria-label="Objectives by requirement">
-          <div className="table-wrap">
+            <div className="table-wrap">
+            <TableSearch target='[data-testid="obj-rollup"]' />
             <table className="tbl" data-testid="obj-rollup">
               <thead>
                 <tr>

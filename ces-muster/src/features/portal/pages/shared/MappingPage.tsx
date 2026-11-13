@@ -20,6 +20,7 @@ import { describeFailure, matchesText, shownData, statusOf, useGovernedList, use
 import { DeleteItemDialog, Drawer, GovernanceBar, LinesInput, RowActions, StatusPill, Toast, VersionHistory } from '../../governed';
 import { domainLabel } from '../../evidenceData';
 import { Empty, PageHeader, Pager, RowsPerPage, SortTh } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { usePaged, useSort } from '../../paging';
 import { FAMILIES, REQUIREMENTS } from '../../referenceData';
 
@@ -188,7 +189,8 @@ export default function MappingPage() {
             <div className="card-bar">
               <strong data-testid="mapping-count">{rows.length} Requirement-to-Evidence Mappings</strong>
             </div>
-            <div className="table-wrap">
+              <div className="table-wrap">
+              <TableSearch target='[data-testid="mapping-table"]' />
               <table className="tbl" data-testid="mapping-table">
                 <thead>
                   <tr>

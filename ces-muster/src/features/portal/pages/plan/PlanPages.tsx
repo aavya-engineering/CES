@@ -15,10 +15,12 @@
 // sit on a POA&M) made visible rather than hidden. Aavya portal theme.
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { PERSON_NAME_HELP, PERSON_NAME_PATTERN } from '../../validators';
 import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
@@ -146,7 +148,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
           <label className="form-row">Status
             <select className="select" value={f.status ?? 'open'} onChange={(e) => set('status', e.target.value as ActionStatus)} data-testid="action-status">{ACTION_STATUSES.map((s) => <option key={s} value={s}>{ACTION_STATUS_LABEL[s]}</option>)}</select>
           </label>
-          <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
+          <label className="form-row">Owner<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
         </div>
         <div className="form-grid-2">
           <label className="form-row">Due date<input className="input" type="date" value={f.due_date ?? ''} onChange={(e) => set('due_date', e.target.value)} /></label>
@@ -277,7 +279,7 @@ function PoamForm({ eid, initial, onSaved, onClose }: { eid: string; initial: Po
         <label className="form-row">Mitigation / remediation<textarea maxLength={2000} className="input" rows={3} value={f.mitigation ?? ''} onChange={(e) => set('mitigation', e.target.value)} /></label>
         <div className="form-grid-2">
           <label className="form-row">Scheduled completion<input className="input" type="date" value={f.scheduled_completion ?? ''} onChange={(e) => set('scheduled_completion', e.target.value)} /></label>
-          <label className="form-row">Responsible<input className="input" maxLength={200} value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
+          <label className="form-row">Responsible<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
         </div>
         <label className="form-row">Resources / cost<input className="input" maxLength={2000} value={f.resources ?? ''} onChange={(e) => set('resources', e.target.value)} placeholder="People, licences, budget" /></label>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}>
@@ -337,7 +339,8 @@ export function PoamPage({ viewer }: { viewer: Viewer }) {
       )}
       {items.data && items.data.length === 0 && <Empty>No POA&M item yet.{writable ? ' Create them from open actions, or add one by hand.' : ''}</Empty>}
       {rows.length > 0 && (
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="poam-table"]' />
           <table className="tbl" data-testid="poam-table">
             <thead><tr><th scope="col">Requirement</th><th scope="col" className="num">Weight</th><th scope="col">Eligible</th><th scope="col">Weakness</th><th scope="col">Milestones</th><th scope="col">Completion</th><th scope="col">Responsible</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>

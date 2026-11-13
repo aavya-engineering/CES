@@ -3617,3 +3617,9 @@ fieldset[disabled] .input, fieldset[disabled] .select { opacity: 0.6; }
 .tbl td .hint { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .tbl td .hint.dba, .tbl td .hint.clip-1 { display: -webkit-box; }
 .tbl td .hint.clip-1 { -webkit-line-clamp: 1; }
+/* QA 2026-11-13: the per-table search box (tableSearch.tsx). */
+.table-search { margin: 0 0 8px; }
+.table-wrap > .table-search { padding: 10px 12px 0; margin: 0; }
+.table-search .search-input { display: flex; align-items: center; gap: 8px; }
+.table-search .search-input .input { flex: 1; }
+.table-search .search-input svg { color: var(--co-text-muted); flex: none; }

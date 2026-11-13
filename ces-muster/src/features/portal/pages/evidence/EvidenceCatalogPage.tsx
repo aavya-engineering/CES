@@ -19,6 +19,7 @@ import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
 import { evidenceApi, type CatalogFinding, type CatalogOverview, type CatalogRequirement, type CatalogState } from './evidenceApi';
@@ -107,6 +108,7 @@ export function EvidenceCatalogPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
             <Stat icon="sprs" value={`${totals.objCovered} / ${totals.objectives}`} label="assessment objectives evidenced" />
           </div>
           <p className="hint">Release {ov.releases.map((r) => `${r.release} (${r.date}, ${r.catalog_version}, ${r.definitions} rows)`).join('; ')}. Requirements without rows show their NIST examine list as “not in catalog yet” — the next BHD batches fill them in family order (AC, AT, AU, CM, IA …).</p>
+          <TableSearch target='[data-testid="catalog-table"]' />
           <table className="tbl" data-testid="catalog-table">
             <thead><tr><th scope="col">Requirement</th><th scope="col">NIST examine objects</th><th scope="col">In catalog</th><th scope="col">Evidenced</th><th scope="col">Objectives evidenced</th><th scope="col" />
             </tr></thead>
