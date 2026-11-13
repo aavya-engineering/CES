@@ -3602,3 +3602,10 @@ label.check input { margin: 0; }
 .tbl td .hint.dba { overflow-wrap: anywhere; max-width: 32ch; }
 /* Disabled form with a reason (Access requests for view-only roles). */
 fieldset[disabled] .input, fieldset[disabled] .select { opacity: 0.6; }
+/* Organisations / Tenants tables: long names and contacts are clamped so the
+   row keeps its height and Status / Actions stay on screen. */
+.clip-1 { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.tbl td.org-cell { max-width: 26ch; min-width: 16ch; }
+.tbl td.contact-cell { max-width: 28ch; min-width: 14ch; }
+.tbl td.org-cell .dba { max-width: none; }

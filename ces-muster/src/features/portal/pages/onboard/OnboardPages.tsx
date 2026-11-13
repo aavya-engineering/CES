@@ -224,10 +224,11 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
             <tbody>
               {shown.map((o) => (
                 <tr key={o.id}>
-                  <td><strong>{o.legal_name}</strong>{o.dba_name && <div className="hint dba">dba {o.dba_name}</div>}</td>
-                  <td>{o.uei ?? '—'} / {o.cage ?? '—'}</td>
+                  {/* QA 2026-11-13 (Windows screenshot): long test values no longer stretch the row or push Status/Actions off-screen — clamped, full text on hover. */}
+                  <td className="org-cell"><strong className="clamp-2" title={o.legal_name}>{o.legal_name}</strong>{o.dba_name && <div className="hint dba clamp-2" title={`dba ${o.dba_name}`}>dba {o.dba_name}</div>}</td>
+                  <td className="nowrap">{o.uei ?? '—'} / {o.cage ?? '—'}</td>
                   <td>{o.contract_clauses.length ? o.contract_clauses.map((c) => <span key={c} className="pill" style={{ marginRight: 4 }}>{c.replace('DFARS 252.204-', '').replace('FAR 52.204-', 'FAR ')}</span>) : '—'}</td>
-                  <td>{o.primary_contact_name ?? '—'}{o.primary_contact_email && <div className="hint">{o.primary_contact_email}</div>}</td>
+                  <td className="contact-cell"><span className="clip-1" title={o.primary_contact_name ?? undefined}>{o.primary_contact_name ?? '—'}</span>{o.primary_contact_email && <div className="hint clip-1" title={o.primary_contact_email}>{o.primary_contact_email}</div>}</td>
                   <td><span className="pill" data-tone={o.status === 'active' ? 'good' : undefined} title={o.status === 'active' ? 'Counted as active' : 'Set to inactive on the organisation'}>{o.status}</span></td>
                   <td>
                     {writable && (
@@ -398,7 +399,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
             <tbody>
               {rows.map((t) => (
                 <tr key={t.id}>
-                  <td><strong>{t.display_name}</strong>{t.primary_domain && <div className="hint">{t.primary_domain}</div>}</td>
+                  <td className="org-cell"><strong className="clamp-2" title={t.display_name}>{t.display_name}</strong>{t.primary_domain && <div className="hint clip-1" title={t.primary_domain}>{t.primary_domain}</div>}</td>
                   <td>{orgName(t.organization_id)}</td>
                   <td>{t.cloud === 'gcc_high' ? 'GCC High' : t.cloud === 'gcc' ? 'GCC' : 'Commercial'}</td>
                   <td><span className="pill" data-tone={TENANT_STATUS_TONE[t.status]}>{t.status.replace('_', ' ')}</span></td>
