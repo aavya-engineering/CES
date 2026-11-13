@@ -60,7 +60,8 @@ router.post(
   requireRole('sub', 'prime', 'bhd_operator'),
   async (req, res, next) => {
     if (isDegraded()) {
-      res.status(503).json({ degraded: true });
+      // QA 2026-11-13: the panel tells the user *why* — no key configured vs. a provider outage.
+      res.status(503).json({ degraded: true, reason: 'not_configured', error: 'not_configured' });
       return;
     }
 
