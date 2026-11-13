@@ -17,6 +17,7 @@ import type { Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { assessApi, STATUS_LABEL, STATUS_TONE, type AssessmentResult, type AssessmentRun, type EngineJob, type GapAnalysis, type RequirementStatus } from './assessApi';
@@ -176,7 +177,8 @@ export function ReadinessOverviewPage({ viewer }: { viewer: Viewer }) {
           </div>
           <section className="card card-pad">
             <h2 className="card-title">By control family</h2>
-            <div className="table-wrap">
+              <div className="table-wrap">
+              <TableSearch target='[data-testid="family-table"]' />
               <table className="tbl" data-testid="family-table">
                 <thead><tr><th scope="col">Family</th><th scope="col" className="num">Met</th><th scope="col" className="num">Partial</th><th scope="col" className="num">Not met</th><th scope="col" className="num">Unknown</th><th scope="col" className="num">Deduction</th><th scope="col" style={{ width: '28%' }}>Weight at risk</th></tr></thead>
                 <tbody>

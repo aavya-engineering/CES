@@ -24,6 +24,7 @@ import {
 } from '@/shared/api/adminApi';
 import { isTokenRemembered, roleLabel, saveMusterToken } from '@/shared/api/musterToken';
 import { Empty, PageHeader, Pager, Stat } from '../ui';
+import { TableSearch } from '../tableSearch';
 import LifecycleAccessMatrix from './LifecycleAccessMatrix';
 import { usePaged } from '../paging';
 
@@ -517,7 +518,8 @@ export function RolesPage() {
           </div>
           <LifecycleAccessMatrix />
           <section className="card" style={{ marginTop: 16 }}>
-            <div className="table-wrap">
+              <div className="table-wrap">
+              <TableSearch target='[data-testid="roles-matrix"]' />
               <table className="tbl" data-testid="roles-matrix">
                 <thead>
                   <tr>
@@ -617,7 +619,8 @@ export function AuditPage() {
       />
       {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
       <section className="card">
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="audit-table"]' />
           <table className="tbl" data-testid="audit-table">
             <thead>
               <tr>

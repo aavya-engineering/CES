@@ -19,6 +19,7 @@ import { sharedApi, type Archetype, type ItemView, type Rule } from '@/shared/ap
 import { describeFailure, matchesText, shownData, statusOf, useGovernedList, useItemDetail, useSharedViewer } from '../../governedState';
 import { DeleteItemDialog, GovernanceBar, RowActions, StatusPill, Toast, VersionHistory } from '../../governed';
 import { Empty, PageHeader, Pager, RowsPerPage, SortTh } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { usePaged, useSort } from '../../paging';
 import { REQUIREMENTS } from '../../referenceData';
 
@@ -173,7 +174,8 @@ export default function RulesPage() {
             <div className="card-bar">
               <strong>{rows.length} Evaluation Rules</strong>
             </div>
-            <div className="table-wrap">
+              <div className="table-wrap">
+              <TableSearch target='[data-testid="rules-table"]' />
               <table className="tbl" data-testid="rules-table">
                 <thead>
                   <tr>

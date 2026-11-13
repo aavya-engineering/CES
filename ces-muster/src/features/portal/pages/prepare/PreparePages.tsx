@@ -19,6 +19,7 @@ import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { api, getApiBase } from '@/shared/api/musterApi';
 import { getMusterToken } from '@/shared/api/musterToken';
@@ -145,6 +146,7 @@ export function PrepareOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
         <section className="card card-pad">
           <h2 className="card-title">Sign-offs</h2>
           {so.data && so.data.length === 0 && <Empty>No sign-off recorded yet.</Empty>}
+          <TableSearch target='[data-testid="signoffs"]' />
           {so.data && so.data.length > 0 && <table className="tbl" data-testid="signoffs"><tbody>{so.data.map((s) => <tr key={s.id}><td><strong>{s.kind.replace('_', ' ')}</strong><div className="hint">{s.notes}</div></td><td><span className="pill" data-tone={s.decision === 'approved' ? 'good' : 'bad'}>{s.decision}</span></td><td className="hint">{s.signed_by} ({s.signed_role})<br />{fmt(s.signed_at)}</td></tr>)}</tbody></table>}
         </section>
         {canSign(viewer) && eng.id && (
@@ -240,7 +242,7 @@ export function SspPage({ viewer }: { viewer: Viewer }) {
       </div>
       {rows.data && shown.length === 0 && <Empty>Nothing in this filter.</Empty>}
       {shown.length > 0 && (
-        <div className="table-wrap"><table className="tbl" data-testid="ssp-table"><thead><tr><th scope="col">Requirement</th><th scope="col">Run</th><th scope="col">Implementation</th><th scope="col">Statement</th><th scope="col">Evidence</th><th scope="col">Approval</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead>
+        <div className="table-wrap"><TableSearch target='[data-testid="ssp-table"]' /><table className="tbl" data-testid="ssp-table"><thead><tr><th scope="col">Requirement</th><th scope="col">Run</th><th scope="col">Implementation</th><th scope="col">Statement</th><th scope="col">Evidence</th><th scope="col">Approval</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead>
           <tbody>{shown.map((r) => <tr key={r.requirement_id}><td><strong>{r.requirement_id}</strong><div className="hint" style={{ maxWidth: 360 }}>{r.practice}</div></td><td>{r.run_status ? <span className="pill" data-tone={r.run_status === 'met' ? 'good' : r.run_status === 'partial' ? 'warn' : 'bad'}>{r.run_status.replace('_', ' ')}</span> : '—'}</td><td>{r.statement ? <span className="pill" data-tone={IMPL_TONE[r.statement.status]}>{IMPL_LABEL[r.statement.status]}</span> : '—'}</td><td className="hint" style={{ maxWidth: 320 }}>{r.statement?.statement ? `${r.statement.statement.slice(0, 120)}${r.statement.statement.length > 120 ? '…' : ''}` : <em>none</em>}</td><td className="num">{r.validated_evidence.length}</td><td>{r.statement?.approved_by ? <span className="pill" data-tone="good">approved</span> : r.statement?.source === 'generated_draft' ? <span className="pill" data-tone="warn">draft</span> : r.statement ? <span className="pill">v{r.statement.version}</span> : '—'}</td><td><button type="button" className="row-btn" onClick={() => setOpen(r)} data-testid={`ssp-open-${r.requirement_id}`}>{editor ? 'Edit' : 'View'}</button></td></tr>)}</tbody></table></div>
       )}
       {open && eng.id && <StatementDrawer eid={eng.id} row={open} viewer={viewer} onSaved={(m) => { setOpen(null); setToast(m); rows.reload(); }} onClose={() => setOpen(null)} />}
@@ -298,7 +300,7 @@ export function PackagesPage({ viewer }: { viewer: Viewer }) {
       )}
       {list.data && list.data.length === 0 && <Empty>No package yet.</Empty>}
       {list.data && list.data.length > 0 && (
-        <div className="table-wrap"><table className="tbl" data-testid="package-table"><thead><tr><th scope="col">Package</th><th scope="col">Scope</th><th scope="col" className="num">Items</th><th scope="col">Validation</th><th scope="col">Status</th><th scope="col">Built / signed</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+        <div className="table-wrap"><TableSearch target='[data-testid="package-table"]' /><table className="tbl" data-testid="package-table"><thead><tr><th scope="col">Package</th><th scope="col">Scope</th><th scope="col" className="num">Items</th><th scope="col">Validation</th><th scope="col">Status</th><th scope="col">Built / signed</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>{list.data.map((p) => <tr key={p.id}><td><strong>{p.name}</strong> <span className="hint">v{p.version}</span></td><td className="hint">{p.scope_type}{p.scope_values.length ? `: ${p.scope_values.join(', ')}` : ''}</td><td className="num">{p.item_count ?? p.item_ids.length}</td><td>{p.validation ? <span className="pill" data-tone={p.validation.passed && !(p.validation.drifted_items?.length) ? 'good' : 'bad'}>{p.validation.passed && !(p.validation.drifted_items?.length) ? 'pass' : `${p.validation.missing_required.length} missing · ${p.validation.unvalidated.length} unvalidated${p.validation.drifted_items?.length ? ` · ${p.validation.drifted_items.length} drifted` : ''}`}</span> : '—'}</td><td><span className="pill" data-tone={p.status === 'signed_off' ? 'good' : p.status === 'validated' ? 'info' : p.status === 'superseded' ? undefined : 'warn'}>{p.status.replace('_', ' ')}</span></td><td className="hint">{p.built_by} · {fmt(p.built_at)}{p.signed_off_by && <><br />signed {p.signed_off_by} · {fmt(p.signed_off_at)}</>}</td>
             <td style={{ whiteSpace: 'nowrap' }}><button type="button" className="row-btn" onClick={() => openPkg(p)} data-testid={`package-open-${p.id}`}>Open</button> {p.status !== 'superseded' && editor && <><button type="button" className="row-btn" onClick={() => act(p, 'validate')}>Re-validate</button> <button type="button" className="row-btn" onClick={() => act(p, 'rebuild')}>Rebuild v{p.version + 1}</button></>} {p.status === 'validated' && canSign(viewer) && p.built_by !== mySub && <button type="button" className="row-btn" onClick={() => setSigning(p)} data-testid={`package-sign-${p.id}`}>Sign off</button>}</td></tr>)}</tbody></table></div>
       )}

@@ -20,6 +20,7 @@ import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
@@ -351,7 +352,8 @@ export function AdminOpsPage({ viewer, initialDomain }: { viewer: Viewer; initia
         {DOMAINS.map(([k, label]) => <button key={k} type="button" role="tab" aria-selected={domain === k} className={`btn ${domain === k ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setDomain(k)} data-testid={`adminops-domain-${k}`}>{k} · {label}</button>)}
       </div>
       {ops.data && (
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="adminops-catalog"]' />
           <table className="tbl" data-testid="adminops-catalog">
             <thead><tr><th scope="col">Operation</th><th scope="col">Trigger</th><th scope="col">Priority</th><th scope="col">SoD</th><th scope="col">Practices</th><th scope="col"><span className="sr-only">Request</span></th></tr></thead>
             <tbody>

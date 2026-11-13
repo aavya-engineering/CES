@@ -21,6 +21,7 @@ import { api } from '@/shared/api/musterApi';
 import { routesFor, type MusterView, type RouteId, type Viewer } from '../nav';
 import { quickLinksFor } from '../quickLinks';
 import { Empty, PageHeader, Stat } from '../ui';
+import { TableSearch } from '../tableSearch';
 import { REQUIREMENTS } from '../referenceData';
 import { loadLocalEngagements, type LocalEngagementRow } from '../localEngagements';
 
@@ -58,7 +59,8 @@ function LocalTable({ rows, openMuster }: { rows: LocalEngagementRow[]; openMust
     );
   }
   return (
-    <div className="table-wrap">
+      <div className="table-wrap">
+      <TableSearch target='[data-testid="local-engagements"]' />
       <table className="tbl" data-testid="local-engagements">
         <thead>
           <tr>
@@ -215,7 +217,8 @@ export function EngagementsPage({ viewer, openMuster }: { viewer: Viewer; openMu
           {server.state === 'ready' && server.rows.length === 0 && <p className="pg-meta">No engagements for your organisation on muster-api.</p>}
         </div>
         {server.state === 'ready' && server.rows.length > 0 && (
-          <div className="table-wrap">
+            <div className="table-wrap">
+            <TableSearch target='[data-testid="server-engagements"]' />
             <table className="tbl" data-testid="server-engagements">
               <thead>
                 <tr>

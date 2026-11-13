@@ -15,10 +15,12 @@
 // sit on a POA&M) made visible rather than hidden. Aavya portal theme.
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { PERSON_NAME_HELP, PERSON_NAME_PATTERN } from '../../validators';
 import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { REQUIREMENTS } from '../../referenceData';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
@@ -110,7 +112,7 @@ export function PlanOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Route
 }
 
 // ====================================================================== actions
-function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; initial: PlanAction | null; all: PlanAction[]; onSaved: (m: string) => void; onClose: () => void }) {
+function ActionForm({ eid, initial, all, onSaved, onClose, readOnly }: { eid: string; initial: PlanAction | null; all: PlanAction[]; onSaved: (m: string) => void; onClose: () => void; /** QA 2026-11-13: a role that may only view opens the same drawer with every field disabled. */ readOnly?: boolean }) {
   const [f, setF] = useState<PlanActionInput>(initial ? { title: initial.title, description: initial.description, requirement_id: initial.requirement_id, priority: initial.priority, status: initial.status, owner: initial.owner, due_date: ymd(initial.due_date), effort_hours: initial.effort_hours, depends_on: initial.depends_on, sequence: initial.sequence, fix_kind: initial.fix_kind, notes: initial.notes } : { title: '', status: 'open', fix_kind: 'manual', depends_on: [] });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,9 +126,11 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
     if (r.ok) onSaved(initial ? 'Action updated.' : 'Action added.'); else setError(failureText(r));
   };
   return (
-    <Drawer title={initial ? 'Edit action' : 'Add action'} subtitle={initial?.requirement_id ? PRACTICE.get(initial.requirement_id) : 'A manual remediation item (policy, process, configuration).'} onClose={onClose} testId="action-drawer" wide
-      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="action-form" className="btn btn-primary" disabled={busy} data-testid="action-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add action'}</button></>}>
+    <Drawer title={readOnly ? `Action — ${initial?.title ?? ''}` : initial ? 'Edit action' : 'Add action'} subtitle={initial?.requirement_id ? PRACTICE.get(initial.requirement_id) : 'A manual remediation item (policy, process, configuration).'} onClose={onClose} testId="action-drawer" wide
+      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>{!readOnly && <button type="submit" form="action-form" className="btn btn-primary" disabled={busy} data-testid="action-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add action'}</button>}</>}>
       <form id="action-form" onSubmit={submit}>
+        <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+        {readOnly && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <label className="form-row">Title *<input className="input" maxLength={200} value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} data-testid="action-title" /></label>
         <div className="form-grid-2">
@@ -146,7 +150,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
           <label className="form-row">Status
             <select className="select" value={f.status ?? 'open'} onChange={(e) => set('status', e.target.value as ActionStatus)} data-testid="action-status">{ACTION_STATUSES.map((s) => <option key={s} value={s}>{ACTION_STATUS_LABEL[s]}</option>)}</select>
           </label>
-          <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
+          <label className="form-row">Owner<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
         </div>
         <div className="form-grid-2">
           <label className="form-row">Due date<input className="input" type="date" value={f.due_date ?? ''} onChange={(e) => set('due_date', e.target.value)} /></label>
@@ -162,6 +166,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
         </div>
         <label className="form-row">Description<textarea maxLength={4000} className="input" rows={3} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
         <label className="form-row">Notes<textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
+      </fieldset>
       </form>
     </Drawer>
   );
@@ -228,7 +233,7 @@ export function PlanActionsPage({ viewer }: { viewer: Viewer }) {
                   <td>{a.owner ?? '—'}</td>
                   <td style={{ color: isOverdue(a) ? 'var(--co-violation)' : undefined }}>{fmtDate(a.due_date)}</td>
                   <td><span className="pill" data-tone={ACTION_STATUS_TONE[a.status]}>{ACTION_STATUS_LABEL[a.status]}</span></td>
-                  <td>{writable && <RowActions label={`Actions for ${a.title}`} actions={[
+                  <td>{!writable && <button type="button" className="row-btn" onClick={() => setEditing(a)} data-testid={`action-view-${a.id}`}>View</button>}{writable && <RowActions label={`Actions for ${a.title}`} actions={[
                     { label: 'Edit', onSelect: () => setEditing(a) },
                     ...(a.status === 'open' ? [{ label: 'Start', onSelect: () => quick(a, 'in_progress') }] : []),
                     ...(a.status !== 'done' ? [{ label: 'Mark done', onSelect: () => quick(a, 'done') }] : [{ label: 'Reopen', onSelect: () => quick(a, 'open') }]),
@@ -240,7 +245,7 @@ export function PlanActionsPage({ viewer }: { viewer: Viewer }) {
           </table>
         </div>
       )}
-      {editing && eng.id && <ActionForm eid={eng.id} initial={editing === 'new' ? null : editing} all={rows} onSaved={(m) => { setEditing(null); setToast(m); actions.reload(); }} onClose={() => setEditing(null)} />}
+      {editing && eng.id && <ActionForm eid={eng.id} initial={editing === 'new' ? null : editing} all={rows} readOnly={!writable} onSaved={(m) => { setEditing(null); setToast(m); actions.reload(); }} onClose={() => setEditing(null)} />}
       {deleting && <ConfirmDialog title="Delete action" confirmLabel="Delete" error={err} onConfirm={doDelete} onCancel={() => setDeleting(null)}><p><strong>{deleting.title}</strong> will be removed. POA&M items keep their text but lose the link.</p></ConfirmDialog>}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
@@ -277,7 +282,7 @@ function PoamForm({ eid, initial, onSaved, onClose }: { eid: string; initial: Po
         <label className="form-row">Mitigation / remediation<textarea maxLength={2000} className="input" rows={3} value={f.mitigation ?? ''} onChange={(e) => set('mitigation', e.target.value)} /></label>
         <div className="form-grid-2">
           <label className="form-row">Scheduled completion<input className="input" type="date" value={f.scheduled_completion ?? ''} onChange={(e) => set('scheduled_completion', e.target.value)} /></label>
-          <label className="form-row">Responsible<input className="input" maxLength={200} value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
+          <label className="form-row">Responsible<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
         </div>
         <label className="form-row">Resources / cost<input className="input" maxLength={2000} value={f.resources ?? ''} onChange={(e) => set('resources', e.target.value)} placeholder="People, licences, budget" /></label>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}>
@@ -337,7 +342,8 @@ export function PoamPage({ viewer }: { viewer: Viewer }) {
       )}
       {items.data && items.data.length === 0 && <Empty>No POA&M item yet.{writable ? ' Create them from open actions, or add one by hand.' : ''}</Empty>}
       {rows.length > 0 && (
-        <div className="table-wrap">
+          <div className="table-wrap">
+          <TableSearch target='[data-testid="poam-table"]' />
           <table className="tbl" data-testid="poam-table">
             <thead><tr><th scope="col">Requirement</th><th scope="col" className="num">Weight</th><th scope="col">Eligible</th><th scope="col">Weakness</th><th scope="col">Milestones</th><th scope="col">Completion</th><th scope="col">Responsible</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>

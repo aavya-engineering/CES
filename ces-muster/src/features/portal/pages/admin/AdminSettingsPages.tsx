@@ -14,10 +14,12 @@
 // Aavya portal theme.
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { PERSON_NAME_HELP, PERSON_NAME_PATTERN } from '../../validators';
 import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
+import { TableSearch } from '../../tableSearch';
 import { api, issuesByField } from '@/shared/api/musterApi';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
@@ -326,6 +328,7 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
             <p className="hint" style={{ marginTop: 8 }}>A second person (organisation administrator or BHD) decides. Once approved, the organisation administrator creates the account or changes the role under the Users tab; the request is then marked fulfilled automatically.</p>
           </form>
           {requests.data && requests.data.length === 0 && <Empty>No access request.</Empty>}
+          <TableSearch target='[data-testid="access-requests"]' />
           {requests.data && requests.data.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="access-requests"><thead><tr><th scope="col">For</th><th scope="col">Role</th><th scope="col">Justification</th><th scope="col">Requested</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{requests.data.map((q) => <tr key={q.id}><td><strong>{q.subject_email}</strong></td><td>{q.requested_role}</td><td className="hint" style={{ maxWidth: 320 }}>{q.justification}</td><td className="hint" title={q.requested_by}>{who(q.requested_by)}<br />{fmt(q.created_at)}</td><td><span className="pill" data-tone={q.status === 'open' ? 'warn' : q.status === 'rejected' ? 'bad' : 'good'}>{q.status}</span>{q.decided_by && <div className="hint" title={q.decided_by}>{who(q.decided_by)}: {q.decision_notes}</div>}</td><td>{admin && q.status === 'open' && <button type="button" className="row-btn" onClick={() => { setDeciding(q); setDecision('approved'); }}>Decide</button>}{manager && q.status === 'approved' && GRANTABLE.includes(q.requested_role) && <button type="button" className="row-btn" onClick={() => { setTab('users'); setNewUser({ email: q.subject_email, display_name: '', role: q.requested_role, access_request_id: q.id }); }}>Create account</button>}{admin && q.status === 'approved' && !GRANTABLE.includes(q.requested_role) && <button type="button" className="row-btn" onClick={() => { setDeciding(q); setDecision('fulfilled'); }}>Mark fulfilled</button>}</td></tr>)}</tbody></table></div>}
         </>
       )}
@@ -345,7 +348,7 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
               <form id="org-user-form" onSubmit={createUser} className="form-grid-2" data-testid="org-user-form">
                 <label className="form-row">E-mail *<input className="input" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required readOnly={!!newUser.access_request_id} /></label>
                 <label className="form-row">Role *<select className="select" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })} disabled={!!newUser.access_request_id}>{GRANTABLE.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
-                <label className="form-row">Display name<input className="input" maxLength={200} value={newUser.display_name} onChange={(e) => setNewUser({ ...newUser, display_name: e.target.value })} /></label>
+                <label className="form-row">Display name<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={newUser.display_name} onChange={(e) => setNewUser({ ...newUser, display_name: e.target.value })} /></label>
                 <p className="hint">A one-time password is shown once after creation; the person must change it at first sign-in. {newUser.access_request_id ? 'E-mail and role come from the approved request and cannot be changed here.' : 'Platform administrator and BHD operator roles cannot be granted here.'}</p>
               </form>
             </Drawer>
@@ -373,6 +376,7 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
         <>
           {admin && <form className="card card-pad" onSubmit={start} data-testid="review-form"><h2 className="card-title">Start an access review</h2><div className="toolbar"><input className="input grow" value={reviewTitle} onChange={(e) => setReviewTitle(e.target.value)} placeholder="Q4 2026 access review" required minLength={3} /><button type="submit" className="btn btn-primary" disabled={reviewTitle.length < 3} data-testid="review-start">Start ({users.data?.length ?? '…'} accounts)</button></div></form>}
           {reviews.data && reviews.data.length === 0 && <Empty>No access review yet.</Empty>}
+          <TableSearch target='[data-testid="access-reviews"]' />
           {reviews.data && reviews.data.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="access-reviews"><thead><tr><th scope="col">Review</th><th scope="col" className="num">Accounts</th><th scope="col" className="num">Attested</th><th scope="col">Status</th><th scope="col">Started</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead><tbody>{reviews.data.map((rv) => <tr key={rv.id}><td><strong>{rv.title}</strong></td><td className="num">{rv.snapshot.length}</td><td className="num">{rv.decisions.length}</td><td><span className="pill" data-tone={rv.status === 'completed' ? 'good' : 'warn'}>{rv.status}</span></td><td className="hint">{rv.started_by} · {fmt(rv.started_at)}{rv.completed_at && <><br />completed {fmt(rv.completed_at)}</>}</td><td><button type="button" className="row-btn" onClick={() => setOpenReview(rv)}>Open</button></td></tr>)}</tbody></table></div>}
         </>
       )}
@@ -456,19 +460,23 @@ export function SystemsRegistryPage({ viewer }: { viewer: Viewer }) {
       )}
       <div className="toolbar"><label>Kind <select className="select" value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="all">All</option>{(Object.keys(KIND_LABEL) as SystemRecord['kind'][]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select></label></div>
       {list.data && rows.length === 0 && <Empty>No record yet.</Empty>}
-      {rows.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="systems-table"><thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Environment</th><th scope="col">Hosting</th><th scope="col">Owner</th><th scope="col">CUI</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((s) => <tr key={s.id}><td><strong>{s.name}</strong>{s.description && <div className="hint">{s.description}</div>}</td><td>{KIND_LABEL[s.kind]}</td><td className="hint">{s.environment ?? '—'}</td><td className="hint">{s.hosting?.replace('_', ' ') ?? '—'}</td><td>{s.owner ?? '—'}</td><td>{s.handles_cui ? <span className="pill" data-tone="bad">CUI</span> : '—'}</td><td>{editor && <RowActions label={`Actions for ${s.name}`} actions={[{ label: 'Edit', onSelect: () => setEditing(s) }, { label: 'Delete', tone: 'danger', onSelect: () => setDeleting(s) }]} />}</td></tr>)}</tbody></table></div>}
+      <TableSearch target='[data-testid="systems-table"]' />
+      {rows.length > 0 && <div className="table-wrap"><table className="tbl" data-testid="systems-table"><thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Environment</th><th scope="col">Hosting</th><th scope="col">Owner</th><th scope="col">CUI</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((s) => <tr key={s.id}><td><strong>{s.name}</strong>{s.description && <div className="hint">{s.description}</div>}</td><td>{KIND_LABEL[s.kind]}</td><td className="hint">{s.environment ?? '—'}</td><td className="hint">{s.hosting?.replace('_', ' ') ?? '—'}</td><td>{s.owner ?? '—'}</td><td>{s.handles_cui ? <span className="pill" data-tone="bad">CUI</span> : '—'}</td><td>{!editor && <button type="button" className="row-btn" onClick={() => setEditing(s)}>View</button>}{editor && <RowActions label={`Actions for ${s.name}`} actions={[{ label: 'Edit', onSelect: () => setEditing(s) }, { label: 'Delete', tone: 'danger', onSelect: () => setDeleting(s) }]} />}</td></tr>)}</tbody></table></div>}
       {editing && (
-        <Drawer title={editing === 'new' ? 'Register system' : `Edit ${editing.name}`} onClose={() => setEditing(null)} testId="system-drawer" footer={<><button type="button" className="btn btn-secondary" onClick={() => setEditing(null)}>Cancel</button><button type="submit" form="system-form" className="btn btn-primary" data-testid="system-submit">Save</button></>}>
+        <Drawer title={editing === 'new' ? 'Register system' : editor ? `Edit ${editing.name}` : `System — ${editing.name}`} onClose={() => setEditing(null)} testId="system-drawer" footer={<><button type="button" className="btn btn-secondary" onClick={() => setEditing(null)}>{editor ? 'Cancel' : 'Close'}</button>{editor && <button type="submit" form="system-form" className="btn btn-primary" data-testid="system-submit">Save</button>}</>}>
           <form id="system-form" onSubmit={save}>
+            <fieldset disabled={!editor} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+            {!editor && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
             <label className="form-row">Name *<input className="input" maxLength={200} value={f.name ?? ''} onChange={(e) => setF({ ...f, name: e.target.value })} required /></label>
             <div className="form-grid-2">
               <label className="form-row">Kind<select className="select" value={f.kind ?? 'system'} onChange={(e) => setF({ ...f, kind: e.target.value as SystemRecord['kind'] })}>{(Object.keys(KIND_LABEL) as SystemRecord['kind'][]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</select></label>
               <label className="form-row">Environment<select className="select" value={f.environment ?? ''} onChange={(e) => setF({ ...f, environment: e.target.value || null })}><option value="">—</option><option value="production">Production</option><option value="test">Test</option><option value="development">Development</option></select></label>
               <label className="form-row">Hosting<select className="select" value={f.hosting ?? ''} onChange={(e) => setF({ ...f, hosting: e.target.value || null })}><option value="">—</option><option value="gcc_high">GCC High</option><option value="azure_government">Azure Government</option><option value="on_premises">On-premises</option><option value="saas">SaaS</option><option value="other">Other</option></select></label>
-              <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => setF({ ...f, owner: e.target.value })} /></label>
+              <label className="form-row">Owner<input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.owner ?? ''} onChange={(e) => setF({ ...f, owner: e.target.value })} /></label>
             </div>
             <label style={{ fontWeight: 400 }}><input type="checkbox" checked={!!f.handles_cui} onChange={(e) => setF({ ...f, handles_cui: e.target.checked })} /> Stores, processes or transmits CUI</label>
             <label className="form-row">Description<textarea maxLength={4000} className="input" rows={3} value={f.description ?? ''} onChange={(e) => setF({ ...f, description: e.target.value })} /></label>
+          </fieldset>
           </form>
         </Drawer>
       )}
