@@ -35,6 +35,7 @@ export default function QuickSession() {
   const [questions, setQuestions] = useState<QuestionNode[]>([]);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
+  const [done, setDone] = useState('');
 
   const { segments, startSegment, stopSegment } = useTimingContext();
 
@@ -109,6 +110,14 @@ export default function QuickSession() {
 
     await executeExportAndDownload(sessionId);
     setExporting(false);
+    // QA 2026-11-13: the session is saved and downloaded — clear the form for the next party.
+    setPartyName('');
+    setUei('');
+    setCage('');
+    setOnPremOt('');
+    setSelectedServices([]);
+    setAnswers({});
+    setDone(`Exported ${partyName}'s StatusPayload (${facts.length} answers). The form is ready for the next party.`);
   };
 
   return (
@@ -246,6 +255,7 @@ export default function QuickSession() {
       {/* Section (d): Export */}
       <section style={{ marginTop: 32, paddingBottom: 48 }}>
         {error && <p className="form-error">{error}</p>}
+        {done && <p className="callout-warning" role="status" style={{ background: 'var(--co-compliant-bg)', borderColor: 'var(--co-compliant)', color: 'var(--co-compliant)' }} data-testid="quick-done">{done}</p>}
         <button className="btn btn-primary" onClick={() => void handleExport()} disabled={exporting}>
           {exporting ? 'Exporting…' : 'Export StatusPayload'}
         </button>

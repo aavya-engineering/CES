@@ -18,7 +18,8 @@
 // record yet, so they are not drawn.
 import { useEffect, useState } from 'react';
 import { api } from '@/shared/api/musterApi';
-import type { MusterView, RouteId, Viewer } from '../nav';
+import { routesFor, type MusterView, type RouteId, type Viewer } from '../nav';
+import { quickLinksFor } from '../quickLinks';
 import { Empty, PageHeader, Stat } from '../ui';
 import { REQUIREMENTS } from '../referenceData';
 import { loadLocalEngagements, type LocalEngagementRow } from '../localEngagements';
@@ -137,12 +138,8 @@ export function HomePage({
         <section className="card card-pad">
           <h2 className="card-title">Modules</h2>
           <div style={{ display: 'grid', gap: 10 }}>
-            {[
-              { mod: 'muster', t: 'Muster', s: 'Assess & plan', on: () => openMuster('assessment') },
-              { mod: 'stamper', t: 'Stamper', s: 'Configure & verify', on: () => go('module/stamper') },
-              { mod: 'adminops', t: 'AdminOps', s: 'Govern changes', on: () => go('module/adminops') },
-              { mod: 'evidenceops', t: 'EvidenceOps', s: 'Prove & maintain', on: () => go('module/evidenceops') },
-            ].map((m) => (
+            {/* QA 2026-11-13 (org admin): only modules this role can open, at the route it can open. */}
+            {quickLinksFor(routesFor(viewer), false).map((l) => ({ ...l, on: () => (l.view ? openMuster(l.view) : go(l.route)) })).map((m) => (
               <button key={m.t} type="button" className="link-card" onClick={m.on} data-testid={`home-module-${m.mod}`}>
                 <span className="portal-icon" data-mod={m.mod} aria-hidden="true">
                   {m.t[0]}

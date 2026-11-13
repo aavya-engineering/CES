@@ -3466,3 +3466,139 @@ label.check input { margin: 0; }
 .toolbar-actions .hint { align-self: center; }
 .toolbar.toolbar-actions .engine-error { flex-basis: 100%; order: 10; margin: 4px 0 0; white-space: normal; }
 .toolbar.toolbar-actions [data-testid='engine-run'] { flex-wrap: wrap; }
+
+/* ── QA round 3 (2026-11-13) ─────────────────────────────────────────────── */
+/* Home › Engagement Compliance Status: the legend no longer collides with the
+   ring. Ring and centre text share .donut-ring; the legend wraps under it when
+   the card is narrower than ring + legend. */
+.donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+.donut-ring {
+  position: relative;
+  flex: 0 0 150px;
+  width: 150px;
+  height: 150px;
+}
+.donut-ring svg {
+  display: block;
+  width: 150px;
+  height: 150px;
+}
+.donut-center {
+  left: 0;
+  width: 150px;
+}
+.donut .chart-legend {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.chart-legend li {
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
+}
+.chart-legend .legend-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.legend-pct {
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .donut { justify-content: center; }
+  .donut-center { left: 0; top: 50%; transform: translateY(-50%); }
+}
+/* Home › CMMC Level Distribution: the empty state is a proper message, not "0"
+   floating over empty bars. */
+.vbars-empty .vbar-value { visibility: hidden; }
+.vbars-empty .vbar-fill { display: none; }
+.vbars-note {
+  top: 30%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vbars-note strong { color: var(--co-text-secondary); font-weight: 600; }
+.vbars-note small { font-size: 12px; }
+/* Home › Refresh: the button shows that it is working. */
+.portal-icon-btn[data-busy='true'] { color: var(--co-primary); }
+.portal-icon-btn[data-busy='true'] > .spin { display: inline-block; animation: ces-spin 0.9s linear infinite; }
+@keyframes ces-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .portal-icon-btn[data-busy='true'] > .spin { animation: none; } }
+/* Page header (110 Requirements, SPRS): actions keep clear air from the
+   "Last updated" meta and wrap under the title instead of crowding it. */
+.pg-head { flex-wrap: wrap; }
+.pg-head-actions { flex: 0 1 auto; }
+.pg-head-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  white-space: normal;
+}
+.pg-head-buttons .pg-meta { white-space: nowrap; }
+.pg-head-buttons .pg-meta + .btn,
+.pg-head-buttons .pg-meta + .split-btn {
+  margin-left: 8px;
+  padding-left: 0;
+}
+.pg-head-buttons .head-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--co-border);
+}
+/* Summary cards (110 Requirements, SPRS): one height, text top-aligned, so six
+   cards with and without a sub-line read as one row. */
+.stats-4 .stat,
+.stats-5 .stat,
+.stats-6 .stat {
+  align-items: flex-start;
+  min-height: 96px;
+}
+.stats-4 .stat-icon,
+.stats-5 .stat-icon,
+.stats-6 .stat-icon { margin-top: 2px; }
+/* Forms: inline field errors sit under the field they belong to. */
+.form-row .field-error { margin-top: 4px; }
+.input[aria-invalid='true'],
+.select[aria-invalid='true'] {
+  border-color: var(--co-violation);
+  box-shadow: 0 0 0 2px var(--co-violation-bg);
+}
+.req-mark { color: var(--co-violation); font-weight: 700; margin-left: 2px; }
+.form-legend {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--co-text-muted);
+}
+/* Access matrix: cells spell the action out; the legend is a row of chips. */
+.access-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+}
+.access-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.access-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--co-primary);
+  background: var(--co-primary-subtle);
+}
+.access-cell { display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+/* Organisations table: a long "doing business as" wraps inside its cell. */
+.tbl td .hint.dba { overflow-wrap: anywhere; max-width: 32ch; }
+/* Disabled form with a reason (Access requests for view-only roles). */
+fieldset[disabled] .input, fieldset[disabled] .select { opacity: 0.6; }

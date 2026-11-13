@@ -121,5 +121,11 @@ export const onboardApi = {
 export function failureText<T>(r: Extract<ApiResult<T>, { ok: false }>): string {
   if (r.status === 403) return 'Your role cannot do this.';
   if (r.status === 401) return 'Sign in again.';
+  // QA 2026-11-13: name the field(s) a 422 complains about instead of a bare "Validation failed".
+  if (r.details?.length) return `${r.error ?? 'Validation failed'}: ${r.details.map((d) => `${FIELD_LABEL[d.path] ?? d.path.replace(/_/g, ' ')} — ${d.message}`).join('; ')}`;
   return r.error ?? (r.degraded ? 'muster-api is not reachable.' : `Request failed (${r.status}).`);
 }
+const FIELD_LABEL: Record<string, string> = {
+  legal_name: 'Legal name', dba_name: 'Doing business as', uei: 'UEI', cage: 'CAGE', website: 'Website', address: 'Address', primary_contact_name: 'Primary contact', primary_contact_email: 'Contact email', contract_clauses: 'Contract clauses', status: 'Status', notes: 'Notes',
+  display_name: 'Display name', organization_id: 'Organisation', entra_tenant_id: 'Entra tenant id', primary_domain: 'Primary domain', cloud: 'Cloud', app_registration_id: 'App registration id', certificate_thumbprint: 'Certificate thumbprint',
+};

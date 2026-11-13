@@ -233,7 +233,7 @@ export class AdaptiveEngine {
    *      (buildSyncPayload — see contract test).
    *   4. Mark queued answers synced; route low+weight>=3 facts to /hil/flag.
    */
-  async resync(): Promise<void> {
+  async resync(): Promise<boolean> {
     const unsynced = await db.queued_answers
       .where('session_id')
       .equals(this.sessionId)
@@ -242,11 +242,11 @@ export class AdaptiveEngine {
 
     if (unsynced.length === 0) {
       this.onPendingSyncChange?.(false);
-      return;
+      return true;
     }
 
     const session = await db.interview_sessions.get(this.sessionId);
-    if (!session) return;
+    if (!session) return false;
 
     // 1. Retro-assign confidence (server call, conservative local fallback)
     const retro = await api.post<{ results?: RetroAssignment[] }>('/interview/retro-confidence', {
@@ -267,7 +267,7 @@ export class AdaptiveEngine {
 
     // 3. Full-contract session sync
     const result = await api.post('/sessions/sync', buildSyncPayload({ ...session, facts: mergedFacts }));
-    if (!result.ok) return; // stays pending; user can retry
+    if (!result.ok) return false; // stays pending; user can retry (QA 2026-11-13: the caller now says so)
 
     // 4. Mark synced + HIL routing (exact rule: low AND weight >= 3)
     await Promise.all(unsynced.map((qa) => db.queued_answers.update(qa.id, { synced: 1 })));
@@ -282,6 +282,7 @@ export class AdaptiveEngine {
     }
 
     this.onPendingSyncChange?.(false);
+    return true;
   }
 
   /**

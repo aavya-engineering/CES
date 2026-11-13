@@ -24,9 +24,21 @@
 
 import { getMusterToken } from './musterToken';
 
+/** One field-level problem from a 422 (muster-api validate(): { path, message }). */
+export interface ApiIssue {
+  path: string;
+  message: string;
+}
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; status: number; degraded: boolean; error?: string };
+  | { ok: false; status: number; degraded: boolean; error?: string; details?: ApiIssue[] };
+
+/** QA 2026-11-13: field errors of a failed call, keyed by field name (empty when the API sent none). */
+export function issuesByField(r: { details?: ApiIssue[] }): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const i of r.details ?? []) if (i.path && !out[i.path]) out[i.path] = i.message;
+  return out;
+}
 
 export function getApiBase(): string {
   if (typeof localStorage !== 'undefined') {
@@ -66,16 +78,32 @@ export async function apiRequest<T>(
     if (!res.ok) {
       let degraded = false;
       let error: string | undefined;
+      let details: ApiIssue[] | undefined;
       try {
         const json = (await res.json()) as Record<string, unknown>;
         degraded = json?.degraded === true;
         if (typeof json?.error === 'string') error = json.error;
+        // zod .flatten() bodies (contracts) arrive as { error: { fieldErrors } } — fold them into details.
+        else if (json?.error && typeof json.error === 'object') {
+          const fe = (json.error as { fieldErrors?: Record<string, string[]> }).fieldErrors ?? {};
+          details = Object.entries(fe).map(([path, m]) => ({ path, message: m[0] ?? 'Invalid' }));
+          error = details.length ? 'Validation failed' : 'Request failed';
+        }
+        if (Array.isArray(json?.details)) details = json.details as ApiIssue[];
       } catch {
         // non-JSON error body — degraded stays false
       }
-      return { ok: false, status: res.status, degraded, ...(error ? { error } : {}) };
+      return { ok: false, status: res.status, degraded, ...(error ? { error } : {}), ...(details ? { details } : {}) };
     }
-    const data = (await res.json()) as T;
+    // QA 2026-11-13: a 204 (delete) has no body — reading it as JSON threw and the
+    // caller reported "unreachable" / "Not found" for a delete that had succeeded.
+    if (res.status === 204) return { ok: true, data: undefined as T };
+    let data: T;
+    try {
+      data = (await res.json()) as T;
+    } catch {
+      data = undefined as T; // empty body on a 2xx
+    }
     return { ok: true, data };
   } catch {
     clearTimeout(timer);

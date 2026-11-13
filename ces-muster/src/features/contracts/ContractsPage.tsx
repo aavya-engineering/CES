@@ -25,6 +25,46 @@ interface ContractsPageProps {
   engagementKind: EngagementKind | null;
   /** Current party ID — used when creating contracts. */
   partyId: string | null;
+  /** QA 2026-11-13: muster-api requires engagement_id on create (it was never sent → 400 → "server unreachable"). */
+  engagementId?: string | null;
+}
+
+/** What muster-api stores (prisma Contract): the form's start/end dates are pop_start/pop_end. */
+interface ApiContract {
+  id: string;
+  party_id: string;
+  engagement_id: string;
+  contract_number: string;
+  program_name: string;
+  cmmc_level_required: number;
+  cage_code?: string | null;
+  uei?: string | null;
+  contracting_office?: string | null;
+  pop_start?: string | null;
+  pop_end?: string | null;
+}
+const day = (iso: string | null | undefined) => (iso ? iso.slice(0, 10) : undefined);
+function fromApi(c: ApiContract): Contract {
+  return {
+    id: c.id,
+    contract_number: c.contract_number,
+    program_name: c.program_name,
+    cmmc_level_required: c.cmmc_level_required as 1 | 2 | 3,
+    party_id: c.party_id,
+    prime_ref: null,
+    start_date: day(c.pop_start),
+    end_date: day(c.pop_end),
+    cage_code: c.cage_code ?? undefined,
+    uei: c.uei ?? undefined,
+    contracting_office: c.contracting_office ?? undefined,
+  };
+}
+const FIELD_LABEL: Record<string, string> = { contract_number: 'Contract number', program_name: 'Program name', cmmc_level_required: 'CMMC level', party_id: 'party', engagement_id: 'engagement', pop_start: 'Start date', pop_end: 'End date', cage_code: 'CAGE code', uei: 'UEI' };
+function saveFailure(r: { status: number; error?: string; details?: { path: string; message: string }[] }): string {
+  if (r.status === 0) return 'Could not reach muster-api — check that it is running, then try again.';
+  if (r.status === 403) return 'Your role cannot change contracts.';
+  if (r.details?.length) return `Not saved — ${r.details.map((d) => `${FIELD_LABEL[d.path] ?? d.path}: ${d.message}`).join('; ')}.`;
+  return r.error ?? `Not saved — muster-api answered ${r.status}.`;
 }
 
 const EMPTY_FORM: ContractFormData = {
@@ -44,7 +84,7 @@ const EMPTY_FORM: ContractFormData = {
 
 type FormMode = 'none' | 'create' | 'edit';
 
-export default function ContractsPage({ engagementKind, partyId }: ContractsPageProps) {
+export default function ContractsPage({ engagementKind, partyId, engagementId }: ContractsPageProps) {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [offline, setOffline] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -60,11 +100,11 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
   const loadContracts = async () => {
     setLoading(true);
     setOffline(false);
-    const result = await api.get<Contract[]>('/contracts');
+    const result = await api.get<ApiContract[]>(partyId ? `/contracts?party_id=${encodeURIComponent(partyId)}` : '/contracts');
     if (!result.ok) {
       setOffline(true);
     } else {
-      setContracts(result.data);
+      setContracts(result.data.map(fromApi));
     }
     setLoading(false);
   };
@@ -116,6 +156,9 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
 
   const handleField = (field: keyof ContractFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // QA 2026-11-13: a message goes away once its field is filled in.
+    if (field in errors) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === 'start_date' || field === 'end_date') setErrors((prev) => ({ ...prev, end_date: undefined }));
   };
 
   const submitForm = async () => {
@@ -127,30 +170,43 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
     setErrors({});
     setSubmitError('');
 
+    const toDate = (d?: string) => (d ? `${d}T00:00:00.000Z` : null);
     const payload = {
-      ...formData,
+      contract_number: String(formData.contract_number ?? '').trim(),
+      program_name: String(formData.program_name ?? '').trim(),
       cmmc_level_required: Number(formData.cmmc_level_required),
-      value_usd: formData.value_usd !== '' ? Number(formData.value_usd) : undefined,
       party_id: partyId ?? formData.party_id,
+      engagement_id: engagementId ?? undefined,
       prime_ref: isIndividualContractor ? null : (formData.prime_ref ?? null),
+      pop_start: toDate(formData.start_date),
+      pop_end: toDate(formData.end_date),
+      cage_code: formData.cage_code?.trim() || null,
+      uei: formData.uei?.trim() || null,
+      contracting_office: formData.contracting_office?.trim() || null,
+      cui_categories: [],
     };
 
     if (formMode === 'create') {
-      const result = await api.post<Contract>('/contracts', payload);
+      const result = await api.post<ApiContract>('/contracts', payload);
       if (!result.ok) {
-        setSubmitError('Could not save contract — server unreachable.');
+        setSubmitError(saveFailure(result));
         return;
       }
-      setContracts((prev) => [...prev, result.data]);
+      setContracts((prev) => [...prev, fromApi(result.data)]);
     } else if (formMode === 'edit' && editId) {
-      const result = await api.put<Contract>(`/contracts/${editId}`, payload);
+      const patch: Partial<typeof payload> = { ...payload };
+      delete patch.party_id;
+      delete patch.engagement_id;
+      const result = await api.put<ApiContract>(`/contracts/${editId}`, patch);
       if (!result.ok) {
-        setSubmitError('Could not update contract — server unreachable.');
+        setSubmitError(saveFailure(result));
         return;
       }
-      setContracts((prev) => prev.map((c) => (c.id === editId ? result.data : c)));
+      setContracts((prev) => prev.map((c) => (c.id === editId ? fromApi(result.data) : c)));
     }
 
+    // QA 2026-11-13: the form clears after a save.
+    setFormData(EMPTY_FORM);
     setFormMode('none');
     setEditId(null);
   };
@@ -160,7 +216,7 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
   const executeDelete = async (id: string) => {
     const result = await api.delete(`/contracts/${id}`);
     if (!result.ok) {
-      setSubmitError('Could not delete contract — server unreachable.');
+      setSubmitError(result.status === 403 ? 'Only a BHD operator can delete a contract.' : saveFailure(result));
     } else {
       setContracts((prev) => prev.filter((c) => c.id !== id));
     }
@@ -202,11 +258,18 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
         </p>
       )}
 
+      {!offline && !loading && formMode === 'none' && !partyId && (
+        <p className="callout-warning" style={{ marginBottom: 12 }} data-testid="contracts-no-party">
+          Contracts belong to the party of an engagement. Open or begin an assessment under Situation first; then add its contracts here.
+        </p>
+      )}
       {!offline && !loading && formMode === 'none' && (
         <button
           className="btn btn-primary"
           data-testid="contracts-add-btn"
           onClick={openCreate}
+          disabled={!partyId}
+          title={partyId ? undefined : 'Begin an assessment first'}
           style={{ marginBottom: 16 }}
         >
           + Add Contract
@@ -372,23 +435,15 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
                 <input
                   type="date"
                   value={String(formData.end_date ?? '')}
+                  min={String(formData.start_date ?? '') || undefined}
                   onChange={(e) => handleField('end_date', e.target.value)}
+                  aria-invalid={errors.end_date ? true : undefined}
                 />
               </label>
-            </div>
-            <div className="field" style={{ flex: '1 1 140px' }}>
-              <label className="field-label">
-                Contract Value (USD)
-                <input
-                  type="number"
-                  value={String(formData.value_usd ?? '')}
-                  onChange={(e) => handleField('value_usd', e.target.value)}
-                  placeholder="0"
-                  min="0"
-                />
-              </label>
+              {errors.end_date && <p className="form-error">{errors.end_date}</p>}
             </div>
           </div>
+          <p className="eyebrow" style={{ margin: '-6px 0 10px' }}>Period of performance. Contract value, classification and notes are not stored by CES and are no longer asked for.</p>
 
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             <div className="field" style={{ flex: '1 1 140px' }}>
@@ -427,29 +482,6 @@ export default function ContractsPage({ engagementKind, partyId }: ContractsPage
             </label>
           </div>
 
-          <div className="field">
-            <label className="field-label">
-              Classification Level
-              <input
-                type="text"
-                value={String(formData.classification_level ?? '')}
-                onChange={(e) => handleField('classification_level', e.target.value)}
-                placeholder="e.g., Unclassified CUI"
-              />
-            </label>
-          </div>
-
-          <div className="field">
-            <label className="field-label">
-              Notes
-              <input
-                type="text"
-                value={String(formData.notes ?? '')}
-                onChange={(e) => handleField('notes', e.target.value)}
-                placeholder="Optional notes"
-              />
-            </label>
-          </div>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
             <button

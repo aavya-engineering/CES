@@ -24,7 +24,7 @@ import { effectivePriority, metaFor, nistOf, useRequirementMeta, MODULE_LABEL, P
 import { shownData, useGovernedList, useSharedViewer } from '../governedState';
 import { BulkDeleteDialog, DeleteItemDialog, RowActions, StatusPill, Toast } from '../governed';
 import { ImportMetaDrawer } from '../requirementCsv';
-import { downloadRequirementTemplate, exportRequirementsView, type ExportColumn } from '../requirementCsvData';
+import { downloadRequirementTemplate, exportRequirementsForImport, exportRequirementsView, type ExportColumn } from '../requirementCsvData';
 import RequirementFormPage, { type RequirementFormMode } from './RequirementFormPage';
 import { CalendarDays, ChevronDown, Settings, ChevronUp, Database, Download, FileText, Network, Pencil, Plus, Search, ShieldCheck, Tag, Trash2, Upload } from 'lucide-react';
 import type { CustomRequirement, ItemView, ModuleId, RequirementMeta } from '@/shared/api/sharedApi';
@@ -288,7 +288,7 @@ function customRow(d: CustomRequirement): RequirementRow {
 }
 
 /** Retesting #14 (2026-10-29): "Export ▾" split button as in the mockup — CSV now, template in the menu. */
-function ExportMenu({ label, onExport, onExportAll, onTemplate, disabled }: { label: string; onExport: () => void; onExportAll: () => void; onTemplate?: () => void; disabled?: boolean }) {
+export function ExportMenu({ label, onExport, onExportAll, onExportForImport, onTemplate, disabled, testIdPrefix = 'req' }: { label: string; onExport: () => void; onExportAll: () => void; /** QA 2026-11-13: the rows in the import template's columns (template and export now match). */ onExportForImport?: () => void; onTemplate?: () => void; disabled?: boolean; testIdPrefix?: string }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -309,20 +309,25 @@ function ExportMenu({ label, onExport, onExportAll, onTemplate, disabled }: { la
   };
   return (
     <div className="split-btn split-btn-secondary split-btn-sm" ref={box}>
-      <button type="button" className="btn btn-secondary" onClick={onExport} disabled={disabled} title={disabled ? 'Select requirements to export, or use the menu to export all' : undefined} data-testid="req-export">
+      <button type="button" className="btn btn-secondary" onClick={onExport} disabled={disabled} title={disabled ? 'Select requirements to export, or use the menu to export all' : undefined} data-testid={`${testIdPrefix}-export`}>
         <Download size={16} aria-hidden="true" /> {label}
       </button>
-      <button type="button" className="btn btn-secondary split-btn-caret" aria-label="More export options" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid="req-export-menu">
+      <button type="button" className="btn btn-secondary split-btn-caret" aria-label="More export options" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} data-testid={`${testIdPrefix}-export-menu`}>
         <ChevronDown size={18} aria-hidden="true" />
       </button>
       {open && (
         <div className="split-menu" role="menu">
-          <button type="button" role="menuitem" onClick={pick(onExportAll)} data-testid="req-export-all">
+          <button type="button" role="menuitem" onClick={pick(onExportAll)} data-testid={`${testIdPrefix}-export-all`}>
             <Download size={16} aria-hidden="true" /> Export all (visible columns)
           </button>
+          {onExportForImport && (
+            <button type="button" role="menuitem" onClick={pick(onExportForImport)} data-testid={`${testIdPrefix}-export-import`}>
+              <Download size={16} aria-hidden="true" /> Export in import format (all fields)
+            </button>
+          )}
           {onTemplate && (
             <button type="button" role="menuitem" onClick={pick(onTemplate)}>
-              <Download size={16} aria-hidden="true" /> Download CSV template
+              <Download size={16} aria-hidden="true" /> Download CSV template (same columns)
             </button>
           )}
         </div>
@@ -498,6 +503,7 @@ export default function RequirementsPage() {
               Last updated
               <strong>{fmtStamp(lastUpdated)}</strong>
             </div>
+            {viewer.canEdit && <span className="head-divider" aria-hidden="true" />}
             {/* S1.10: Create stays visible — demo feedback said create / import were "missing" when only in the caret menu. */}
             {viewer.canEdit && (
               <button type="button" className="btn btn-secondary" onClick={() => setForm({ mode: 'create' })} data-testid="req-create-visible">
@@ -510,8 +516,8 @@ export default function RequirementsPage() {
       />
       <div className="stats stats-6">
         <Stat icon={<FileText size={24} />} value={REQUIREMENTS.length} label="Total Requirements" sub={customViews.length ? `+${customViews.length} organisation-defined` : undefined} testId="stat-req-total" />
-        <Stat icon={<ShieldCheck size={24} />} value={FAMILIES.length} label="Security Families" tone="good" />
-        <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" tone="muster" />
+        <Stat icon={<ShieldCheck size={24} />} value={FAMILIES.length} label="Security Families" sub="NIST SP 800-171 families" tone="good" />
+        <Stat icon={<Network size={24} />} value={REQUIREMENTS.filter((r) => r.cmmc_level === 1).length} label="Level 1 Requirements" sub={`${REQUIREMENTS.filter((r) => r.cmmc_level === 2).length} Level 2 only`} tone="muster" />
         <Stat icon={<Tag size={24} />} value={3} label="Priority Levels" sub={viewer.signedIn ? `High / Medium / Low · ${withPriority} set` : 'High / Medium / Low'} tone="warn" testId="stat-req-priority" />
         <Stat icon={<Database size={24} />} value="Rev. 2" label="Source Version" sub="NIST SP 800-171" />
         <Stat icon={<CalendarDays size={24} />} value={fmtStamp(lastUpdated).split(',').slice(0, 2).join(',')} label="Last Updated" sub={viewer.canEdit && drafts ? `${drafts} draft${drafts === 1 ? '' : 's'} to publish` : 'Reference Data'} testId="stat-req-drafts" />
@@ -619,22 +625,31 @@ export default function RequirementsPage() {
             </strong>
             <span className="card-bar-actions">
               {viewer.canEdit && pick.some && (
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-danger-text"
-                  onClick={() => setBulkDeleting(true)}
-                  title={selectedCustom.length ? `Delete ${selectedCustom.length} organisation-defined requirement${selectedCustom.length === 1 ? '' : 's'}` : 'Only organisation-defined requirements can be deleted; none selected'}
-                  disabled={!selectedCustom.length}
-                  data-testid="req-delete-selected"
-                >
-                  <Trash2 size={16} aria-hidden="true" /> Delete {selectedCustom.length ? `${selectedCustom.length} selected` : 'selected'}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-danger-text"
+                    onClick={() => setBulkDeleting(true)}
+                    title={selectedCustom.length ? `Delete ${selectedCustom.length} organisation-defined requirement${selectedCustom.length === 1 ? '' : 's'}` : 'Only organisation-defined requirements can be deleted; none selected'}
+                    disabled={!selectedCustom.length}
+                    data-testid="req-delete-selected"
+                  >
+                    <Trash2 size={16} aria-hidden="true" /> Delete {selectedCustom.length ? `${selectedCustom.length} selected` : 'selected'}
+                  </button>
+                  {/* QA 2026-11-13: say why Delete is (partly) unavailable — the 110 NIST requirements are reference data and are never deleted, by any role. */}
+                  {pick.sel.size > selectedCustom.length && (
+                    <span className="hint" data-testid="req-delete-note">
+                      {pick.sel.size - selectedCustom.length} of {pick.sel.size} selected are NIST requirements — reference data, not deletable
+                    </span>
+                  )}
+                </>
               )}
               <ExportMenu
                 label={pick.some ? `Export ${pick.sel.size} selected` : 'Export'}
                 disabled={!pick.some}
                 onExport={() => exportRequirementsView(exportRows, metaOf, exportCols)}
                 onExportAll={() => exportRequirementsView(sorted, metaOf, exportCols)}
+                onExportForImport={viewer.canEdit ? () => exportRequirementsForImport(exportRows, metaOf, (id) => { const c = customById.get(id); return c ? shownData(c, viewer.canEdit) : null; }) : undefined}
                 onTemplate={viewer.canEdit ? downloadRequirementTemplate : undefined}
               />
               <ColumnChooser hidden={hidden} setHidden={setHidden} />

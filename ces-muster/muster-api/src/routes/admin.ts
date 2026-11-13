@@ -100,6 +100,11 @@ export function createAdminRouter(db: Db, opts: AdminRouterOptions = {}) {
       const body = req.body as z.infer<typeof settingsSchema>;
       const cur = await tx(req, db, (t) => t.tenantSettings.findUnique({ where: { tenant_id: user(req).tenant_id } }));
       const next_ = Object.fromEntries((Object.keys(DEFAULT_SETTINGS) as (keyof typeof DEFAULT_SETTINGS)[]).map((k) => [k, { ...((cur?.[k] as object) ?? {}), ...((body[k] as object) ?? {}) }]));
+      // QA 2026-11-13: a save that changes nothing does not bump the version or write an audit row.
+      if (cur && Object.keys(DEFAULT_SETTINGS).every((k) => JSON.stringify(next_[k]) === JSON.stringify(cur[k] ?? {}))) {
+        res.json({ ...cur, editable: true, unchanged: true });
+        return;
+      }
       const row = cur
         ? await tx(req, db, (t) => t.tenantSettings.update({ where: { tenant_id: user(req).tenant_id }, data: { ...next_, version: (cur.version ?? 1) + 1, updated_by: user(req).sub, updated_at: new Date() } }))
         : await tx(req, db, (t) => t.tenantSettings.create({ data: { tenant_id: user(req).tenant_id, ...next_, version: 1, updated_by: user(req).sub } }));

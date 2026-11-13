@@ -29,6 +29,8 @@ export function Donut({ segments, center, centerLabel, testId }: { segments: Seg
   let offset = 0;
   return (
     <div className="donut" data-testid={testId}>
+      {/* QA 2026-11-13: ring + centre text share one box so the legend can wrap under the ring on a narrow card without the text colliding. */}
+      <div className="donut-ring">
       <svg viewBox="0 0 140 140" role="img" aria-label={`${centerLabel}: ${segments.map((s) => `${s.label} ${s.value}`).join(', ')}`}>
         <circle cx="70" cy="70" r={R} fill="none" stroke="var(--chart-track)" strokeWidth="18" />
         {total > 0 &&
@@ -48,6 +50,7 @@ export function Donut({ segments, center, centerLabel, testId }: { segments: Seg
       <div className="donut-center" aria-hidden="true">
         <strong>{center}</strong>
         <span>{centerLabel}</span>
+      </div>
       </div>
       <ul className="chart-legend">
         {segments.map((s) => (
@@ -69,10 +72,15 @@ export function Bars({ bars, label, testId }: { bars: { label: string; value: nu
   const empty = bars.every((b) => b.value === 0);
   return (
     <div className={`vbars${empty ? ' vbars-empty' : ''}`} role="img" aria-label={`${label}: ${bars.map((b) => `${b.label} ${b.value}`).join(', ')}`} data-testid={testId}>
-      {empty && <span className="vbars-note">No engagements yet</span>}
+      {empty && (
+        <span className="vbars-note">
+          <strong>No engagements yet</strong>
+          <small>Levels appear once an engagement is created</small>
+        </span>
+      )}
       {bars.map((b) => (
         <div key={b.label} className="vbar" title={`${b.label}: ${b.value}`}>
-          <span className="vbar-value">{b.value}</span>
+          <span className="vbar-value">{empty ? '' : b.value}</span>
           <span className="vbar-track">
             <span className="vbar-fill" style={{ height: `${(b.value / max) * 100}%`, background: b.color ?? 'var(--chart-seq)', opacity: b.value === 0 ? 0 : 1 }} />
           </span>

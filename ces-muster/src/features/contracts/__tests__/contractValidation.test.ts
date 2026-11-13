@@ -129,3 +129,14 @@ describe('isContractFormValid', () => {
     expect(isContractFormValid({})).toBe(false);
   });
 });
+
+describe('QA 2026-11-13 — period of performance', () => {
+  it('rejects an end date before the start date', () => {
+    const errors = validateContractForm({ contract_number: 'W1', program_name: 'P', cmmc_level_required: 2, start_date: '2026-11-13', end_date: '2026-11-03' });
+    expect(errors.end_date).toMatch(/on or after/);
+  });
+  it('accepts end on or after start, and either date alone', () => {
+    expect(validateContractForm({ contract_number: 'W1', program_name: 'P', cmmc_level_required: 2, start_date: '2026-11-13', end_date: '2026-11-13' })).toEqual({});
+    expect(validateContractForm({ contract_number: 'W1', program_name: 'P', cmmc_level_required: 2, end_date: '2026-11-03' })).toEqual({});
+  });
+});

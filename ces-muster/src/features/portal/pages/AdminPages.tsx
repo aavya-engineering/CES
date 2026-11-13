@@ -94,6 +94,8 @@ function AddUserDrawer({
   const [orgName, setOrgName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // QA 2026-11-13: field problems sit under their field; `error` is for the server.
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; org?: string }>({});
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -101,16 +103,17 @@ function AddUserDrawer({
     // UX sweep 2026-10-30: own validation (noValidate) so the message is the
     // same inline note as every other form, and the field gets focus.
     const focusEmail = () => document.querySelector<HTMLInputElement>('[data-testid="add-user-email"]')?.focus();
-    if (!email.trim()) {
+    const fe: { email?: string; org?: string } = {};
+    if (!email.trim()) fe.email = 'Enter an email address.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) fe.email = 'Enter a valid email address, e.g. name@organisation.com.';
+    if (orgMode === 'existing' && !orgId) fe.org = 'Choose an organisation.';
+    if (orgMode === 'new' && !orgName.trim()) fe.org = 'Enter the new organisation name.';
+    setFieldErrors(fe);
+    if (fe.email) {
       focusEmail();
-      return setError('Enter an email address.');
+      return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      focusEmail();
-      return setError('Enter a valid email address, e.g. name@organisation.com.');
-    }
-    if (orgMode === 'existing' && !orgId) return setError('Choose an organisation.');
-    if (orgMode === 'new' && !orgName.trim()) return setError('Enter the new organisation name.');
+    if (fe.org) return;
     setBusy(true);
     const r = await adminApi.createUser({
       email: email.trim(),
@@ -119,7 +122,14 @@ function AddUserDrawer({
       ...(orgMode === 'existing' ? { tenant_id: orgId } : { organization_name: orgName.trim() }),
     });
     setBusy(false);
-    if (!r.ok) return setError(r.status === 409 ? 'A user with this email already exists.' : adminFailure(r));
+    if (!r.ok) {
+      if (r.status === 409) {
+        setFieldErrors({ email: 'A user with this email already exists.' });
+        focusEmail();
+        return;
+      }
+      return setError(adminFailure(r));
+    }
     onCreated(r.data.user, r.data.temporary_password);
   };
 
@@ -135,8 +145,13 @@ function AddUserDrawer({
         </div>
         <div className="drawer-body">
           <label className="form-row">
-            Email address *
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" data-testid="add-user-email" required />
+            Email address <span className="req-mark" aria-hidden="true">*</span>
+            <input className="input" type="email" value={email} onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors((f) => ({ ...f, email: undefined })); }} autoComplete="off" data-testid="add-user-email" required aria-invalid={fieldErrors.email ? true : undefined} aria-describedby={fieldErrors.email ? 'add-user-email-error' : undefined} />
+            {fieldErrors.email && (
+              <span className="field-error" id="add-user-email-error" role="alert" data-testid="add-user-error">
+                {fieldErrors.email}
+              </span>
+            )}
           </label>
           <label className="form-row">
             Display name
@@ -173,10 +188,15 @@ function AddUserDrawer({
             {orgMode === 'new' && (
               <input className="input" placeholder="Organisation name" value={orgName} onChange={(e) => setOrgName(e.target.value)} data-testid="add-user-org-name" />
             )}
+            {fieldErrors.org && (
+              <span className="field-error" role="alert" data-testid="add-user-org-error">
+                {fieldErrors.org}
+              </span>
+            )}
             <span className="hint">The customer organisation the user belongs to (Muster organisation), not a Microsoft tenant.</span>
           </fieldset>
           {error && (
-            <p className="note" data-tone="bad" role="alert" data-testid="add-user-error">
+            <p className="note" data-tone="bad" role="alert" data-testid="add-user-server-error">
               {error}
             </p>
           )}

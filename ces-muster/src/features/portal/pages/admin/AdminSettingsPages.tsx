@@ -18,7 +18,7 @@ import type { RouteId, Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
-import { api } from '@/shared/api/musterApi';
+import { api, issuesByField } from '@/shared/api/musterApi';
 import { engagementLabel, useEngagement } from '../useEngagement';
 import { failureText } from '../onboard/onboardApi';
 import LifecycleAccessMatrix from '../LifecycleAccessMatrix';
@@ -89,75 +89,177 @@ function EngagementSelect({ eng }: { eng: ReturnType<typeof useEngagement> }) {
 }
 
 // ====================================================================== settings
-export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: 'organization' | 'system' | 'notifications' | 'security' | 'retention' | 'modules' }) {
+type SettingsTab = 'organization' | 'system' | 'notifications' | 'security' | 'retention' | 'modules';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CIDR_RE = /^\d{1,3}(\.\d{1,3}){3}(\/\d{1,2})?$/;
+const MODULE_LABEL: Record<keyof Settings['modules'], string> = { onboard: 'Onboard', assess: 'Assess', plan: 'Plan', remediate: 'Remediate', evidence: 'Collect Evidence', monitor: 'Monitor', prepare: 'Prepare for Assessment' };
+const inRange = (n: number, lo: number, hi: number, what: string) => (!Number.isInteger(n) || n < lo || n > hi ? `${what} must be a whole number from ${lo} to ${hi}.` : '');
+/** QA 2026-11-13: the same limits muster-api enforces (settingsSchema), checked before Save so the
+ * problem is shown under its field instead of a bare "Validation failed". */
+function checkSettings(tab: SettingsTab, d: Settings): Record<string, string> {
+  const e: Record<string, string> = {};
+  const put = (k: string, msg: string) => { if (msg) e[k] = msg; };
+  if (tab === 'organization') {
+    if (d.organization.display_name.length > 200) put('display_name', 'At most 200 characters.');
+    if (d.organization.support_contact && !EMAIL_RE.test(d.organization.support_contact)) put('support_contact', 'Enter an e-mail address, e.g. support@company.com');
+    if (d.organization.timezone && !/^[A-Za-z_]+\/[A-Za-z_+\-0-9]+$|^UTC$/.test(d.organization.timezone)) put('timezone', 'Use an IANA name such as America/New_York or UTC.');
+    if (d.organization.locale && !/^[a-z]{2}(-[A-Z]{2})?$/.test(d.organization.locale)) put('locale', 'Use a language tag such as en-US.');
+  }
+  if (tab === 'system') {
+    put('monitoring_cadence_hours', inRange(d.system.monitoring_cadence_hours, 1, 168, 'Monitoring cadence'));
+    put('evidence_currency_days', inRange(d.system.evidence_currency_days, 30, 1095, 'Evidence currency'));
+    put('session_idle_minutes', inRange(d.system.session_idle_minutes, 5, 480, 'Session idle timeout'));
+  }
+  if (tab === 'notifications') {
+    const bad = d.notifications.recipients.filter((r) => !EMAIL_RE.test(r));
+    if (bad.length) put('recipients', `Not an e-mail address: ${bad.slice(0, 3).join(', ')}${bad.length > 3 ? '…' : ''}`);
+    else if (d.notifications.recipients.length > 20) put('recipients', 'At most 20 recipients.');
+    else if (d.notifications.recipients.length === 0 && d.notifications.digest !== 'off') put('recipients', 'Add at least one recipient, or set the digest to Off.');
+  }
+  if (tab === 'security') {
+    put('password_min_length', inRange(d.security.password_min_length, 8, 64, 'Minimum password length'));
+    put('session_ttl_hours', inRange(d.security.session_ttl_hours, 1, 72, 'Session lifetime'));
+    if (d.security.require_mfa_note.length > 500) put('require_mfa_note', 'At most 500 characters.');
+    const badIp = d.security.ip_allowlist.filter((x) => !CIDR_RE.test(x) || x.split('/')[0].split('.').some((o) => Number(o) > 255));
+    if (badIp.length) put('ip_allowlist', `Not an IPv4 address or CIDR: ${badIp.slice(0, 3).join(', ')}`);
+    else if (d.security.ip_allowlist.length > 50) put('ip_allowlist', 'At most 50 entries.');
+  }
+  if (tab === 'retention') {
+    put('evidence_days', inRange(d.retention.evidence_days, 365, 3650, 'Evidence retention'));
+    put('audit_days', inRange(d.retention.audit_days, 365, 3650, 'Audit retention'));
+    put('package_days', inRange(d.retention.package_days, 365, 3650, 'Package retention'));
+    if (!e.audit_days && !e.evidence_days && d.retention.audit_days < d.retention.evidence_days) put('audit_days', 'Audit records should be kept at least as long as the evidence they describe.');
+  }
+  return e;
+}
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+export function SettingsPage({ viewer, section }: { viewer: Viewer; section?: SettingsTab }) {
   const s = useLoader<Settings>(() => adminApi.settings(), []);
+  const users = useLoader<TenantUser[]>(() => adminApi.users(), []);
   const [draft, setDraft] = useState<Settings | null>(null);
-  const [tab, setTab] = useState<'organization' | 'system' | 'notifications' | 'security' | 'retention' | 'modules'>(section ?? 'organization');
+  const [tab, setTab] = useState<SettingsTab>(section ?? 'organization');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [fe, setFe] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<string | null>(null);
+  const [confirmHide, setConfirmHide] = useState<string[] | null>(null);
   useEffect(() => { if (s.data) setDraft(s.data); }, [s.data]);
+  // QA 2026-11-13: the sidebar's Settings sub-items and the page tabs are the same six sections — keep them in step.
+  useEffect(() => { if (section) setTab(section); }, [section]);
+  useEffect(() => { setFe({}); setErr(null); }, [tab]);
   const editable = !!s.data?.editable && isOrgAdmin(viewer);
-  const set = <K extends keyof Settings>(k: K, patch: Partial<Settings[K]>) => setDraft((d) => (d ? { ...d, [k]: { ...(d[k] as object), ...patch } } : d));
-  const save = async (e: FormEvent) => {
-    e.preventDefault();
+  const set = <K extends keyof Settings>(k: K, patch: Partial<Settings[K]>) => {
+    setDraft((d) => (d ? { ...d, [k]: { ...(d[k] as object), ...patch } } : d));
+    const changed = Object.keys(patch);
+    if (changed.some((c) => fe[c])) setFe((p) => { const n = { ...p }; for (const c of changed) delete n[c]; return n; });
+  };
+  const d = draft;
+  const dirty = !!d && !!s.data && !same(d[tab], s.data[tab]);
+  const changedBy = (id: string | null) => { if (!id) return ''; const u = users.data?.find((x) => x.id === id); return u ? u.display_name ?? u.email : `user ${id.slice(0, 8)}…`; };
+  const doSave = async () => {
     if (!draft) return;
     setBusy(true); setErr(null);
     const r = await adminApi.saveSettings({ [tab]: draft[tab] } as Partial<Settings>);
     setBusy(false);
-    if (r.ok) { setToast(`${tab} settings saved (v${r.data.version}).`); s.reload(); } else setErr(failureText(r));
+    if (r.ok) {
+      const label = TABS.find(([k]) => k === tab)?.[1] ?? tab;
+      setToast(`${label} settings saved — now version ${r.data.version}. Applies to everyone in the organisation${tab === 'modules' ? ' at their next sign-in or page reload' : ''}.`);
+      s.reload();
+    } else { setFe(issuesByField(r)); setErr(failureText(r)); }
   };
-  const d = draft;
-  const TABS: [typeof tab, string][] = [['organization', 'Organisation'], ['system', 'System'], ['notifications', 'Notifications'], ['security', 'Security'], ['retention', 'Retention'], ['modules', 'Modules']];
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!draft || !s.data) return;
+    if (!dirty) { setErr('Nothing has changed on this tab.'); return; }
+    const problems = checkSettings(tab, draft);
+    setFe(problems);
+    if (Object.keys(problems).length) { setErr('Fix the highlighted fields.'); return; }
+    if (tab === 'modules') {
+      // Hiding a section affects every user — ask first.
+      const hiding = (Object.keys(MODULE_LABEL) as (keyof Settings['modules'])[]).filter((k) => s.data!.modules?.[k] !== false && draft.modules?.[k] === false).map((k) => MODULE_LABEL[k]);
+      if (hiding.length) { setConfirmHide(hiding); return; }
+    }
+    await doSave();
+  };
+  const TABS: [SettingsTab, string][] = [['organization', 'Organisation'], ['system', 'System'], ['notifications', 'Notifications'], ['security', 'Security'], ['retention', 'Retention'], ['modules', 'Modules']];
+  const Err = ({ k }: { k: string }) => (fe[k] ? <span className="field-error" role="alert" data-testid={`settings-error-${k}`}>{fe[k]}</span> : null);
+  const inv = (k: string) => (fe[k] ? { 'aria-invalid': true as const } : {});
+  const tabLabel = TABS.find(([k]) => k === tab)?.[1] ?? tab;
   return (
     <div className="pg" data-testid="page-admin-settings">
-      <PageHeader icon="platform" title="Settings" lede="The organisation's own configuration of CES: identity, monitoring cadence, who gets alerted, session and password policy, and how long evidence, audit records and packages are kept. Every change is versioned and audited." />
+      <PageHeader icon="platform" title="Settings" lede="The organisation's own configuration of CES: identity, monitoring cadence, who gets alerted, session and password policy, how long evidence, audit records and packages are kept, and which lifecycle sections are shown. Every change is versioned and audited." />
+      {/* QA 2026-11-13: say who may change these and that a change reaches every user. */}
+      <p className="note" data-tone={editable ? 'warn' : 'info'} data-testid="settings-scope-note">
+        {editable
+          ? 'These settings apply to every user of this organisation as soon as they are saved. You can change them because your role is organisation administrator, compliance manager or BHD; every save is recorded in the audit log with your name.'
+          : 'Read-only for your role. The organisation administrator, the compliance manager or BHD change these settings; every change applies to every user and is recorded in the audit log.'}
+      </p>
       {(s.error || err) && <p className="note" data-tone="bad" role="alert">{s.error ?? err}</p>}
       {d && (
         <>
-          <div className="toolbar" role="tablist">{TABS.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={`btn ${tab === k ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab(k)} data-testid={`settings-tab-${k}`}>{l}</button>)}<span className="grow" /><span className="hint">v{d.version}{d.updated_by ? ` · ${d.updated_by} · ${fmt(d.updated_at)}` : ''}</span></div>
-          <form className="card card-pad" onSubmit={save} data-testid={`settings-${tab}`}>
-            {!editable && <p className="note" data-tone="info">Read-only for your role — the organisation administrator, the compliance manager or BHD change settings.</p>}
-            <fieldset disabled={!editable} style={{ border: 0, padding: 0 }}>
+          <div className="card" style={{ marginBottom: 14 }}>
+            <div role="tablist" aria-label="Settings sections" className="tabs">
+              {TABS.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} aria-controls={`settings-panel-${k}`} onClick={() => setTab(k)} data-testid={`settings-tab-${k}`}>{l}{dirty && tab === k ? ' •' : ''}</button>)}
+            </div>
+          </div>
+          <form className="card card-pad" onSubmit={save} noValidate id={`settings-panel-${tab}`} role="tabpanel" aria-labelledby={`settings-tab-${tab}`} data-testid={`settings-${tab}`}>
+            <fieldset disabled={!editable} style={{ border: 0, padding: 0, minWidth: 0 }}>
               {tab === 'organization' && <div className="form-grid-2">
-                <label className="form-row">Display name<input className="input" value={d.organization.display_name} onChange={(e) => set('organization', { display_name: e.target.value })} /></label>
-                <label className="form-row">Support contact<input className="input" type="email" value={d.organization.support_contact} onChange={(e) => set('organization', { support_contact: e.target.value })} /></label>
-                <label className="form-row">Timezone<input className="input" value={d.organization.timezone} onChange={(e) => set('organization', { timezone: e.target.value })} placeholder="America/New_York" /></label>
-                <label className="form-row">Locale<input className="input" value={d.organization.locale} onChange={(e) => set('organization', { locale: e.target.value })} /></label>
+                <label className="form-row">Display name<input className="input" value={d.organization.display_name} onChange={(e) => set('organization', { display_name: e.target.value })} maxLength={200} {...inv('display_name')} /><Err k="display_name" /><span className="hint">Shown in the header and on exported packages.</span></label>
+                <label className="form-row">Support contact<input className="input" type="email" value={d.organization.support_contact} onChange={(e) => set('organization', { support_contact: e.target.value })} placeholder="support@company.com" {...inv('support_contact')} /><Err k="support_contact" /></label>
+                <label className="form-row">Timezone<input className="input" value={d.organization.timezone} onChange={(e) => set('organization', { timezone: e.target.value })} placeholder="America/New_York" {...inv('timezone')} /><Err k="timezone" /><span className="hint">IANA name; used for dates in reports and notifications.</span></label>
+                <label className="form-row">Locale<input className="input" value={d.organization.locale} onChange={(e) => set('organization', { locale: e.target.value })} placeholder="en-US" {...inv('locale')} /><Err k="locale" /></label>
               </div>}
               {tab === 'system' && <div className="form-grid-2">
-                <label className="form-row">Monitoring cadence (hours)<input className="input" type="number" min={1} max={168} value={d.system.monitoring_cadence_hours} onChange={(e) => set('system', { monitoring_cadence_hours: Number(e.target.value) })} /><span className="hint">The built-in scheduler (when enabled on the server) evaluates each active engagement at this cadence; otherwise an external cron calls POST /monitor/evaluate. See System health › Background jobs.</span></label>
-                <label className="form-row">Evidence currency (days)<input className="input" type="number" min={30} max={1095} value={d.system.evidence_currency_days} onChange={(e) => set('system', { evidence_currency_days: Number(e.target.value) })} /></label>
-                <label className="form-row">Session idle timeout (minutes)<input className="input" type="number" min={5} max={480} value={d.system.session_idle_minutes} onChange={(e) => set('system', { session_idle_minutes: Number(e.target.value) })} /></label>
+                <label className="form-row">Monitoring cadence (hours, 1–168)<input className="input" type="number" min={1} max={168} value={d.system.monitoring_cadence_hours} onChange={(e) => set('system', { monitoring_cadence_hours: Number(e.target.value) })} {...inv('monitoring_cadence_hours')} /><Err k="monitoring_cadence_hours" /><span className="hint">The built-in scheduler (when enabled on the server) evaluates each active engagement at this cadence; otherwise an external cron calls POST /monitor/evaluate. See System health › Background jobs.</span></label>
+                <label className="form-row">Evidence currency (days, 30–1095)<input className="input" type="number" min={30} max={1095} value={d.system.evidence_currency_days} onChange={(e) => set('system', { evidence_currency_days: Number(e.target.value) })} {...inv('evidence_currency_days')} /><Err k="evidence_currency_days" /><span className="hint">Evidence older than this is flagged as stale in Monitor.</span></label>
+                <label className="form-row">Session idle timeout (minutes, 5–480)<input className="input" type="number" min={5} max={480} value={d.system.session_idle_minutes} onChange={(e) => set('system', { session_idle_minutes: Number(e.target.value) })} {...inv('session_idle_minutes')} /><Err k="session_idle_minutes" /><span className="hint">Users are signed out after this much inactivity.</span></label>
               </div>}
               {tab === 'notifications' && <div className="form-grid-2">
-                <label className="form-row">Alert from severity<select className="select" value={d.notifications.alert_min_severity} onChange={(e) => set('notifications', { alert_min_severity: e.target.value })}>{['critical', 'high', 'medium', 'low', 'info'].map((x) => <option key={x} value={x}>{x}</option>)}</select></label>
+                <label className="form-row">Alert from severity<select className="select" value={d.notifications.alert_min_severity} onChange={(e) => set('notifications', { alert_min_severity: e.target.value })}>{['critical', 'high', 'medium', 'low', 'info'].map((x) => <option key={x} value={x}>{x}</option>)}</select><span className="hint">Findings at this severity and above are sent to the recipients.</span></label>
                 <label className="form-row">Digest<select className="select" value={d.notifications.digest} onChange={(e) => set('notifications', { digest: e.target.value })}><option value="off">Off</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select></label>
-                <label className="form-row">Recipients (comma-separated e-mails)<input className="input" value={d.notifications.recipients.join(', ')} onChange={(e) => set('notifications', { recipients: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} /></label>
+                <label className="form-row">Recipients (e-mail addresses, comma-separated, up to 20)<input className="input" value={d.notifications.recipients.join(', ')} onChange={(e) => set('notifications', { recipients: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="ciso@company.com, it@company.com" {...inv('recipients')} /><Err k="recipients" /><span className="hint">{d.notifications.recipients.length} recipient{d.notifications.recipients.length === 1 ? '' : 's'}. Required unless the digest is Off.</span></label>
               </div>}
               {tab === 'security' && <div className="form-grid-2">
-                <label className="form-row">Minimum password length<input className="input" type="number" min={8} max={64} value={d.security.password_min_length} onChange={(e) => set('security', { password_min_length: Number(e.target.value) })} /></label>
-                <label className="form-row">Session lifetime (hours)<input className="input" type="number" min={1} max={72} value={d.security.session_ttl_hours} onChange={(e) => set('security', { session_ttl_hours: Number(e.target.value) })} /></label>
-                <label className="form-row">IP allow-list (CIDR, comma-separated)<input className="input" value={d.security.ip_allowlist.join(', ')} onChange={(e) => set('security', { ip_allowlist: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="203.0.113.0/24" /></label>
-                <label className="form-row">MFA statement<textarea className="input" rows={3} value={d.security.require_mfa_note} onChange={(e) => set('security', { require_mfa_note: e.target.value })} /></label>
+                <label className="form-row">Minimum password length (8–64)<input className="input" type="number" min={8} max={64} value={d.security.password_min_length} onChange={(e) => set('security', { password_min_length: Number(e.target.value) })} {...inv('password_min_length')} /><Err k="password_min_length" /><span className="hint">Applies to new and changed passwords; NIST 800-171 IA.L2-3.5.7 asks for complexity when new passwords are created.</span></label>
+                <label className="form-row">Session lifetime (hours, 1–72)<input className="input" type="number" min={1} max={72} value={d.security.session_ttl_hours} onChange={(e) => set('security', { session_ttl_hours: Number(e.target.value) })} {...inv('session_ttl_hours')} /><Err k="session_ttl_hours" /><span className="hint">A sign-in token expires after this long regardless of activity.</span></label>
+                <label className="form-row">IP allow-list (IPv4 or CIDR, comma-separated, up to 50)<input className="input" value={d.security.ip_allowlist.join(', ')} onChange={(e) => set('security', { ip_allowlist: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="203.0.113.0/24" {...inv('ip_allowlist')} /><Err k="ip_allowlist" /><span className="hint">Empty means sign-in from anywhere. Make sure your own address is included before saving a list.</span></label>
+                <label className="form-row">MFA statement (up to 500 characters)<textarea className="input" rows={3} maxLength={500} value={d.security.require_mfa_note} onChange={(e) => set('security', { require_mfa_note: e.target.value })} {...inv('require_mfa_note')} /><Err k="require_mfa_note" /><span className="hint">{d.security.require_mfa_note.length}/500 — how MFA is enforced for this organisation; quoted in the SSP.</span></label>
               </div>}
               {tab === 'modules' && <div data-testid="settings-modules">
-                <p className="hint">Hide a lifecycle section from everyone in this organisation — for a phased roll-out or a demo. Hidden is not disallowed: the API keeps enforcing the role matrix, and Administration cannot be hidden. Takes effect at the next sign-in or page reload.</p>
-                <div className="form-grid-2">
-                  {([['onboard', 'Onboard'], ['assess', 'Assess'], ['plan', 'Plan'], ['remediate', 'Remediate'], ['evidence', 'Collect Evidence'], ['monitor', 'Monitor'], ['prepare', 'Prepare for Assessment']] as const).map(([k, label]) => (
-                    <label key={k} className="check"><input type="checkbox" checked={d.modules?.[k] !== false} disabled={!editable} onChange={(e) => set('modules', { [k]: e.target.checked } as Partial<Settings['modules']>)} data-testid={`module-${k}`} /> {label}</label>
+                <p className="note" data-tone="warn" style={{ marginTop: 0 }}>Unticking a section hides it from <strong>every user of this organisation</strong> (all roles) at their next sign-in or page reload — for a phased roll-out or a demo. Hidden is not disallowed: the API keeps enforcing the role matrix, and Administration cannot be hidden. You will be asked to confirm before anything is hidden.</p>
+                <div className="form-grid-2" data-testid="settings-modules-grid">
+                  {(Object.keys(MODULE_LABEL) as (keyof Settings['modules'])[]).map((k) => (
+                    <label key={k} className="check"><input type="checkbox" checked={d.modules?.[k] !== false} disabled={!editable} onChange={(e) => set('modules', { [k]: e.target.checked } as Partial<Settings['modules']>)} data-testid={`module-${k}`} /> {MODULE_LABEL[k]}{s.data?.modules?.[k] === false && <span className="hint" style={{ marginLeft: 6 }}>(currently hidden)</span>}</label>
                   ))}
                 </div>
               </div>}
               {tab === 'retention' && <div className="form-grid-2">
-                <label className="form-row">Evidence (days)<input className="input" type="number" min={365} max={3650} value={d.retention.evidence_days} onChange={(e) => set('retention', { evidence_days: Number(e.target.value) })} /></label>
-                <label className="form-row">Audit records (days)<input className="input" type="number" min={365} max={3650} value={d.retention.audit_days} onChange={(e) => set('retention', { audit_days: Number(e.target.value) })} /></label>
-                <label className="form-row">Evidence packages (days)<input className="input" type="number" min={365} max={3650} value={d.retention.package_days} onChange={(e) => set('retention', { package_days: Number(e.target.value) })} /><span className="hint">DFARS 252.204-7012 expects assessment records to be kept for the contract period plus the retention your contracts specify; the default is 7 years.</span></label>
+                <label className="form-row">Evidence (days, 365–3650)<input className="input" type="number" min={365} max={3650} value={d.retention.evidence_days} onChange={(e) => set('retention', { evidence_days: Number(e.target.value) })} {...inv('evidence_days')} /><Err k="evidence_days" /></label>
+                <label className="form-row">Audit records (days, 365–3650)<input className="input" type="number" min={365} max={3650} value={d.retention.audit_days} onChange={(e) => set('retention', { audit_days: Number(e.target.value) })} {...inv('audit_days')} /><Err k="audit_days" /></label>
+                <label className="form-row">Evidence packages (days, 365–3650)<input className="input" type="number" min={365} max={3650} value={d.retention.package_days} onChange={(e) => set('retention', { package_days: Number(e.target.value) })} {...inv('package_days')} /><Err k="package_days" /><span className="hint">DFARS 252.204-7012 expects assessment records to be kept for the contract period plus the retention your contracts specify; the default is 7 years (2555 days).</span></label>
               </div>}
             </fieldset>
-            {editable && <button type="submit" className="btn btn-primary" disabled={busy} data-testid="settings-save">{busy ? 'Saving…' : `Save ${tab}`}</button>}
+            {editable && (
+              <div className="toolbar" style={{ marginTop: 12, alignItems: 'center' }}>
+                <button type="submit" className="btn btn-primary" disabled={busy || !dirty} title={dirty ? `Save the ${tabLabel} tab for the whole organisation` : 'Nothing has changed on this tab'} data-testid="settings-save">{busy ? 'Saving…' : `Save ${tabLabel}`}</button>
+                {dirty && <button type="button" className="btn btn-secondary" onClick={() => { setDraft((x) => (x && s.data ? { ...x, [tab]: s.data[tab] } : x)); setFe({}); setErr(null); }} data-testid="settings-discard">Discard changes</button>}
+                <span className="hint">{dirty ? 'Unsaved changes on this tab.' : 'No unsaved changes.'}</span>
+              </div>
+            )}
+            {/* QA 2026-11-13: a labelled footer instead of "v45 · <uuid> · date". One version covers all six tabs. */}
+            <p className="hint" style={{ marginTop: 14, marginBottom: 0 }} data-testid="settings-version">
+              Settings version {d.version} (one version number for all tabs; each save adds one).
+              {d.updated_at ? ` Last changed ${fmt(d.updated_at)}${d.updated_by ? ` by ${changedBy(d.updated_by)}` : ''}.` : ' Not changed yet — these are the defaults.'}
+            </p>
           </form>
         </>
+      )}
+      {confirmHide && (
+        <ConfirmDialog title="Hide sections for everyone?" confirmLabel={`Hide ${confirmHide.length === 1 ? confirmHide[0] : `${confirmHide.length} sections`}`} busy={busy} onConfirm={async () => { setConfirmHide(null); await doSave(); }} onCancel={() => setConfirmHide(null)}>
+          <p><strong>{confirmHide.join(', ')}</strong> will disappear from the sidebar for every user of this organisation at their next sign-in or page reload. Work already done there is kept, and the API still enforces the role matrix. You can show the section again here at any time.</p>
+        </ConfirmDialog>
       )}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>
@@ -190,6 +292,8 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const admin = isOrgAdmin(viewer);
+  // Raising a request needs "edit" on Administration › Access Management (matrix: org_admin, platform_admin); BHD operator views only.
+  const canRequest = isSignedIn(viewer) && actionsFor(viewer.role, 'admin').includes('edit');
   const mySub = viewer.kind === 'signed-in' ? viewer.sub ?? '' : '';
   const ask = async (e: FormEvent) => { e.preventDefault(); const r = await adminApi.request({ subject_email: subject, requested_role: reqRole, justification: just }); if (r.ok) { setToast('Access request logged.'); setSubject(''); setJust(''); requests.reload(); } else setErr(failureText(r)); };
   const decide = async () => { if (!deciding) return; const r = await adminApi.decide(deciding.id, decision, notes); if (r.ok) { setToast(r.data.note ?? `Request ${decision}.`); setDeciding(null); setNotes(''); requests.reload(); } else setErr(failureText(r)); };
@@ -207,12 +311,16 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
         <>
           <form className="card card-pad" onSubmit={ask} data-testid="access-request-form">
             <h2 className="card-title">Request access</h2>
-            <div className="form-grid-2">
-              <label className="form-row">For (e-mail) *<input className="input" type="email" value={subject} onChange={(e) => setSubject(e.target.value)} required /></label>
-              <label className="form-row">Role *<select className="select" value={reqRole} onChange={(e) => setReqRole(e.target.value)}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
-            </div>
-            <label className="form-row">Justification *<input className="input" value={just} onChange={(e) => setJust(e.target.value)} required minLength={10} /></label>
-            <button type="submit" className="btn btn-primary" disabled={!subject || just.length < 10}>Submit request</button>
+            {/* QA 2026-11-13: a role that may only view Administration cannot fill the form in at all — it is disabled with the reason, not left usable. */}
+            {!canRequest && <p className="note" data-tone="info" data-testid="access-request-readonly">Your role ({role(viewer)}) can view access requests but not raise them. Ask an organisation administrator to request access on your behalf.</p>}
+            <fieldset disabled={!canRequest} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+              <div className="form-grid-2">
+                <label className="form-row">For (e-mail) <span className="req-mark">*</span><input className="input" type="email" value={subject} onChange={(e) => setSubject(e.target.value)} required /></label>
+                <label className="form-row">Role <span className="req-mark">*</span><select className="select" value={reqRole} onChange={(e) => setReqRole(e.target.value)}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+              </div>
+              <label className="form-row">Justification <span className="req-mark">*</span><input className="input" value={just} onChange={(e) => setJust(e.target.value)} required minLength={10} /><span className="hint">{just.length < 10 ? `At least 10 characters (${10 - just.length} more)` : 'Why this person needs the role'}</span></label>
+              <button type="submit" className="btn btn-primary" disabled={!canRequest || !subject || just.length < 10} title={!canRequest ? 'Your role cannot raise access requests' : undefined}>Submit request</button>
+            </fieldset>
             <p className="hint" style={{ marginTop: 8 }}>A second person (organisation administrator or BHD) decides. Once approved, the organisation administrator creates the account or changes the role under the Users tab; the request is then marked fulfilled automatically.</p>
           </form>
           {requests.data && requests.data.length === 0 && <Empty>No access request.</Empty>}

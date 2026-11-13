@@ -62,6 +62,10 @@ describe('settings', () => {
     expect(saved.version).toBe(1);
     const again = await (await call('PUT', '/api/admin/settings', 'org_admin', { retention: { evidence_days: 2000 } })).json();
     expect(again.version).toBe(2);
+    // QA 2026-11-13: saving the same values again is a no-op — no new version.
+    const noop = await (await call('PUT', '/api/admin/settings', 'org_admin', { retention: { evidence_days: 2000 } })).json();
+    expect(noop.version).toBe(2);
+    expect(noop.unchanged).toBe(true);
     expect(again.system.monitoring_cadence_hours).toBe(6); // earlier section kept
     const read = await (await call('GET', '/api/admin/settings', 'org_admin')).json();
     expect(read.retention.evidence_days).toBe(2000);
