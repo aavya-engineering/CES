@@ -112,7 +112,7 @@ export function PlanOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Route
 }
 
 // ====================================================================== actions
-function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; initial: PlanAction | null; all: PlanAction[]; onSaved: (m: string) => void; onClose: () => void }) {
+function ActionForm({ eid, initial, all, onSaved, onClose, readOnly }: { eid: string; initial: PlanAction | null; all: PlanAction[]; onSaved: (m: string) => void; onClose: () => void; /** QA 2026-11-13: a role that may only view opens the same drawer with every field disabled. */ readOnly?: boolean }) {
   const [f, setF] = useState<PlanActionInput>(initial ? { title: initial.title, description: initial.description, requirement_id: initial.requirement_id, priority: initial.priority, status: initial.status, owner: initial.owner, due_date: ymd(initial.due_date), effort_hours: initial.effort_hours, depends_on: initial.depends_on, sequence: initial.sequence, fix_kind: initial.fix_kind, notes: initial.notes } : { title: '', status: 'open', fix_kind: 'manual', depends_on: [] });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,9 +126,11 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
     if (r.ok) onSaved(initial ? 'Action updated.' : 'Action added.'); else setError(failureText(r));
   };
   return (
-    <Drawer title={initial ? 'Edit action' : 'Add action'} subtitle={initial?.requirement_id ? PRACTICE.get(initial.requirement_id) : 'A manual remediation item (policy, process, configuration).'} onClose={onClose} testId="action-drawer" wide
-      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="action-form" className="btn btn-primary" disabled={busy} data-testid="action-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add action'}</button></>}>
+    <Drawer title={readOnly ? `Action — ${initial?.title ?? ''}` : initial ? 'Edit action' : 'Add action'} subtitle={initial?.requirement_id ? PRACTICE.get(initial.requirement_id) : 'A manual remediation item (policy, process, configuration).'} onClose={onClose} testId="action-drawer" wide
+      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>{!readOnly && <button type="submit" form="action-form" className="btn btn-primary" disabled={busy} data-testid="action-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add action'}</button>}</>}>
       <form id="action-form" onSubmit={submit}>
+        <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+        {readOnly && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <label className="form-row">Title *<input className="input" maxLength={200} value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} data-testid="action-title" /></label>
         <div className="form-grid-2">
@@ -164,6 +166,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
         </div>
         <label className="form-row">Description<textarea maxLength={4000} className="input" rows={3} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
         <label className="form-row">Notes<textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
+      </fieldset>
       </form>
     </Drawer>
   );
@@ -230,7 +233,7 @@ export function PlanActionsPage({ viewer }: { viewer: Viewer }) {
                   <td>{a.owner ?? '—'}</td>
                   <td style={{ color: isOverdue(a) ? 'var(--co-violation)' : undefined }}>{fmtDate(a.due_date)}</td>
                   <td><span className="pill" data-tone={ACTION_STATUS_TONE[a.status]}>{ACTION_STATUS_LABEL[a.status]}</span></td>
-                  <td>{writable && <RowActions label={`Actions for ${a.title}`} actions={[
+                  <td>{!writable && <button type="button" className="row-btn" onClick={() => setEditing(a)} data-testid={`action-view-${a.id}`}>View</button>}{writable && <RowActions label={`Actions for ${a.title}`} actions={[
                     { label: 'Edit', onSelect: () => setEditing(a) },
                     ...(a.status === 'open' ? [{ label: 'Start', onSelect: () => quick(a, 'in_progress') }] : []),
                     ...(a.status !== 'done' ? [{ label: 'Mark done', onSelect: () => quick(a, 'done') }] : [{ label: 'Reopen', onSelect: () => quick(a, 'open') }]),
@@ -242,7 +245,7 @@ export function PlanActionsPage({ viewer }: { viewer: Viewer }) {
           </table>
         </div>
       )}
-      {editing && eng.id && <ActionForm eid={eng.id} initial={editing === 'new' ? null : editing} all={rows} onSaved={(m) => { setEditing(null); setToast(m); actions.reload(); }} onClose={() => setEditing(null)} />}
+      {editing && eng.id && <ActionForm eid={eng.id} initial={editing === 'new' ? null : editing} all={rows} readOnly={!writable} onSaved={(m) => { setEditing(null); setToast(m); actions.reload(); }} onClose={() => setEditing(null)} />}
       {deleting && <ConfirmDialog title="Delete action" confirmLabel="Delete" error={err} onConfirm={doDelete} onCancel={() => setDeleting(null)}><p><strong>{deleting.title}</strong> will be removed. POA&M items keep their text but lose the link.</p></ConfirmDialog>}
       <Toast message={toast} onDone={() => setToast(null)} />
     </div>

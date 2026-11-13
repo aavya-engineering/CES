@@ -111,7 +111,7 @@ const TENANT_STATUS_HELP: Record<CustomerTenant['status'], string> = {
 // ====================================================================== organisations
 const EMPTY_ORG: OrganizationInput = { legal_name: '', dba_name: '', uei: '', cage: '', website: '', address: '', primary_contact_name: '', primary_contact_email: '', contract_clauses: [], status: 'active', notes: '' };
 
-function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization | null; onSaved: (msg: string) => void; onClose: () => void }) {
+function OrganizationForm({ initial, onSaved, onClose, readOnly }: { initial: Organization | null; onSaved: (msg: string) => void; onClose: () => void; /** QA 2026-11-13: a role that may only view opens the same drawer with every field disabled. */ readOnly?: boolean }) {
   const [f, setF] = useState<OrganizationInput>(initial ? { ...EMPTY_ORG, ...initial } : EMPTY_ORG);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -140,18 +140,20 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
   };
   return (
     <Drawer
-      title={initial ? 'Edit organisation' : 'Create organisation'}
+      title={readOnly ? `Organisation — ${initial?.legal_name ?? ''}` : initial ? 'Edit organisation' : 'Create organisation'}
       subtitle="Legal identity the engagement, tenants and SSP will reference."
       onClose={onClose}
       testId="org-drawer"
       footer={
         <>
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" form="org-form" className="btn btn-primary" disabled={busy} data-testid="org-submit">{busy ? 'Saving…' : initial ? 'Save changes' : 'Create organisation'}</button>
+          {!readOnly && <button type="submit" form="org-form" className="btn btn-primary" disabled={busy} data-testid="org-submit">{busy ? 'Saving…' : initial ? 'Save changes' : 'Create organisation'}</button>}
         </>
       }
     >
       <form id="org-form" onSubmit={submit} noValidate>
+        <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+        {readOnly && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <p className="form-legend">Fields marked <span className="req-mark">*</span> are required.</p>
         <Field label="Legal name" required error={fe.legal_name}><input className="input" maxLength={200} value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} aria-invalid={!!fe.legal_name} data-testid="org-legal-name" /></Field>
@@ -181,6 +183,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
           </select>
         </Field>
         <Field label="Notes"><textarea maxLength={2000} className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+      </fieldset>
       </form>
     </Drawer>
   );
@@ -238,11 +241,13 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
                   <td className="contact-cell"><span className="clip-1" title={o.primary_contact_name ?? undefined}>{o.primary_contact_name ?? '—'}</span>{o.primary_contact_email && <div className="hint clip-1" title={o.primary_contact_email}>{o.primary_contact_email}</div>}</td>
                   <td><span className="pill" data-tone={o.status === 'active' ? 'good' : undefined} title={o.status === 'active' ? 'Counted as active' : 'Set to inactive on the organisation'}>{o.status}</span></td>
                   <td>
-                    {writable && (
+                    {writable ? (
                       <RowActions label={`Actions for ${o.legal_name}`} actions={[
                         { label: 'Edit', onSelect: () => setEditing(o) },
                         { label: 'Delete', tone: 'danger', onSelect: () => { setDeleteError(null); setDeleting(o); } },
                       ]} />
+                    ) : (
+                      <button type="button" className="row-btn" onClick={() => setEditing(o)} data-testid={`org-view-${o.id}`}>View</button>
                     )}
                   </td>
                 </tr>
@@ -251,7 +256,7 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
           </table>
         </div>
       )}
-      {editing && <OrganizationForm initial={editing === 'new' ? null : editing} onSaved={saved} onClose={() => setEditing(null)} />}
+      {editing && <OrganizationForm initial={editing === 'new' ? null : editing} readOnly={!writable} onSaved={saved} onClose={() => setEditing(null)} />}
       {deleting && (
         <ConfirmDialog title="Delete organisation" confirmLabel="Delete" error={deleteError} onConfirm={doDelete} onCancel={() => setDeleting(null)}>
           <p><strong>{deleting.legal_name}</strong> will be removed. Tenant registrations that still reference it block the delete.</p>
@@ -266,7 +271,7 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
 const EMPTY_TENANT: CustomerTenantInput = { organization_id: null, display_name: '', entra_tenant_id: '', primary_domain: '', cloud: 'gcc_high', app_registration_id: '', certificate_thumbprint: '', status: 'registered', notes: '' };
 const TENANT_STATUS_TONE: Record<CustomerTenant['status'], 'good' | 'warn' | 'bad' | undefined> = { registered: undefined, consented: 'warn', live_enabled: 'good', disabled: 'bad' };
 
-function TenantForm({ initial, organizations, onSaved, onClose }: { initial: CustomerTenant | null; organizations: Organization[]; onSaved: (m: string) => void; onClose: () => void }) {
+function TenantForm({ initial, organizations, onSaved, onClose, readOnly }: { initial: CustomerTenant | null; organizations: Organization[]; onSaved: (m: string) => void; onClose: () => void; /** QA 2026-11-13: a role that may only view opens the same drawer with every field disabled. */ readOnly?: boolean }) {
   const [f, setF] = useState<CustomerTenantInput>(initial ? { ...EMPTY_TENANT, ...initial } : EMPTY_TENANT);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -294,18 +299,20 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
   };
   return (
     <Drawer
-      title={initial ? 'Edit tenant registration' : 'Register tenant'}
+      title={readOnly ? `Tenant — ${initial?.display_name ?? ''}` : initial ? 'Edit tenant registration' : 'Register tenant'}
       subtitle="The customer's Microsoft 365 GCC High tenant that Muster, Stamper and AdminOps will read from. Certificates stay on the BHD runner — only the thumbprint is recorded here."
       onClose={onClose}
       testId="tenant-drawer"
       footer={
         <>
           <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" form="tenant-form" className="btn btn-primary" disabled={busy} data-testid="tenant-submit">{busy ? 'Saving…' : initial ? 'Save changes' : 'Register tenant'}</button>
+          {!readOnly && <button type="submit" form="tenant-form" className="btn btn-primary" disabled={busy} data-testid="tenant-submit">{busy ? 'Saving…' : initial ? 'Save changes' : 'Register tenant'}</button>}
         </>
       }
     >
       <form id="tenant-form" onSubmit={submit} noValidate>
+        <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+        {readOnly && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <p className="form-legend">Fields marked <span className="req-mark">*</span> are required. Everything else can be filled in later, before the connection test.</p>
         <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" pattern={PERSON_NAME_PATTERN} title={PERSON_NAME_HELP} maxLength={200} value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
@@ -339,6 +346,7 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
           </select>
         </Field>
         <Field label="Notes"><textarea maxLength={2000} className="input" rows={3} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+      </fieldset>
       </form>
     </Drawer>
   );
@@ -415,7 +423,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
                   <td>
                     <RowActions label={`Actions for ${t.display_name}`} actions={[
                       { label: 'Test connection', onSelect: () => setTesting(t), disabledReason: writable ? undefined : 'Your role cannot run checks' },
-                      { label: 'Edit', onSelect: () => setEditing(t), disabledReason: writable ? undefined : 'Your role cannot edit' },
+                      { label: writable ? 'Edit' : 'View', onSelect: () => setEditing(t) },
                       { label: 'Remove', tone: 'danger', onSelect: () => { setDeleteError(null); setDeleting(t); }, disabledReason: !writable ? 'Your role cannot remove' : t.status === 'live_enabled' ? 'Disable live access first' : undefined },
                     ]} />
                   </td>
@@ -425,7 +433,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
           </table>
         </div>
       )}
-      {editing && <TenantForm initial={editing === 'new' ? null : editing} organizations={orgs.rows ?? []} onSaved={(m) => { setEditing(null); setToast(m); tenants.reload(); }} onClose={() => setEditing(null)} />}
+      {editing && <TenantForm initial={editing === 'new' ? null : editing} readOnly={!writable} organizations={orgs.rows ?? []} onSaved={(m) => { setEditing(null); setToast(m); tenants.reload(); }} onClose={() => setEditing(null)} />}
       {testing && <ConnectionPanel tenant={testing} onClose={() => { setTesting(null); tenants.reload(); }} />}
       {deleting && (
         <ConfirmDialog title="Remove tenant registration" confirmLabel="Remove" error={deleteError} onConfirm={doDelete} onCancel={() => setDeleting(null)}>
@@ -441,7 +449,7 @@ export function CustomerTenantsPage({ viewer }: { viewer: Viewer }) {
 const EMPTY_ASSET: ScopeAssetInput = { name: '', asset_type: '', category: 'cui', location: '', owner: '', external_provider: false, notes: '' };
 const CATEGORY_TONE: Record<ScopeCategory, 'good' | 'warn' | 'bad' | 'muster' | undefined> = { cui: 'bad', security_protection: 'warn', contractor_risk_managed: undefined, specialized: 'muster', out_of_scope: 'good' };
 
-function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: ScopeAsset | null; onSaved: (m: string) => void; onClose: () => void }) {
+function AssetForm({ eid, initial, onSaved, onClose, readOnly }: { eid: string; initial: ScopeAsset | null; onSaved: (m: string) => void; onClose: () => void; /** QA 2026-11-13: a role that may only view opens the same drawer with every field disabled. */ readOnly?: boolean }) {
   const [f, setF] = useState<ScopeAssetInput>(initial ? { ...EMPTY_ASSET, ...initial } : EMPTY_ASSET);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -456,9 +464,11 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
     else setError(failureText(r));
   };
   return (
-    <Drawer title={initial ? 'Edit asset' : 'Add asset'} subtitle="Categorise per the CMMC Level 2 Scoping Guide. The category decides which requirements the asset is assessed against." onClose={onClose} testId="asset-drawer"
-      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="asset-form" className="btn btn-primary" disabled={busy} data-testid="asset-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add asset'}</button></>}>
+    <Drawer title={readOnly ? `Asset — ${initial?.name ?? ''}` : initial ? 'Edit asset' : 'Add asset'} subtitle="Categorise per the CMMC Level 2 Scoping Guide. The category decides which requirements the asset is assessed against." onClose={onClose} testId="asset-drawer"
+      footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>{!readOnly && <button type="submit" form="asset-form" className="btn btn-primary" disabled={busy} data-testid="asset-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add asset'}</button>}</>}>
       <form id="asset-form" onSubmit={submit}>
+        <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+        {readOnly && <p className="note" data-tone="info" data-testid="form-readonly">Read-only — your role can view this but not change it.</p>}
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         <Field label="Name *"><input className="input" maxLength={200} value={f.name} onChange={(e) => set('name', e.target.value)} required data-testid="asset-name" /></Field>
         <div className="form-grid-2">
@@ -475,6 +485,7 @@ function AssetForm({ eid, initial, onSaved, onClose }: { eid: string; initial: S
         </div>
         <label className="form-row" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.external_provider} onChange={(e) => set('external_provider', e.target.checked)} /> Operated by an external service provider (ESP / CSP)</label>
         <Field label="Notes"><textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></Field>
+      </fieldset>
       </form>
     </Drawer>
   );
@@ -565,7 +576,7 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
                   <td>{a.location ?? '—'}</td>
                   <td>{a.owner ?? '—'}</td>
                   <td>{a.external_provider ? 'Yes' : '—'}</td>
-                  <td>{writable && <RowActions label={`Actions for ${a.name}`} actions={[{ label: 'Edit', onSelect: () => setEditing(a) }, { label: 'Remove', tone: 'danger', onSelect: () => { setActionError(null); setDeleting(a); } }]} />}</td>
+                  <td>{!writable && <button type="button" className="row-btn" onClick={() => setEditing(a)}>View</button>}{writable && <RowActions label={`Actions for ${a.name}`} actions={[{ label: 'Edit', onSelect: () => setEditing(a) }, { label: 'Remove', tone: 'danger', onSelect: () => { setActionError(null); setDeleting(a); } }]} />}</td>
                 </tr>
               ))}
             </tbody>
@@ -606,7 +617,7 @@ export function ScopePage({ viewer }: { viewer: Viewer }) {
         </section>
       )}
 
-      {editing && eid && <AssetForm eid={eid} initial={editing === 'new' ? null : editing} onSaved={(m) => { setEditing(null); setToast(m); assets.reload(); }} onClose={() => setEditing(null)} />}
+      {editing && eid && <AssetForm eid={eid} initial={editing === 'new' ? null : editing} readOnly={!writable} onSaved={(m) => { setEditing(null); setToast(m); assets.reload(); }} onClose={() => setEditing(null)} />}
       {deleting && (
         <ConfirmDialog title="Remove asset" confirmLabel="Remove" error={actionError} onConfirm={doDelete} onCancel={() => setDeleting(null)}>
           <p><strong>{deleting.name}</strong> leaves the scope inventory. Confirmed boundary versions keep their recorded asset count.</p>
