@@ -110,7 +110,7 @@ function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype,
       <form id="evidence-form" onSubmit={submit}>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
         {mode === 'new' && <label className="form-row">NIST catalog definition<input className="input" value={f.definition_id ?? ''} onChange={(e) => set('definition_id', e.target.value.trim() || null)} placeholder="e.g. AC.L2-3.1.1#E01 (optional)" pattern="^[A-Z]{2}\.L[12]-3\.[0-9]{1,2}\.[0-9]{1,2}#E[0-9]{2}$" title="A BHD catalog row id — requirement, objectives and form are filled from it" data-testid="evidence-definition" /><span className="hint">Filing against a catalog row makes this evidence count for that NIST examine object and its assessment objectives (Collect Evidence › NIST catalog).</span></label>}
-        <label className="form-row">Title *<input className="input" value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} placeholder="e.g. Entra user list export — November 2026" data-testid="evidence-title" /></label>
+        <label className="form-row">Title *<input className="input" maxLength={200} value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} placeholder="e.g. Entra user list export — November 2026" data-testid="evidence-title" /></label>
         <label className="form-row">Requirements *
           <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {(f.requirement_ids ?? []).map((id) => <span key={id} className="pill" data-tone="info">{id} <button type="button" className="row-btn" onClick={() => set('requirement_ids', (f.requirement_ids ?? []).filter((x) => x !== id))} aria-label={`Remove ${id}`}>×</button></span>)}
@@ -148,16 +148,16 @@ function ItemForm({ eid, cat, initial, mode, presetRequirement, presetArchetype,
           </label>
         )}
         <div className="form-grid-2">
-          <label className="form-row">Owner<input className="input" value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Who can speak to this evidence" /></label>
+          <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Who can speak to this evidence" /></label>
           <label className="form-row">Retention until<input className="input" type="date" value={f.retention_until ?? ''} onChange={(e) => set('retention_until', e.target.value || null)} /></label>
         </div>
         <div className="form-grid-2">
           <label className="form-row">Coverage period start<input className="input" type="date" value={f.period_start ?? ''} onChange={(e) => set('period_start', e.target.value || null)} /></label>
           <label className="form-row">Coverage period end<input className="input" type="date" value={f.period_end ?? ''} onChange={(e) => set('period_end', e.target.value || null)} /></label>
         </div>
-        <label className="form-row">Description<textarea className="input" rows={2} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
+        <label className="form-row">Description<textarea maxLength={4000} className="input" rows={2} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
         <label className="form-row">Metadata (key = value per line; e.g. exported_by = cis-1, external_url = https://…)
-          <textarea className="input" rows={3} value={Object.entries(f.metadata ?? {}).map(([k, v]) => `${k} = ${String(v)}`).join('\n')} onChange={(e) => set('metadata', Object.fromEntries(e.target.value.split('\n').map((l) => l.split('=')).filter((p) => p.length >= 2 && p[0].trim()).map(([k, ...v]) => [k.trim(), v.join('=').trim()])))} data-testid="evidence-metadata" />
+          <textarea maxLength={2000} className="input" rows={3} value={Object.entries(f.metadata ?? {}).map(([k, v]) => `${k} = ${String(v)}`).join('\n')} onChange={(e) => set('metadata', Object.fromEntries(e.target.value.split('\n').map((l) => l.split('=')).filter((p) => p.length >= 2 && p[0].trim()).map(([k, ...v]) => [k.trim(), v.join('=').trim()])))} data-testid="evidence-metadata" />
         </label>
       </form>
     </Drawer>
@@ -207,7 +207,7 @@ function ItemDrawer({ eid, item, cat, viewer, onChanged, onEdit, onVersion, onCl
         {editor && (detail.status === 'draft' || detail.status === 'rejected') && <button type="button" className="btn btn-primary" disabled={!!busy || !detail.validation?.passed} title={detail.validation?.passed ? undefined : 'Fix the blocking checks first'} onClick={() => act('submit', () => evidenceApi.submit(eid, detail.id), 'Submitted for review.')} data-testid="evidence-submit-review">Submit for review</button>}
         {reviewer && detail.status === 'submitted' && detail.created_by !== me && (
           <form onSubmit={(e: FormEvent) => e.preventDefault()} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <input className="input" placeholder="Review notes (what you checked)" value={notes} onChange={(e) => setNotes(e.target.value)} minLength={5} style={{ minWidth: 280 }} data-testid="evidence-review-notes" />
+            <input className="input" maxLength={2000} placeholder="Review notes (what you checked)" value={notes} onChange={(e) => setNotes(e.target.value)} minLength={5} style={{ minWidth: 280 }} data-testid="evidence-review-notes" />
             <button type="button" className="btn btn-primary" disabled={!!busy || notes.length < 5} onClick={() => act('approve', () => evidenceApi.review(eid, detail.id, 'approve', notes), 'Evidence approved.')} data-testid="evidence-approve">Approve</button>
             <button type="button" className="btn btn-secondary" disabled={!!busy || notes.length < 5} onClick={() => act('reject', () => evidenceApi.review(eid, detail.id, 'reject', notes), 'Evidence rejected.')}>Reject</button>
           </form>

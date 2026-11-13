@@ -3609,3 +3609,11 @@ fieldset[disabled] .input, fieldset[disabled] .select { opacity: 0.6; }
 .tbl td.org-cell { max-width: 26ch; min-width: 16ch; }
 .tbl td.contact-cell { max-width: 28ch; min-width: 14ch; }
 .tbl td.org-cell .dba { max-width: none; }
+/* Every table: an unbroken string (a pasted id, a run-on name) wraps inside its
+   cell instead of pushing the other columns off-screen; long multi-word free
+   text in a .hint cell is capped at three lines (full text on hover via title). */
+.tbl td { overflow-wrap: anywhere; }
+.tbl td.nowrap, .tbl td.num, .tbl th { overflow-wrap: normal; }
+.tbl td .hint { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tbl td .hint.dba, .tbl td .hint.clip-1 { display: -webkit-box; }
+.tbl td .hint.clip-1 { -webkit-line-clamp: 1; }

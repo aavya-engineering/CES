@@ -128,7 +128,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
       footer={<><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" form="action-form" className="btn btn-primary" disabled={busy} data-testid="action-submit">{busy ? 'Saving…' : initial ? 'Save' : 'Add action'}</button></>}>
       <form id="action-form" onSubmit={submit}>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
-        <label className="form-row">Title *<input className="input" value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} data-testid="action-title" /></label>
+        <label className="form-row">Title *<input className="input" maxLength={200} value={f.title ?? ''} onChange={(e) => set('title', e.target.value)} required minLength={3} data-testid="action-title" /></label>
         <div className="form-grid-2">
           <label className="form-row">Requirement
             <input className="input" list="req-ids" value={f.requirement_id ?? ''} onChange={(e) => set('requirement_id', e.target.value.toUpperCase())} placeholder="AC.L2-3.1.5" />
@@ -146,7 +146,7 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
           <label className="form-row">Status
             <select className="select" value={f.status ?? 'open'} onChange={(e) => set('status', e.target.value as ActionStatus)} data-testid="action-status">{ACTION_STATUSES.map((s) => <option key={s} value={s}>{ACTION_STATUS_LABEL[s]}</option>)}</select>
           </label>
-          <label className="form-row">Owner<input className="input" value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
+          <label className="form-row">Owner<input className="input" maxLength={200} value={f.owner ?? ''} onChange={(e) => set('owner', e.target.value)} placeholder="Name or role" /></label>
         </div>
         <div className="form-grid-2">
           <label className="form-row">Due date<input className="input" type="date" value={f.due_date ?? ''} onChange={(e) => set('due_date', e.target.value)} /></label>
@@ -160,8 +160,8 @@ function ActionForm({ eid, initial, all, onSaved, onClose }: { eid: string; init
             </select>
           </label>
         </div>
-        <label className="form-row">Description<textarea className="input" rows={3} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
-        <label className="form-row">Notes<textarea className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
+        <label className="form-row">Description<textarea maxLength={4000} className="input" rows={3} value={f.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
+        <label className="form-row">Notes<textarea maxLength={2000} className="input" rows={2} value={f.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
       </form>
     </Drawer>
   );
@@ -273,13 +273,13 @@ function PoamForm({ eid, initial, onSaved, onClose }: { eid: string; initial: Po
           <label className="form-row">Requirement *<input className="input" list="req-ids-poam" value={f.requirement_id ?? ''} onChange={(e) => set('requirement_id', e.target.value.toUpperCase())} required disabled={!!initial} /><datalist id="req-ids-poam">{REQ_IDS.map((id) => <option key={id} value={id} />)}</datalist></label>
           <label className="form-row">Status<select className="select" value={f.status ?? 'open'} onChange={(e) => set('status', e.target.value as PoamStatus)} data-testid="poam-status">{POAM_STATUSES.map((s) => <option key={s} value={s}>{POAM_STATUS_LABEL[s]}</option>)}</select></label>
         </div>
-        <label className="form-row">Weakness *<textarea className="input" rows={2} value={f.weakness ?? ''} onChange={(e) => set('weakness', e.target.value)} required minLength={3} /></label>
-        <label className="form-row">Mitigation / remediation<textarea className="input" rows={3} value={f.mitigation ?? ''} onChange={(e) => set('mitigation', e.target.value)} /></label>
+        <label className="form-row">Weakness *<textarea maxLength={2000} className="input" rows={2} value={f.weakness ?? ''} onChange={(e) => set('weakness', e.target.value)} required minLength={3} /></label>
+        <label className="form-row">Mitigation / remediation<textarea maxLength={2000} className="input" rows={3} value={f.mitigation ?? ''} onChange={(e) => set('mitigation', e.target.value)} /></label>
         <div className="form-grid-2">
           <label className="form-row">Scheduled completion<input className="input" type="date" value={f.scheduled_completion ?? ''} onChange={(e) => set('scheduled_completion', e.target.value)} /></label>
-          <label className="form-row">Responsible<input className="input" value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
+          <label className="form-row">Responsible<input className="input" maxLength={200} value={f.responsible ?? ''} onChange={(e) => set('responsible', e.target.value)} /></label>
         </div>
-        <label className="form-row">Resources / cost<input className="input" value={f.resources ?? ''} onChange={(e) => set('resources', e.target.value)} placeholder="People, licences, budget" /></label>
+        <label className="form-row">Resources / cost<input className="input" maxLength={2000} value={f.resources ?? ''} onChange={(e) => set('resources', e.target.value)} placeholder="People, licences, budget" /></label>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}>
           <legend style={{ marginBottom: 6 }}>Milestones</legend>
           {ms.map((m, i) => (

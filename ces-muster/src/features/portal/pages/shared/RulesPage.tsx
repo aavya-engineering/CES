@@ -441,7 +441,7 @@ function RuleWizard({ view, archetypes, onCancel, onSaved }: { view: ItemView<Ru
                 </label>
                 <label className="form-row">
                   Rule Name *
-                  <input className="input" value={d.name} onChange={(e) => set('name', e.target.value)} data-testid="rule-name" />
+                  <input className="input" maxLength={200} value={d.name} onChange={(e) => set('name', e.target.value)} data-testid="rule-name" />
                 </label>
                 <label className="form-row">
                   Rule Type *

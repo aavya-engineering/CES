@@ -395,7 +395,7 @@ function ArchetypeDrawer({ view, domains, onClose, onSaved }: { view: ItemView<A
       </label>
       <label className="form-row">
         Name *
-        <input className="input" value={d.name} onChange={(e) => set('name', e.target.value)} data-testid="archetype-name" />
+        <input className="input" maxLength={200} value={d.name} onChange={(e) => set('name', e.target.value)} data-testid="archetype-name" />
       </label>
       <label className="form-row">
         Domain *

@@ -132,12 +132,12 @@ function RunDrawer({ eid, run, viewer, onChanged, onClose }: { eid: string; run:
         {detail.status === 'approved' && executor && <button type="button" className="btn btn-primary" disabled={!!busy} onClick={() => act('execute', () => remediationApi.execute(eid, detail.id), detail.mode === 'live' ? 'Queued for the tenant runner.' : 'Simulated run recorded.')} data-testid="run-execute">{detail.mode === 'live' ? 'Queue live run' : 'Run simulation'}</button>}
         {(detail.status === 'requested' || detail.status === 'approved' || detail.status === 'blocked') && approver && (
           <form onSubmit={(e: FormEvent) => { e.preventDefault(); act('reject', () => remediationApi.reject(eid, detail.id, reason), 'Run rejected.'); }} style={{ display: 'flex', gap: 6 }}>
-            <input className="input" placeholder="Reason to reject" value={reason} onChange={(e) => setReason(e.target.value)} minLength={5} required /><button type="submit" className="btn btn-secondary" disabled={!!busy}>Reject</button>
+            <input className="input" maxLength={2000} placeholder="Reason to reject" value={reason} onChange={(e) => setReason(e.target.value)} minLength={5} required /><button type="submit" className="btn btn-secondary" disabled={!!busy}>Reject</button>
           </form>
         )}
         {(detail.status === 'succeeded' || detail.status === 'failed') && executor && detail.status !== 'failed' && (
           <form onSubmit={(e: FormEvent) => { e.preventDefault(); act('verify', () => remediationApi.verify(eid, detail.id, true, notes), 'Run verified; linked action closed.'); }} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <input className="input" placeholder="What you checked in the tenant" value={notes} onChange={(e) => setNotes(e.target.value)} minLength={5} required style={{ minWidth: 280 }} data-testid="run-verify-notes" />
+            <input className="input" maxLength={2000} placeholder="What you checked in the tenant" value={notes} onChange={(e) => setNotes(e.target.value)} minLength={5} required style={{ minWidth: 280 }} data-testid="run-verify-notes" />
             <button type="submit" className="btn btn-primary" disabled={!!busy} data-testid="run-verify">Verified</button>
             <button type="button" className="btn btn-secondary" disabled={!!busy || notes.length < 5} onClick={() => act('fail', () => remediationApi.verify(eid, detail.id, false, notes), 'Run marked failed.')}>Not as expected</button>
           </form>
@@ -285,7 +285,7 @@ export function StamperPage({ viewer }: { viewer: Viewer }) {
             <label className="form-row">Mode
               <select className="select" value={mode} onChange={(e) => setMode(e.target.value as RunMode)} data-testid="stamper-mode"><option value="simulate">Simulate (no tenant contact)</option><option value="live">Live (needs live access + approval)</option></select>
             </label>
-            <label className="form-row">Justification *<input className="input" value={justification} onChange={(e) => setJustification(e.target.value)} required minLength={10} data-testid="stamper-justification" /></label>
+            <label className="form-row">Justification *<input className="input" maxLength={2000} value={justification} onChange={(e) => setJustification(e.target.value)} required minLength={10} data-testid="stamper-justification" /></label>
           </div>
           <button type="submit" className="btn btn-primary" disabled={busy || picked.size === 0 || justification.length < 10} data-testid="stamper-submit">{busy ? 'Requesting…' : `Request ${mode} run (${picked.size})`}</button>
         </form>
@@ -386,7 +386,7 @@ export function AdminOpsPage({ viewer, initialDomain }: { viewer: Viewer; initia
             ))}
             {op.parameters.some((p) => p.type === 'readonly') && <p className="hint">Tenant values ({op.parameters.filter((p) => p.type === 'readonly').map((p) => p.label).join(', ')}) are resolved on the runner from the tenant profile.</p>}
             <label className="form-row">Mode<select className="select" value={mode} onChange={(e) => setMode(e.target.value as RunMode)}><option value="simulate">Simulate</option><option value="live">Live (changes the tenant after approval)</option></select></label>
-            <label className="form-row">Justification *<textarea className="input" rows={2} value={justification} onChange={(e) => setJustification(e.target.value)} required minLength={10} data-testid="adminops-justification" /></label>
+            <label className="form-row">Justification *<textarea maxLength={2000} className="input" rows={2} value={justification} onChange={(e) => setJustification(e.target.value)} required minLength={10} data-testid="adminops-justification" /></label>
           </form>
         </Drawer>
       )}
