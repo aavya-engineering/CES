@@ -15,6 +15,8 @@ import { LIFECYCLE_NAV } from '../lifecycle/navigation';
 import { actionsFor, PLATFORM_ROLES, ROLE_LABEL, SOD_RULES, type Action } from '../lifecycle/rbac';
 
 const SHORT: Record<Action, string> = { view: 'V', edit: 'E', approve: 'A', execute: 'X', admin: '★' };
+const LONG: Record<Action, string> = { view: 'View', edit: 'Edit', approve: 'Approve', execute: 'Execute', admin: 'Administer' };
+const ORDER: Action[] = ['view', 'edit', 'approve', 'execute', 'admin'];
 
 const ROWS: { label: string; section: (typeof LIFECYCLE_NAV)[number]['key']; group?: string }[] = [
   { label: 'Shared Foundation', section: 'shared' },
@@ -36,8 +38,17 @@ export default function LifecycleAccessMatrix() {
     <section className="card" data-testid="lifecycle-access-matrix">
       <div className="card-bar">
         <h2 className="card-title">Lifecycle access by role</h2>
-        <span className="muted">V view · E edit · A approve · X execute · ★ administer. Stamper is visible to the BHD operator only; the platform administrator holds no customer data (BHD PB-01).</span>
+        <span className="muted">Stamper is visible to the BHD operator only; the platform administrator holds no customer data (BHD PB-01).</span>
       </div>
+      {/* QA 2026-11-13: the key is a row of the same chips the cells use, and every chip spells its action out on hover / to screen readers. */}
+      <ul className="access-legend card-pad" style={{ paddingTop: 0, paddingBottom: 0 }} aria-label="Key">
+        {ORDER.map((x) => (
+          <li key={x}>
+            <span className="access-key" aria-hidden="true">{SHORT[x]}</span> {LONG[x]}
+          </li>
+        ))}
+        <li><span className="access-key" aria-hidden="true">—</span> no access</li>
+      </ul>
       <div className="table-wrap">
         <table className="tbl">
           <thead>
@@ -58,7 +69,17 @@ export default function LifecycleAccessMatrix() {
                   const a = actionsFor(r, row.section, row.group);
                   return (
                     <td key={r} className="center" data-testid={`access-${row.section}${row.group ? '-' + row.group : ''}-${r}`}>
-                      {a.length ? a.map((x) => SHORT[x]).join(' ') : '—'}
+                      {a.length ? (
+                        <span className="access-cell" aria-label={a.map((x) => LONG[x]).join(', ')}>
+                          {ORDER.filter((x) => a.includes(x)).map((x) => (
+                            <abbr key={x} className="access-key" title={LONG[x]} style={{ textDecoration: 'none' }}>
+                              {SHORT[x]}
+                            </abbr>
+                          ))}
+                        </span>
+                      ) : (
+                        <span aria-label="no access">—</span>
+                      )}
                     </td>
                   );
                 })}

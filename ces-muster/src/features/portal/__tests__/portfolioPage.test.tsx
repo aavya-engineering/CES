@@ -14,6 +14,8 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import PortfolioPage, { type PortfolioData } from '../PortfolioPage';
+import { quickLinksFor } from '../quickLinks';
+import type { RouteId } from '../nav';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -92,5 +94,17 @@ describe('Home / Portfolio', () => {
     expect(host.querySelector('[data-testid="portfolio-restricted"]')).not.toBeNull();
     expect(host.querySelector('[data-testid="portfolio-engagements"]')).toBeNull();
     expect(host.querySelector('[data-testid="readiness"]')).toBeNull();
+  });
+});
+
+describe('QA round 3 (2026-11-13) — Quick Links open what the role can reach', () => {
+  it('an org admin gets AdminOps and EvidenceOps at their lifecycle routes and no Stamper', () => {
+    const allowed = new Set<RouteId>(['home', 'assess/readiness', 'remediate/adminops', 'evidence/overview']);
+    const links = quickLinksFor(allowed, false);
+    expect(links.map((l) => l.t)).toEqual(['Muster', 'AdminOps', 'EvidenceOps']);
+    expect(links.map((l) => l.route)).toEqual(['assess/readiness', 'remediate/adminops', 'evidence/overview']);
+  });
+  it('a legacy viewer (no allowed set) keeps the module routes', () => {
+    expect(quickLinksFor(undefined, false).map((l) => l.route)).toEqual(['muster', 'module/stamper', 'module/adminops', 'module/evidenceops']);
   });
 });

@@ -431,7 +431,7 @@ export default function App() {
         // S1.8: the wireframe portfolio for roles that may read it (operator, prime;
         // platform administrator gets counts only); others keep the device view.
         return viewer.kind === 'signed-in' && PORTFOLIO_VIEWERS.includes(viewer.role) ? (
-          <PortfolioPage go={go} openMuster={(v) => go('muster', v)} />
+          <PortfolioPage go={go} openMuster={(v) => go('muster', v)} allowed={routesFor(viewer)} />
         ) : (
           <HomePage viewer={viewer} name={portalUser?.name ?? null} go={go} openMuster={(v) => go('muster', v)} />
         );
@@ -611,6 +611,7 @@ export default function App() {
             existingSessionId={state.sessionId ?? undefined}
             onEngagementReady={handleEngagementReady}
             onComplete={handleInterviewComplete}
+            onStartNew={() => setState((prev) => ({ ...prev, sessionId: null, partyId: null, engagementId: null, engagementKind: null }))}
           />
         )}
 
@@ -630,6 +631,7 @@ export default function App() {
           <ContractsPage
             engagementKind={state.engagementKind}
             partyId={state.partyId}
+            engagementId={state.engagementId}
           />
         )}
 

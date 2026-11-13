@@ -130,3 +130,26 @@ describe('module visibility (Administration › Settings › Modules)', () => {
     expect(navFor(signedIn('compliance_manager')).map((s) => s.id)).toContain('monitor');
   });
 });
+
+describe('QA round 3 (2026-11-13) — one current item per screen', () => {
+  it('a built screen shared by several lifecycle pages is current for one item only (the rest are shortcuts)', () => {
+    for (const role of ['bhd_operator', 'org_admin', 'compliance_manager', 'it_security_admin']) {
+      const seen = new Set<string>();
+      for (const s of navFor(signedIn(role))) {
+        for (const i of s.items) {
+          if (i.shortcut) continue;
+          const key = `${i.route}|${i.view ?? ''}`;
+          expect(seen.has(key), `${role}: ${key} is current twice`).toBe(false);
+          seen.add(key);
+        }
+      }
+    }
+  });
+  it('shortcuts still open their screen (routesFor keeps the route)', () => {
+    const nav = navFor(signedIn('bhd_operator'));
+    const stamper = nav.find((s) => s.id === 'remediate')!.items.filter((i) => i.route === 'remediate/stamper');
+    expect(stamper.length).toBeGreaterThan(1);
+    expect(stamper.filter((i) => !i.shortcut)).toHaveLength(1);
+    expect(routesFor(signedIn('bhd_operator')).has('remediate/stamper')).toBe(true);
+  });
+});

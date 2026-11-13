@@ -143,6 +143,11 @@ function itemFor(section: LifecycleSection, path: string, label: string, groupLa
 /** Lifecycle sections for a signed-in role (sidebar order = lifecycle order). */
 export function lifecycleNavFor(role: string, modules?: Record<string, boolean>): NavSection[] {
   const out: NavSection[] = [];
+  // QA 2026-11-13 (sidebar: several items lit at once): many lifecycle pages are
+  // built as one screen (e.g. every Stamper page → remediate/stamper, and the
+  // Muster readiness view appears under more than one section). Only the first
+  // item for a screen is "current"; every later one is a shortcut to it.
+  const seen = new Set<string>();
   for (const section of LIFECYCLE_NAV) {
     if (!canView(role, section.key)) continue;
     if (section.key !== 'admin' && section.key !== 'shared' && modules?.[section.key] === false) continue; // tenant hid this module
@@ -161,6 +166,11 @@ export function lifecycleNavFor(role: string, modules?: Record<string, boolean>)
       }
     }
     if (!items.length) continue;
+    for (const i of items) {
+      const key = `${i.route}|${i.view ?? ''}`;
+      if (seen.has(key)) i.shortcut = true;
+      else seen.add(key);
+    }
     out.push({ id: section.key, label: section.label, icon: SECTION_ICON[section.key] ?? 'overview', mod: SECTION_MOD[section.key], items });
   }
   return out;

@@ -33,6 +33,8 @@ export interface ContractFormErrors {
   contract_number?: string;
   program_name?: string;
   cmmc_level_required?: string;
+  /** QA 2026-11-13: end of the period of performance may not precede its start. */
+  end_date?: string;
 }
 
 /**
@@ -54,6 +56,10 @@ export function validateContractForm(form: ContractFormData): ContractFormErrors
   const level = Number(form.cmmc_level_required);
   if (!form.cmmc_level_required || ![1, 2, 3].includes(level)) {
     errors.cmmc_level_required = 'CMMC level required must be 1, 2, or 3.';
+  }
+
+  if (form.start_date && form.end_date && form.end_date < form.start_date) {
+    errors.end_date = 'End date must be on or after the start date.';
   }
 
   return errors;

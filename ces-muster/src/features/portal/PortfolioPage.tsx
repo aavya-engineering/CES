@@ -17,6 +17,7 @@ import { api } from '@/shared/api/musterApi';
 import type { MusterView, RouteId } from './nav';
 import { Bars, Donut, Meter } from './charts';
 import { RowActions } from './governed';
+import { quickLinksFor } from './quickLinks';
 
 type Health = 'on_track' | 'at_risk' | 'overdue' | 'closed';
 interface Totals {
@@ -115,8 +116,9 @@ function Card({ title, action, children, className }: { title: string; action?: 
   );
 }
 
-export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => void; openMuster: (v: MusterView) => void }) {
+export default function PortfolioPage({ go, openMuster, allowed }: { go: (r: RouteId) => void; openMuster: (v: MusterView) => void; /** Routes this viewer may open (routesFor) — Quick Links only offer pages the role can reach. */ allowed?: Set<RouteId> }) {
   const [days, setDays] = useState(30);
+  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
   const [state, setState] = useState<{ kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'ready'; data: PortfolioData }>({ kind: 'loading' });
   const [busy, setBusy] = useState(false);
 
@@ -127,7 +129,10 @@ export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => 
     setBusy(true);
     const r = await api.get<PortfolioData>(`/portfolio?days=${days}`);
     setBusy(false);
-    if (r.ok) setState({ kind: 'ready', data: r.data });
+    if (r.ok) {
+      setState({ kind: 'ready', data: r.data });
+      setRefreshedAt(Date.now());
+    }
     else setState({ kind: 'error', message: r.status === 0 ? 'muster-api is not reachable. Start it and refresh.' : r.error ?? `muster-api returned ${r.status}` });
   }, [days]);
   useEffect(() => {
@@ -151,9 +156,11 @@ export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => 
             Last updated
             <strong>{data ? fmtTime(data.generated_at) : '…'}</strong>
           </div>
-          <button type="button" className="portal-icon-btn" aria-label="Refresh" title="Refresh" onClick={() => void load()} data-testid="portfolio-refresh">
-            ↻
+          {/* QA 2026-11-13: the button says what it does and shows that it is doing it. */}
+          <button type="button" className="portal-icon-btn" aria-label={busy ? 'Refreshing' : 'Refresh the dashboard numbers'} title={busy ? 'Refreshing…' : 'Refresh the dashboard numbers'} aria-busy={busy} data-busy={busy || undefined} disabled={busy} onClick={() => void load()} data-testid="portfolio-refresh">
+            <span className="spin" aria-hidden="true">↻</span>
           </button>
+          <span className="sr-only" role="status" aria-live="polite">{refreshedAt ? `Dashboard refreshed at ${new Date(refreshedAt).toLocaleTimeString()}` : ''}</span>
           <label className="sr-only" htmlFor="portfolio-range">
             Time range
           </label>
@@ -359,31 +366,22 @@ export default function PortfolioPage({ go, openMuster }: { go: (r: RouteId) => 
               </div>
               {data && (data.activity ?? []).length === 0 && <p className="pg-meta dash-empty">No activity yet.</p>}
             </Card>
-            <QuickLinks go={go} openMuster={openMuster} />
+            <QuickLinks go={go} openMuster={openMuster} allowed={allowed} />
           </div>
         </>
       )}
       {restricted && (
         <div className="dash-row dash-row-2">
-          <QuickLinks go={go} openMuster={openMuster} admin />
+          <QuickLinks go={go} openMuster={openMuster} allowed={allowed} admin />
         </div>
       )}
     </div>
   );
 }
 
-function QuickLinks({ go, openMuster, admin }: { go: (r: RouteId) => void; openMuster: (v: MusterView) => void; admin?: boolean }) {
-  const links = admin
-    ? [
-        { mod: undefined, t: 'CES-Shared Overview', s: 'Reference data and rules', on: () => go('shared/overview') },
-        { mod: undefined, t: 'Users', s: 'Accounts and roles', on: () => go('platform/users') },
-      ]
-    : [
-        { mod: 'muster', t: 'Muster', s: 'Assess & Plan', on: () => openMuster('assessment') },
-        { mod: 'stamper', t: 'Stamper', s: 'Configure & Verify', on: () => go('module/stamper') },
-        { mod: 'adminops', t: 'AdminOps', s: 'Govern Changes', on: () => go('module/adminops') },
-        { mod: 'evidenceops', t: 'EvidenceOps', s: 'Prove & Maintain', on: () => go('module/evidenceops') },
-      ];
+function QuickLinks({ go, openMuster, admin, allowed }: { go: (r: RouteId) => void; openMuster: (v: MusterView) => void; admin?: boolean; allowed?: Set<RouteId> }) {
+  const links = quickLinksFor(allowed, !!admin).map((l) => ({ ...l, on: () => (l.view ? openMuster(l.view) : go(l.route)) }));
+  if (!links.length) return null;
   return (
     <Card title="Quick Links">
       <div className="quick-links">

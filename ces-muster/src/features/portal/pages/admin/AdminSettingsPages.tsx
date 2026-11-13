@@ -190,6 +190,8 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const admin = isOrgAdmin(viewer);
+  // Raising a request needs "edit" on Administration › Access Management (matrix: org_admin, platform_admin); BHD operator views only.
+  const canRequest = isSignedIn(viewer) && actionsFor(viewer.role, 'admin').includes('edit');
   const mySub = viewer.kind === 'signed-in' ? viewer.sub ?? '' : '';
   const ask = async (e: FormEvent) => { e.preventDefault(); const r = await adminApi.request({ subject_email: subject, requested_role: reqRole, justification: just }); if (r.ok) { setToast('Access request logged.'); setSubject(''); setJust(''); requests.reload(); } else setErr(failureText(r)); };
   const decide = async () => { if (!deciding) return; const r = await adminApi.decide(deciding.id, decision, notes); if (r.ok) { setToast(r.data.note ?? `Request ${decision}.`); setDeciding(null); setNotes(''); requests.reload(); } else setErr(failureText(r)); };
@@ -207,12 +209,16 @@ export function AccessManagementPage({ viewer }: { viewer: Viewer }) {
         <>
           <form className="card card-pad" onSubmit={ask} data-testid="access-request-form">
             <h2 className="card-title">Request access</h2>
-            <div className="form-grid-2">
-              <label className="form-row">For (e-mail) *<input className="input" type="email" value={subject} onChange={(e) => setSubject(e.target.value)} required /></label>
-              <label className="form-row">Role *<select className="select" value={reqRole} onChange={(e) => setReqRole(e.target.value)}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
-            </div>
-            <label className="form-row">Justification *<input className="input" value={just} onChange={(e) => setJust(e.target.value)} required minLength={10} /></label>
-            <button type="submit" className="btn btn-primary" disabled={!subject || just.length < 10}>Submit request</button>
+            {/* QA 2026-11-13: a role that may only view Administration cannot fill the form in at all — it is disabled with the reason, not left usable. */}
+            {!canRequest && <p className="note" data-tone="info" data-testid="access-request-readonly">Your role ({role(viewer)}) can view access requests but not raise them. Ask an organisation administrator to request access on your behalf.</p>}
+            <fieldset disabled={!canRequest} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+              <div className="form-grid-2">
+                <label className="form-row">For (e-mail) <span className="req-mark">*</span><input className="input" type="email" value={subject} onChange={(e) => setSubject(e.target.value)} required /></label>
+                <label className="form-row">Role <span className="req-mark">*</span><select className="select" value={reqRole} onChange={(e) => setReqRole(e.target.value)}>{ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+              </div>
+              <label className="form-row">Justification <span className="req-mark">*</span><input className="input" value={just} onChange={(e) => setJust(e.target.value)} required minLength={10} /><span className="hint">{just.length < 10 ? `At least 10 characters (${10 - just.length} more)` : 'Why this person needs the role'}</span></label>
+              <button type="submit" className="btn btn-primary" disabled={!canRequest || !subject || just.length < 10} title={!canRequest ? 'Your role cannot raise access requests' : undefined}>Submit request</button>
+            </fieldset>
             <p className="hint" style={{ marginTop: 8 }}>A second person (organisation administrator or BHD) decides. Once approved, the organisation administrator creates the account or changes the role under the Users tab; the request is then marked fulfilled automatically.</p>
           </form>
           {requests.data && requests.data.length === 0 && <Empty>No access request.</Empty>}

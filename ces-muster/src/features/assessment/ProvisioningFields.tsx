@@ -43,32 +43,48 @@ export function TouFileField({
   onCommit: (value: string) => void;
 }) {
   const [error, setError] = useState('');
+  const [status, setStatus] = useState<'idle' | 'reading' | 'stored'>('idle');
   const name = /^file:([^;]+);/.exec(value)?.[1];
+  // QA 2026-11-13: one clear state at a time — "no file yet" / "stored: X (replace · remove)" —
+  // with an upload status and the PDF rule spelled out.
   return (
     <div className="field">
-      <input
-        type="file"
-        accept="application/pdf,.pdf"
-        name={id}
-        data-testid={`plan-input-${id}`}
-        disabled={!sessionId}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file || !sessionId) return;
-          try {
-            const ref = await storeTouFile(sessionId, file.name, await readFileBytes(file));
-            setError('');
-            onCommit(ref);
-          } catch (err) {
-            setError(err instanceof TouFileError ? err.message : 'could not read the file');
-          }
-        }}
-      />
-      {name && (
-        <p className="field-note" data-testid={`plan-input-current-${id}`}>
-          Stored: {name}
+      {name ? (
+        <p className="field-note" data-testid={`plan-input-current-${id}`} style={{ marginBottom: 6 }}>
+          <strong>Stored:</strong> {name}{status === 'stored' ? ' — uploaded ✓' : ''}{' '}
+          <button type="button" className="btn" style={{ marginLeft: 8, fontSize: 12 }} onClick={() => { onCommit(''); setStatus('idle'); setError(''); }} disabled={!sessionId} data-testid={`plan-input-remove-${id}`}>
+            Remove
+          </button>
         </p>
+      ) : (
+        <p className="eyebrow" style={{ margin: '0 0 6px' }}>No file yet</p>
       )}
+      <label className="field-label" style={{ fontWeight: 400 }}>
+        {name ? 'Replace with another PDF' : 'Choose a PDF'} (PDF only)
+        <input
+          type="file"
+          accept="application/pdf,.pdf"
+          name={id}
+          data-testid={`plan-input-${id}`}
+          disabled={!sessionId}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !sessionId) return;
+            setStatus('reading');
+            try {
+              const ref = await storeTouFile(sessionId, file.name, await readFileBytes(file));
+              setError('');
+              setStatus('stored');
+              onCommit(ref);
+            } catch (err) {
+              setStatus('idle');
+              setError(err instanceof TouFileError ? err.message : 'could not read the file');
+            }
+            e.target.value = '';
+          }}
+        />
+      </label>
+      {status === 'reading' && <p className="field-note">Reading the file…</p>}
       {error && (
         <p className="form-error" data-testid={`plan-input-error-${id}`}>
           {error}

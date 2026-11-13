@@ -135,6 +135,25 @@ export default function PortalShell({
       return next;
     });
   const isCurrent = (i: NavItem) => !i.shortcut && i.route === route && (i.route !== 'muster' || i.view === musterView);
+  // QA 2026-11-13 ("Users & Roles" cannot be collapsed): a sub-group opens by
+  // itself when you arrive on one of its pages, but stays collapsible after that.
+  useEffect(() => {
+    setCollapsed((prev) => {
+      let next: Set<string> | null = null;
+      for (const s of sections) {
+        for (const g of groupItems(s.items)) {
+          if (!g.group) continue;
+          const gid = `${s.id}:${g.group}`;
+          if (prev.has(gid) && g.items.some(isCurrent)) {
+            next ??= new Set(prev);
+            next.delete(gid);
+          }
+        }
+      }
+      return next ?? prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route, musterView]);
   const go = (r: RouteId, v?: MusterView) => {
     setNavOpen(false);
     // S1.10: choosing the page you are on (e.g. "110 Requirements" while its
@@ -211,7 +230,7 @@ export default function PortalShell({
                       );
                       if (!g.group) return g.items.map(link);
                       const gid = `${s.id}:${g.group}`;
-                      const gOpen = !collapsed.has(gid) || g.items.some(isCurrent);
+                      const gOpen = !collapsed.has(gid);
                       return (
                         <li key={gid} className="portal-nav-group">
                           <button type="button" className="portal-nav-subhead" aria-expanded={gOpen} onClick={() => toggle(gid)} data-testid={`nav-group-${g.group.toLowerCase().replace(/[^a-z]+/g, '-')}`}>

@@ -15,7 +15,7 @@
 // "Add Requirement Weight" form are not built: weights are set by the DoD
 // methodology and kept in one canonical ces-shared file (doc 14 M3, M4).
 import { useState } from 'react';
-import { BarChart3, ChevronDown, Download, FileText, Network, ShieldCheck, Sigma } from 'lucide-react';
+import { BarChart3, FileText, Network, ShieldCheck, Sigma } from 'lucide-react';
 import {
   PARTIAL_CREDIT,
   POAM_PROHIBITED,
@@ -28,8 +28,8 @@ import {
 } from '../referenceData';
 import { PageHeader, Pager, Stat, Empty, RowsPerPage, SelectBox, SortTh } from '../ui';
 import { usePaged, useSelection, useSort, weightTone } from '../paging';
-import { exportRequirementsCsv } from '../requirementCsvData';
-import { RequirementDetail, RequirementFilters } from './RequirementsPage';
+import { exportRequirementsCsv, exportRequirementsForImport } from '../requirementCsvData';
+import { ExportMenu, RequirementDetail, RequirementFilters } from './RequirementsPage';
 import { useRequirementFilter } from '../requirementFilter';
 import { EditRequirementDrawer, ModulePills, PriorityPill } from '../requirementMeta';
 import { metaFor, useRequirementMeta } from '../requirementMetaData';
@@ -79,14 +79,16 @@ export default function SprsWeightsPage() {
               Last updated
               <strong>{fmtGenerated(SPRS_META.generated_on)}</strong>
             </div>
-            <div className="split-btn">
-              <button type="button" className="btn btn-primary" onClick={() => exportRequirementsCsv(sorted, metaOf)} data-testid="sprs-actions">
-                <Download size={16} aria-hidden="true" /> Actions
-              </button>
-              <button type="button" className="btn btn-primary split-btn-caret" aria-label="Export options" onClick={() => exportRequirementsCsv(sorted, metaOf)}>
-                <ChevronDown size={18} aria-hidden="true" />
-              </button>
-            </div>
+            {/* QA 2026-11-13: the caret opens a menu (it used to download straight away) and the button says what it downloads. */}
+            {viewer.canEdit && <span className="head-divider" aria-hidden="true" />}
+            <ExportMenu
+              testIdPrefix="sprs"
+              label={pick.some ? `Export ${pick.sel.size} selected (CSV)` : 'Export weights (CSV)'}
+              disabled={!pick.some}
+              onExport={() => exportRequirementsCsv(sorted.filter((r) => pick.sel.has(r.control_id)), metaOf)}
+              onExportAll={() => exportRequirementsCsv(sorted, metaOf)}
+              onExportForImport={viewer.canEdit ? () => exportRequirementsForImport(pick.some ? sorted.filter((r) => pick.sel.has(r.control_id)) : sorted, metaOf) : undefined}
+            />
           </div>
         }
       />

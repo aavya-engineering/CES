@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import type { Viewer } from '../../nav';
 import { actionsFor } from '../../lifecycle/rbac';
+import { issuesByField } from '@/shared/api/musterApi';
 import { ConfirmDialog, Drawer, RowActions, Toast } from '../../governed';
 import { Empty, PageHeader, Stat } from '../../ui';
 import { engagementLabel, useEngagement } from '../useEngagement';
@@ -59,15 +60,46 @@ function useList<T>(load: () => Promise<{ ok: true; data: T } | { ok: false; sta
   return { rows, error, reload: () => setTick((t) => t + 1) };
 }
 
-function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+function Field({ label, children, hint, error, required }: { label: string; children: ReactNode; hint?: string; /** QA 2026-11-13: shown under the field, in red. */ error?: string; required?: boolean }) {
   return (
-    <label className="form-row">
+    <label className="form-row" data-invalid={error ? 'true' : undefined}>
       {label}
+      {required && <span className="req-mark" aria-hidden="true"> *</span>}
       {children}
+      {error && <span className="field-error" role="alert">{error}</span>}
       {hint && <span className="hint">{hint}</span>}
     </label>
   );
 }
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Client-side checks that mirror muster-api's zod schemas, so the user sees the problem before submit. */
+function checkOrganization(f: OrganizationInput): Record<string, string> {
+  const e: Record<string, string> = {};
+  if (f.legal_name.trim().length < 2) e.legal_name = 'Legal name needs at least 2 characters.';
+  if (f.uei && !/^[A-Z0-9]{12}$/i.test(f.uei)) e.uei = 'A UEI is 12 letters or digits.';
+  if (f.cage && !/^[A-Z0-9]{5}$/i.test(f.cage)) e.cage = 'A CAGE code is 5 letters or digits.';
+  if (f.website && !/^https?:\/\/\S+\.\S+$/i.test(f.website)) e.website = 'Enter a full address starting with https://';
+  if (f.primary_contact_email && !EMAIL.test(f.primary_contact_email)) e.primary_contact_email = 'Enter a valid e-mail, e.g. name@company.com';
+  if ((f.primary_contact_name ?? '').length > 200) e.primary_contact_name = 'At most 200 characters.';
+  return e;
+}
+function checkTenant(f: CustomerTenantInput): Record<string, string> {
+  const e: Record<string, string> = {};
+  if (f.display_name.trim().length < 2) e.display_name = 'Display name needs at least 2 characters.';
+  if (f.entra_tenant_id && !UUID.test(f.entra_tenant_id)) e.entra_tenant_id = 'A tenant id is a GUID, e.g. 11111111-2222-3333-4444-555555555555';
+  if (f.primary_domain && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(f.primary_domain)) e.primary_domain = 'A domain such as contoso.onmicrosoft.us';
+  if (f.app_registration_id && !UUID.test(f.app_registration_id)) e.app_registration_id = 'An app registration id is a GUID.';
+  if (f.certificate_thumbprint && !/^[A-F0-9]{40}$/i.test(f.certificate_thumbprint)) e.certificate_thumbprint = 'SHA-1 thumbprint: exactly 40 hex characters.';
+  return e;
+}
+const TENANT_STATUS_HELP: Record<CustomerTenant['status'], string> = {
+  registered: 'Registered — identifiers recorded; nothing is read from the tenant yet.',
+  consented: 'Consented — the customer granted the CES app registration; still no live reads.',
+  live_enabled: 'Live enabled — live reads may be granted per engagement at the Live gate.',
+  disabled: 'Disabled — no engagement may use this tenant.',
+};
 
 // ====================================================================== organisations
 const EMPTY_ORG: OrganizationInput = { legal_name: '', dba_name: '', uei: '', cage: '', website: '', address: '', primary_contact_name: '', primary_contact_email: '', contract_clauses: [], status: 'active', notes: '' };
@@ -76,16 +108,28 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
   const [f, setF] = useState<OrganizationInput>(initial ? { ...EMPTY_ORG, ...initial } : EMPTY_ORG);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const set = <K extends keyof OrganizationInput>(k: K, v: OrganizationInput[K]) => setF((p) => ({ ...p, [k]: v }));
+  const [fe, setFe] = useState<Record<string, string>>({});
+  const set = <K extends keyof OrganizationInput>(k: K, v: OrganizationInput[K]) => {
+    setF((p) => ({ ...p, [k]: v }));
+    if (fe[k as string]) setFe((p) => ({ ...p, [k as string]: '' }));
+  };
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    // QA 2026-11-13: check before submitting; each problem is shown under its field.
+    const problems = checkOrganization(f);
+    setFe(problems);
+    if (Object.keys(problems).length) { setError('Fix the highlighted fields.'); return; }
     setBusy(true);
     setError(null);
     const body = { ...f, uei: f.uei || null, cage: f.cage || null, website: f.website || null, primary_contact_email: f.primary_contact_email || null };
     const r = initial ? await onboardApi.organizations.update(initial.id, body) : await onboardApi.organizations.create(body);
     setBusy(false);
     if (r.ok) onSaved(initial ? `${r.data.legal_name} updated.` : `${r.data.legal_name} created.`);
-    else setError(failureText(r));
+    else {
+      const byField = issuesByField(r);
+      if (Object.keys(byField).length) setFe(byField);
+      setError(r.status === 409 ? (r.error ?? 'An organisation with this legal name already exists.') : failureText(r));
+    }
   };
   return (
     <Drawer
@@ -100,19 +144,20 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
         </>
       }
     >
-      <form id="org-form" onSubmit={submit}>
+      <form id="org-form" onSubmit={submit} noValidate>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
-        <Field label="Legal name *"><input className="input" value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} data-testid="org-legal-name" /></Field>
-        <Field label="Doing business as"><input className="input" value={f.dba_name ?? ''} onChange={(e) => set('dba_name', e.target.value)} /></Field>
+        <p className="form-legend">Fields marked <span className="req-mark">*</span> are required.</p>
+        <Field label="Legal name" required error={fe.legal_name}><input className="input" value={f.legal_name} onChange={(e) => set('legal_name', e.target.value)} required minLength={2} aria-invalid={!!fe.legal_name} data-testid="org-legal-name" /></Field>
+        <Field label="Doing business as" error={fe.dba_name} hint="Trade name, if different from the legal name"><input className="input" value={f.dba_name ?? ''} onChange={(e) => set('dba_name', e.target.value)} maxLength={200} /></Field>
         <div className="form-grid-2">
-          <Field label="UEI" hint="12 characters (SAM.gov)"><input className="input" value={f.uei ?? ''} onChange={(e) => set('uei', e.target.value.toUpperCase())} maxLength={12} /></Field>
-          <Field label="CAGE" hint="5 characters"><input className="input" value={f.cage ?? ''} onChange={(e) => set('cage', e.target.value.toUpperCase())} maxLength={5} /></Field>
+          <Field label="UEI" hint="Unique Entity ID from SAM.gov — 12 letters/digits" error={fe.uei}><input className="input" value={f.uei ?? ''} onChange={(e) => set('uei', e.target.value.toUpperCase())} maxLength={12} placeholder="ABC123DEF456" aria-invalid={!!fe.uei} /></Field>
+          <Field label="CAGE" hint="Commercial and Government Entity code — 5 letters/digits" error={fe.cage}><input className="input" value={f.cage ?? ''} onChange={(e) => set('cage', e.target.value.toUpperCase())} maxLength={5} placeholder="1AB23" aria-invalid={!!fe.cage} /></Field>
         </div>
-        <Field label="Website"><input className="input" type="url" value={f.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://" /></Field>
-        <Field label="Address"><textarea className="input" rows={2} value={f.address ?? ''} onChange={(e) => set('address', e.target.value)} /></Field>
+        <Field label="Website" error={fe.website} hint="Full address, including https://"><input className="input" type="url" value={f.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://www.example.com" aria-invalid={!!fe.website} /></Field>
+        <Field label="Address"><textarea className="input" rows={2} value={f.address ?? ''} onChange={(e) => set('address', e.target.value)} maxLength={500} /></Field>
         <div className="form-grid-2">
-          <Field label="Primary contact"><input className="input" value={f.primary_contact_name ?? ''} onChange={(e) => set('primary_contact_name', e.target.value)} /></Field>
-          <Field label="Contact email"><input className="input" type="email" value={f.primary_contact_email ?? ''} onChange={(e) => set('primary_contact_email', e.target.value)} /></Field>
+          <Field label="Primary contact" error={fe.primary_contact_name} hint="Name of the person CES correspondence goes to"><input className="input" value={f.primary_contact_name ?? ''} onChange={(e) => set('primary_contact_name', e.target.value)} maxLength={200} aria-invalid={!!fe.primary_contact_name} /></Field>
+          <Field label="Contact email" error={fe.primary_contact_email}><input className="input" type="email" value={f.primary_contact_email ?? ''} onChange={(e) => set('primary_contact_email', e.target.value)} placeholder="name@company.com" aria-invalid={!!fe.primary_contact_email} /></Field>
         </div>
         <fieldset className="form-row" style={{ border: 0, padding: 0 }}>
           <legend style={{ marginBottom: 6 }}>Contract clauses that apply</legend>
@@ -122,7 +167,7 @@ function OrganizationForm({ initial, onSaved, onClose }: { initial: Organization
             </label>
           ))}
         </fieldset>
-        <Field label="Status">
+        <Field label="Status" hint="Active organisations count on the Onboard dashboard; inactive ones are kept for the record and hidden from new engagements.">
           <select className="select" value={f.status} onChange={(e) => set('status', e.target.value as 'active' | 'inactive')}>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -159,8 +204,8 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
       />
       <div className="stats">
         <Stat icon="engagements" value={rows?.length ?? '—'} label="Organisations" />
-        <Stat icon="tenants" value={rows ? rows.filter((o) => o.status === 'active').length : '—'} label="Active" tone="good" />
-        <Stat icon="contracts" value={rows ? rows.filter((o) => o.contract_clauses.includes('DFARS 252.204-7021')).length : '—'} label="With 7021 (CMMC) clause" />
+        <Stat icon="tenants" value={rows ? rows.filter((o) => o.status === 'active').length : '—'} label="Active" sub="Status set to Active on the organisation" tone="good" />
+        <Stat icon="contracts" value={rows ? rows.filter((o) => o.contract_clauses.includes('DFARS 252.204-7021')).length : '—'} label="With 7021 (CMMC) clause" sub="DFARS 252.204-7021 ticked; FAR 52.204-21 alone does not count" />
       </div>
       <div className="toolbar">
         <label className="grow">
@@ -179,11 +224,11 @@ export function OrganizationsPage({ viewer }: { viewer: Viewer }) {
             <tbody>
               {shown.map((o) => (
                 <tr key={o.id}>
-                  <td><strong>{o.legal_name}</strong>{o.dba_name && <div className="hint">dba {o.dba_name}</div>}</td>
+                  <td><strong>{o.legal_name}</strong>{o.dba_name && <div className="hint dba">dba {o.dba_name}</div>}</td>
                   <td>{o.uei ?? '—'} / {o.cage ?? '—'}</td>
                   <td>{o.contract_clauses.length ? o.contract_clauses.map((c) => <span key={c} className="pill" style={{ marginRight: 4 }}>{c.replace('DFARS 252.204-', '').replace('FAR 52.204-', 'FAR ')}</span>) : '—'}</td>
                   <td>{o.primary_contact_name ?? '—'}{o.primary_contact_email && <div className="hint">{o.primary_contact_email}</div>}</td>
-                  <td><span className="pill" data-tone={o.status === 'active' ? 'good' : undefined}>{o.status}</span></td>
+                  <td><span className="pill" data-tone={o.status === 'active' ? 'good' : undefined} title={o.status === 'active' ? 'Counted as active' : 'Set to inactive on the organisation'}>{o.status}</span></td>
                   <td>
                     {writable && (
                       <RowActions label={`Actions for ${o.legal_name}`} actions={[
@@ -217,16 +262,27 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
   const [f, setF] = useState<CustomerTenantInput>(initial ? { ...EMPTY_TENANT, ...initial } : EMPTY_TENANT);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const set = <K extends keyof CustomerTenantInput>(k: K, v: CustomerTenantInput[K]) => setF((p) => ({ ...p, [k]: v }));
+  const [fe, setFe] = useState<Record<string, string>>({});
+  const set = <K extends keyof CustomerTenantInput>(k: K, v: CustomerTenantInput[K]) => {
+    setF((p) => ({ ...p, [k]: v }));
+    if (fe[k as string]) setFe((p) => ({ ...p, [k as string]: '' }));
+  };
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    const problems = checkTenant(f);
+    setFe(problems);
+    if (Object.keys(problems).length) { setError('Fix the highlighted fields.'); return; }
     setBusy(true);
     setError(null);
     const body = { ...f, organization_id: f.organization_id || null, entra_tenant_id: f.entra_tenant_id || null, primary_domain: f.primary_domain || null, app_registration_id: f.app_registration_id || null, certificate_thumbprint: f.certificate_thumbprint || null };
     const r = initial ? await onboardApi.tenants.update(initial.id, body) : await onboardApi.tenants.create(body);
     setBusy(false);
     if (r.ok) onSaved(initial ? `${r.data.display_name} updated.` : `${r.data.display_name} registered.`);
-    else setError(failureText(r));
+    else {
+      const byField = issuesByField(r);
+      if (Object.keys(byField).length) setFe(byField);
+      setError(failureText(r));
+    }
   };
   return (
     <Drawer
@@ -241,18 +297,19 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
         </>
       }
     >
-      <form id="tenant-form" onSubmit={submit}>
+      <form id="tenant-form" onSubmit={submit} noValidate>
         {error && <p className="note" data-tone="bad" role="alert">{error}</p>}
-        <Field label="Display name *"><input className="input" value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} data-testid="tenant-name" /></Field>
-        <Field label="Organisation">
+        <p className="form-legend">Fields marked <span className="req-mark">*</span> are required. Everything else can be filled in later, before the connection test.</p>
+        <Field label="Display name" required error={fe.display_name} hint="How the tenant is listed in CES, e.g. Contoso — GCC High"><input className="input" value={f.display_name} onChange={(e) => set('display_name', e.target.value)} required minLength={2} aria-invalid={!!fe.display_name} data-testid="tenant-name" /></Field>
+        <Field label="Organisation" hint="The contractor this tenant belongs to (from Organisations)">
           <select className="select" value={f.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value || null)}>
             <option value="">— none —</option>
             {organizations.map((o) => <option key={o.id} value={o.id}>{o.legal_name}</option>)}
           </select>
         </Field>
         <div className="form-grid-2">
-          <Field label="Entra tenant id" hint="GUID from the Entra admin centre"><input className="input" value={f.entra_tenant_id ?? ''} onChange={(e) => set('entra_tenant_id', e.target.value.trim())} /></Field>
-          <Field label="Primary domain"><input className="input" value={f.primary_domain ?? ''} onChange={(e) => set('primary_domain', e.target.value.trim())} placeholder="contoso.onmicrosoft.us" /></Field>
+          <Field label="Entra tenant id" hint="GUID from the Entra admin centre › Overview" error={fe.entra_tenant_id}><input className="input" value={f.entra_tenant_id ?? ''} onChange={(e) => set('entra_tenant_id', e.target.value.trim())} placeholder="11111111-2222-3333-4444-555555555555" aria-invalid={!!fe.entra_tenant_id} /></Field>
+          <Field label="Primary domain" hint="The tenant's default domain" error={fe.primary_domain}><input className="input" value={f.primary_domain ?? ''} onChange={(e) => set('primary_domain', e.target.value.trim())} placeholder="contoso.onmicrosoft.us" aria-invalid={!!fe.primary_domain} /></Field>
         </div>
         <Field label="Cloud" hint="Only GCC High is implemented by the engine today.">
           <select className="select" value={f.cloud} onChange={(e) => set('cloud', e.target.value as CustomerTenantInput['cloud'])}>
@@ -262,14 +319,14 @@ function TenantForm({ initial, organizations, onSaved, onClose }: { initial: Cus
           </select>
         </Field>
         <div className="form-grid-2">
-          <Field label="App registration id"><input className="input" value={f.app_registration_id ?? ''} onChange={(e) => set('app_registration_id', e.target.value.trim())} /></Field>
-          <Field label="Certificate thumbprint" hint="SHA-1, 40 hex characters"><input className="input" value={f.certificate_thumbprint ?? ''} onChange={(e) => set('certificate_thumbprint', e.target.value.trim().toUpperCase())} maxLength={40} /></Field>
+          <Field label="App registration id" hint="Application (client) id of the CES app registration in this tenant" error={fe.app_registration_id}><input className="input" value={f.app_registration_id ?? ''} onChange={(e) => set('app_registration_id', e.target.value.trim())} placeholder="GUID" aria-invalid={!!fe.app_registration_id} /></Field>
+          <Field label="Certificate thumbprint" hint="SHA-1 of the certificate on the BHD runner — 40 hex characters; the certificate itself is never uploaded" error={fe.certificate_thumbprint}><input className="input" value={f.certificate_thumbprint ?? ''} onChange={(e) => set('certificate_thumbprint', e.target.value.trim().toUpperCase())} maxLength={40} aria-invalid={!!fe.certificate_thumbprint} /></Field>
         </div>
-        <Field label="Status" hint="Live access itself is granted per engagement (Live gate), not here.">
+        <Field label="Status" hint={`${TENANT_STATUS_HELP[f.status]} Live access itself is granted per engagement at the Live gate, not here.`}>
           <select className="select" value={f.status} onChange={(e) => set('status', e.target.value as CustomerTenantInput['status'])}>
-            <option value="registered">Registered</option>
-            <option value="consented">Consented</option>
-            <option value="live_enabled">Live enabled</option>
+            <option value="registered">Registered — identifiers recorded</option>
+            <option value="consented">Consented — customer granted the app</option>
+            <option value="live_enabled">Live enabled — may be used live</option>
             <option value="disabled">Disabled</option>
           </select>
         </Field>

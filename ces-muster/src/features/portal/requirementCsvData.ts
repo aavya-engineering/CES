@@ -267,6 +267,37 @@ export function requirementTemplateCsv(): string {
   );
 }
 
+/** QA 2026-11-13: the same rows in the import template's columns, so what is
+ * downloaded here can be edited and re-imported without renaming a column.
+ * Columns that only apply to organisation-defined rows are blank for the 110. */
+export function requirementsImportCsv(rows: readonly RequirementRow[], metaOf: (id: string) => RequirementMeta | null, customOf?: (id: string) => CustomRequirement | null): string {
+  const lines = [TEMPLATE_HEADER.join(',')];
+  for (const r of rows) {
+    const c = customOf?.(r.control_id) ?? null;
+    const m = metaOf(r.control_id);
+    const status = (c?.status ?? m?.status) === 'inactive' ? 'Inactive' : (c?.status ?? m?.status) ? 'Active' : '';
+    const value: Record<string, unknown> = {
+      control_id: r.control_id,
+      title: c ? c.title : r.practice,
+      family: r.family,
+      priority: m?.priority ? PRIORITY_LABEL[m.priority] ?? m.priority : '',
+      description: c?.description ?? '',
+      source_standard: c ? c.source_standard : 'NIST SP 800-171 Rev. 2',
+      source_section: c ? c.source_section : r.nist_ref,
+      modules: (m?.modules ?? []).join(';'),
+      implementation_guidance: m?.implementation_guidance ?? '',
+      assessment_criteria: c?.assessment_criteria ?? m?.assessment_criteria ?? '',
+      status,
+      effective_date: c?.effective_date ?? m?.effective_date ?? '',
+    };
+    lines.push(TEMPLATE_HEADER.map((k) => cell(value[k])).join(','));
+  }
+  return lines.join('\r\n') + '\r\n';
+}
+export function exportRequirementsForImport(rows: readonly RequirementRow[], metaOf: (id: string) => RequirementMeta | null, customOf?: (id: string) => CustomRequirement | null) {
+  download(requirementsImportCsv(rows, metaOf, customOf), `ces-requirements-import-${new Date().toISOString().slice(0, 10)}.csv`);
+}
+
 export function downloadRequirementTemplate() {
   const blob = new Blob([requirementTemplateCsv()], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);

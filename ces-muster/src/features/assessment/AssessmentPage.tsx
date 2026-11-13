@@ -89,12 +89,15 @@ interface AssessmentPageProps {
    */
   onEngagementReady: (kind: EngagementKind, engagementId: string, partyId: string) => void;
   onComplete: (sessionId: string) => void;
+  /** QA 2026-11-13: leave the resumed session as it is and open a blank Profile. */
+  onStartNew?: () => void;
 }
 
 export default function AssessmentPage({
   existingSessionId,
   onEngagementReady,
   onComplete,
+  onStartNew,
 }: AssessmentPageProps) {
   // Profile fields (locked once the interview begins — party/engagement are written then)
   const [kind, setKind] = useState<EngagementKind>('individual_contractor');
@@ -185,6 +188,10 @@ export default function AssessmentPage({
   const [partyId, setPartyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [error, setError] = useState('');
+  // QA 2026-11-13: problems sit under the field they belong to.
+  const [fieldErrors, setFieldErrors] = useState<{ orgName?: string; uei?: string; cage?: string; onPremOt?: string }>({});
+  // Resync feedback (the button used to fail silently and the gate stayed on).
+  const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'failed' | 'synced'>('idle');
   // Resume gate: question tabs render only after Dexie state is restored.
   const [ready, setReady] = useState(!existingSessionId);
   const resumeStarted = useRef(false);
@@ -417,12 +424,14 @@ export default function AssessmentPage({
   };
 
   const beginInterview = async () => {
-    if (!orgName.trim()) {
-      setError('Organization name is required.');
-      return;
-    }
-    if (!onPremOt) {
-      setError('On-premises / OT answer is required.');
+    const fe: typeof fieldErrors = {};
+    if (!orgName.trim()) fe.orgName = 'Organization name is required.';
+    if (uei.trim() && !/^[A-Z0-9]{12}$/i.test(uei.trim())) fe.uei = 'A UEI is 12 letters or digits (SAM.gov).';
+    if (cage.trim() && !/^[A-Z0-9]{5}$/i.test(cage.trim())) fe.cage = 'A CAGE code is 5 letters or digits.';
+    if (!onPremOt) fe.onPremOt = 'Choose Yes, No or Unsure.';
+    setFieldErrors(fe);
+    if (Object.keys(fe).length || !onPremOt) {
+      setError('Fix the highlighted fields to begin.');
       return;
     }
     setError('');
@@ -573,8 +582,20 @@ export default function AssessmentPage({
     onComplete(sessionId);
   };
 
-  const handleResync = () => {
-    if (engineRef.current) void engineRef.current.resync();
+  const handleResync = async () => {
+    if (!engineRef.current) return;
+    setSyncState('syncing');
+    const ok = await engineRef.current.resync();
+    setSyncState(ok ? 'synced' : 'failed');
+  };
+  // QA 2026-11-13: an escape from a sync that keeps failing — drop the AI advisor
+  // for this session; the answers are already saved locally and score as usual.
+  const finishWithoutAdvisor = () => {
+    engineRef.current?.destroy();
+    engineRef.current = null;
+    setPendingSync(false);
+    setSuggestedQuestionId(null);
+    setSyncState('idle');
   };
 
   // Collect requirements from the currently active tab for the coach panel
@@ -617,6 +638,12 @@ export default function AssessmentPage({
 
   const adaptiveEverOn = engineRef.current !== null;
   const finishGated = adaptiveEverOn && pendingSync;
+  const unanswered = questions.length - totalAnswered;
+  const finishReason = !complete
+    ? `${unanswered} question${unanswered === 1 ? '' : 's'} still unanswered`
+    : finishGated
+      ? 'Answers are waiting to sync with the AI advisor — Resync, or finish without AI review'
+      : '';
 
   return (
     <div className="page">
@@ -648,8 +675,25 @@ export default function AssessmentPage({
           data-testid="adaptive-mode-banner"
         >
           {adaptiveMode === 'adaptive'
-            ? 'AI-adaptive mode active'
-            : 'AI-adaptive degraded — using static interview (offline mode)'}
+            ? 'AI-adaptive interview is on for this session: the next question is suggested from earlier answers. Nothing to do — answer in any order.'
+            : 'The AI advisor cannot be reached, so questions follow the standard order. Your answers are saved and will sync when it is back; nothing to do now.'}
+        </div>
+      )}
+
+      {/* QA 2026-11-13: a resumed / started session locks the profile — say so, and offer a way out. */}
+      {begun && activeTab === 'profile' && (
+        <div className="callout-warning" style={{ marginBottom: 12 }} data-testid="profile-locked-note">
+          <strong>Profile locked</strong> — interview in progress for <strong>{orgName || 'this organization'}</strong> (session {sessionId!.slice(0, 8).toUpperCase()}).
+          Assessment type, organization and the CUI question were fixed when the interview began; services and the questions stay editable.
+          {onStartNew && (
+            <>
+              {' '}
+              <button type="button" className="btn" style={{ marginLeft: 8 }} onClick={onStartNew} data-testid="start-new-assessment">
+                Start a new assessment
+              </button>
+              <span style={{ marginLeft: 8, fontSize: 12 }}>(this one stays resumable in this browser)</span>
+            </>
+          )}
         </div>
       )}
 
@@ -689,7 +733,7 @@ export default function AssessmentPage({
       {activeTab === 'profile' && (
         <section>
           <div className="field">
-            <span className="field-label">Assessment Type</span>
+            <span className="field-label">Assessment Type{begun && <span className="eyebrow" style={{ marginLeft: 8 }}>locked</span>}</span>
             {radioRow(
               'engagement_kind',
               kind,
@@ -708,11 +752,14 @@ export default function AssessmentPage({
               <input
                 type="text"
                 value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
+                onChange={(e) => { setOrgName(e.target.value); if (fieldErrors.orgName) setFieldErrors((f) => ({ ...f, orgName: undefined })); }}
                 placeholder="Acme Defense LLC"
                 disabled={begun}
+                aria-invalid={fieldErrors.orgName ? true : undefined}
+                data-testid="profile-org-name"
               />
             </label>
+            {fieldErrors.orgName && <p className="form-error" role="alert" data-testid="profile-org-name-error">{fieldErrors.orgName}</p>}
           </div>
 
           <div style={{ display: 'flex', gap: 16 }}>
@@ -722,11 +769,15 @@ export default function AssessmentPage({
                 <input
                   type="text"
                   value={uei}
-                  onChange={(e) => setUei(e.target.value)}
-                  placeholder="12-char UEI"
+                  onChange={(e) => { setUei(e.target.value.toUpperCase()); if (fieldErrors.uei) setFieldErrors((f) => ({ ...f, uei: undefined })); }}
+                  placeholder="12 letters/digits, e.g. ABC123DEF456"
+                  maxLength={12}
                   disabled={begun}
+                  aria-invalid={fieldErrors.uei ? true : undefined}
                 />
               </label>
+              <p className="eyebrow" style={{ margin: '4px 0 0' }}>Unique Entity ID from SAM.gov — 12 characters</p>
+              {fieldErrors.uei && <p className="form-error" role="alert">{fieldErrors.uei}</p>}
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label className="field-label">
@@ -734,11 +785,15 @@ export default function AssessmentPage({
                 <input
                   type="text"
                   value={cage}
-                  onChange={(e) => setCage(e.target.value)}
-                  placeholder="5-char CAGE"
+                  onChange={(e) => { setCage(e.target.value.toUpperCase()); if (fieldErrors.cage) setFieldErrors((f) => ({ ...f, cage: undefined })); }}
+                  placeholder="5 letters/digits, e.g. 1AB23"
+                  maxLength={5}
                   disabled={begun}
+                  aria-invalid={fieldErrors.cage ? true : undefined}
                 />
               </label>
+              <p className="eyebrow" style={{ margin: '4px 0 0' }}>Commercial and Government Entity code — 5 characters</p>
+              {fieldErrors.cage && <p className="form-error" role="alert">{fieldErrors.cage}</p>}
             </div>
           </div>
 
@@ -757,11 +812,12 @@ export default function AssessmentPage({
             <span className="field-label">
               Does CUI touch on-premises servers or OT/manufacturing systems?{' '}
               <span className="req">*</span>
+              {begun && <span className="eyebrow" style={{ marginLeft: 8 }}>locked</span>}
             </span>
             {radioRow(
               'on_prem_ot',
               onPremOt,
-              (v) => setOnPremOt(v as 'yes' | 'no' | 'unsure'),
+              (v) => { setOnPremOt(v as 'yes' | 'no' | 'unsure'); setFieldErrors((f) => ({ ...f, onPremOt: undefined })); },
               [
                 { label: 'Yes', value: 'yes' },
                 { label: 'No', value: 'no' },
@@ -769,6 +825,7 @@ export default function AssessmentPage({
               ],
               begun
             )}
+            {fieldErrors.onPremOt && <p className="form-error" role="alert" data-testid="profile-on-prem-error">{fieldErrors.onPremOt}</p>}
           </div>
 
           <div className="field">
@@ -939,6 +996,12 @@ export default function AssessmentPage({
                 </label>
               ))}
             </div>
+            {/* QA 2026-11-13: an optional radio group needs a way back to "none". Drafts already applied stay (each is overridable). */}
+            {selectedArchetype && (
+              <button type="button" className="btn" style={{ marginTop: 6, fontSize: 12 }} onClick={() => setSelectedArchetype(null)} data-testid="archetype-clear">
+                Clear selection
+              </button>
+            )}
           </div>
 
           {/* AI-adaptive toggle — default OFF; does not affect e2e (static path) */}
@@ -952,10 +1015,12 @@ export default function AssessmentPage({
                 data-testid="adaptive-toggle"
               />
               AI-adaptive interview (requires connection)
+              {begun && <span className="eyebrow" style={{ marginLeft: 8 }}>{adaptiveEnabled ? 'on for this session' : 'off for this session'}</span>}
             </label>
             <p style={{ fontSize: 12, color: 'var(--co-text-muted)', margin: '4px 0 0 24px' }}>
-              When enabled, question order is guided by AI based on prior answers.
-              Falls back to static interview on connection loss. Default OFF.
+              {begun
+                ? 'Chosen before the interview began and fixed for the session. When on, the next question is suggested from earlier answers; if the advisor is unreachable the standard order is used.'
+                : 'Off unless you switch it on here before Begin Interview. When on, the next question is suggested from earlier answers; if the advisor is unreachable the standard order is used and nothing is lost.'}
             </p>
           </div>
 
@@ -1085,38 +1150,59 @@ export default function AssessmentPage({
               <span
                 className="badge badge-risk"
                 style={{ fontSize: 12 }}
+                title="Answers recorded while the AI advisor was on have not reached it yet. Resync sends them; if the advisor stays unreachable you can finish without it."
                 data-testid="pending-sync-note"
               >
-                Pending advisor review sync
+                {syncState === 'syncing' ? 'Syncing answers with the AI advisor…' : syncState === 'failed' ? 'AI advisor unreachable — answers not synced' : 'Answers waiting to sync with the AI advisor'}
               </span>
             )}
 
             {pendingSync && engineRef.current && (
               <button
+                type="button"
                 className="btn"
                 data-testid="resync-btn"
-                onClick={handleResync}
+                disabled={syncState === 'syncing'}
+                title="Send the queued answers to the AI advisor"
+                onClick={() => void handleResync()}
               >
-                Resync
+                {syncState === 'syncing' ? 'Syncing…' : 'Resync'}
+              </button>
+            )}
+            {finishGated && syncState === 'failed' && (
+              <button type="button" className="btn" data-testid="finish-without-advisor" title="Drop the AI advisor for this session and score from the saved answers" onClick={finishWithoutAdvisor}>
+                Finish without AI review
               </button>
             )}
 
             <button
+              type="button"
               className="btn"
               data-testid="coach-btn"
+              aria-pressed={coachOpen}
+              title={coachOpen ? 'Close the Coach panel' : 'Open the Coach: guidance for the requirements on this tab'}
               onClick={() => setCoachOpen((o) => !o)}
             >
-              Coach
+              {coachOpen ? 'Close Coach' : 'Coach'}
             </button>
 
-            <button
-              className="btn btn-primary"
-              data-testid="finish-interview"
-              disabled={!complete || finishGated}
-              onClick={() => void finishInterview()}
-            >
-              Finish &amp; Score →
-            </button>
+            <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-testid="finish-interview"
+                disabled={!complete || finishGated}
+                title={finishReason || 'Score this interview'}
+                onClick={() => void finishInterview()}
+              >
+                Finish &amp; Score →
+              </button>
+              {finishReason && (
+                <span className="eyebrow" style={{ marginTop: 4, fontSize: 11 }} data-testid="finish-reason">
+                  {finishReason}
+                </span>
+              )}
+            </span>
           </div>
         </div>
       )}
