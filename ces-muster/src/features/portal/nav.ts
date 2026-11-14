@@ -147,8 +147,9 @@ export function lifecycleNavFor(role: string, modules?: Record<string, boolean>)
   // built as one screen (e.g. every Stamper page → remediate/stamper, and the
   // Muster readiness view appears under more than one section). Only the first
   // item for a screen is "current"; every later one is a shortcut to it.
-  const seen = new Set<string>();
   for (const section of LIFECYCLE_NAV) {
+    // one entry per screen *within* a section
+    const seen = new Set<string>();
     if (!canView(role, section.key)) continue;
     if (section.key !== 'admin' && section.key !== 'shared' && modules?.[section.key] === false) continue; // tenant hid this module
     const items: NavItem[] = [];
@@ -166,13 +167,29 @@ export function lifecycleNavFor(role: string, modules?: Record<string, boolean>)
       }
     }
     if (!items.length) continue;
-    for (const i of items) {
+    // QA 2026-11-14 ("Create / Edit / Delete Organization all open the same page"):
+    // the wireframe lists one entry per user task; CES builds them as one screen
+    // with its own Create / Edit / Delete controls. Keep the first entry only.
+    const kept = items.filter((i) => {
       const key = `${i.route}|${i.view ?? ''}`;
-      if (seen.has(key)) i.shortcut = true;
-      else seen.add(key);
-    }
-    out.push({ id: section.key, label: section.label, icon: SECTION_ICON[section.key] ?? 'overview', mod: SECTION_MOD[section.key], items });
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (!kept.length) continue;
+    out.push({ id: section.key, label: section.label, icon: SECTION_ICON[section.key] ?? 'overview', mod: SECTION_MOD[section.key], items: kept });
   }
+  // A screen that two sections both list (e.g. the evidence catalog under Remediate and under
+  // Collect Evidence) stays in both, but is "current" in one place only: the section whose
+  // id matches the route's first segment, otherwise the first occurrence.
+  const primary = new Map<string, { item: NavItem; home: boolean }>();
+  for (const sec of out) for (const i of sec.items) {
+    const key = `${i.route}|${i.view ?? ''}`;
+    const home = sec.id === i.route.split('/')[0];
+    const cur = primary.get(key);
+    if (!cur || (home && !cur.home)) primary.set(key, { item: i, home });
+  }
+  for (const sec of out) for (const i of sec.items) if (primary.get(`${i.route}|${i.view ?? ''}`)?.item !== i) i.shortcut = true;
   return out;
 }
 

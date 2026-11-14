@@ -288,7 +288,7 @@ export function StamperPage({ viewer }: { viewer: Viewer }) {
             </label>
             <label className="form-row">Justification *<input className="input" maxLength={2000} value={justification} onChange={(e) => setJustification(e.target.value)} required minLength={10} data-testid="stamper-justification" /></label>
           </div>
-          <button type="submit" className="btn btn-primary" disabled={busy || picked.size === 0 || justification.length < 10} data-testid="stamper-submit">{busy ? 'Requesting…' : `Request ${mode} run (${picked.size})`}</button>
+          <button type="submit" className="btn btn-primary" disabled={busy || picked.size === 0 || justification.length < 10} title={picked.size === 0 ? "Pick at least one registry entry" : justification.length < 10 ? `Justification needs ${10 - justification.length} more characters` : undefined} data-testid="stamper-submit">{busy ? 'Requesting…' : `Request ${mode} run (${picked.size})`}</button>
         </form>
       )}
       {preview && (
@@ -378,7 +378,7 @@ export function AdminOpsPage({ viewer, initialDomain }: { viewer: Viewer; initia
       </section>
       {op && eng.id && (
         <Drawer title={`${op.id} · ${op.title}`} subtitle={`${op.domain_name} · ${op.priority} · ${op.sod_tier} · ${op.idempotency_class}`} onClose={() => setOp(null)} testId="adminops-drawer"
-          footer={<><button type="button" className="btn btn-secondary" onClick={() => setOp(null)}>Cancel</button><button type="submit" form="adminops-form" className="btn btn-primary" disabled={busy || justification.length < 10} data-testid="adminops-submit">{busy ? 'Requesting…' : 'Request change'}</button></>}>
+          footer={<><button type="button" className="btn btn-secondary" onClick={() => setOp(null)}>Cancel</button><button type="submit" form="adminops-form" className="btn btn-primary" disabled={busy || justification.length < 10} title={justification.length < 10 ? `Justification needs ${10 - justification.length} more characters` : undefined} data-testid="adminops-submit">{busy ? 'Requesting…' : 'Request change'}</button></>}>
           <p className="hint">{op.overview}</p>
           <form id="adminops-form" onSubmit={(e) => { e.preventDefault(); if (mode === 'live') setConfirmLive(true); else void submit(); }}>
             {op.parameters.filter((p) => p.type !== 'readonly').map((p) => (

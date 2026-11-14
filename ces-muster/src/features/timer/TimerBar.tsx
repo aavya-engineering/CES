@@ -71,7 +71,7 @@ export default function TimerBar() {
         marginBottom: '1rem',
       }}
     >
-      <p className="eyebrow" style={{ margin: '0 0 0.5rem' }}>
+      <p style={{ margin: '0 0 0.5rem', fontSize: 12, color: 'var(--co-text-muted)' }}>
         Session time by phase — the phases run independently, more than one may run at once, and the total is their sum against the 2-hour target.
       </p>
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
@@ -144,8 +144,8 @@ export default function TimerBar() {
         </span>
       </div>
 
-      <p className="eyebrow" style={{ margin: '0.4rem 0 0' }}>
-        Target: no more than 2 hours of BHD time per subcontractor (working assumption; confirmed with BHD during pilot)
+      <p style={{ margin: '0.4rem 0 0', fontSize: 12, color: 'var(--co-text-muted)' }}>
+        Target: no more than 2 hours of BHD time per subcontractor (working assumption, to be confirmed with BHD during the pilot).
       </p>
     </div>
   );

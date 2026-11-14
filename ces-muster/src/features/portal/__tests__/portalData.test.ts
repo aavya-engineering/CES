@@ -55,7 +55,8 @@ describe('UI-02 navigation by role (lifecycle sidebar, Sprint 1 Foundation 2026-
 
   it('every item is either a built screen or a planned lifecycle scaffold (never presented as working)', () => {
     const items = navFor(as('bhd_operator')).flatMap((s) => s.items);
-    expect(items.length).toBeGreaterThan(200);
+    // QA 2026-11-14: one sidebar entry per screen within a section (the wireframe listed one per task).
+    expect(items.length).toBeGreaterThan(30);
     for (const i of items) {
       if (i.planned) expect(i.route.startsWith('lc/'), `${i.label} is planned so must open the scaffold`).toBe(true);
       else expect(i.route.startsWith('lc/'), `${i.label} is built so must open a real screen`).toBe(false);
