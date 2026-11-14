@@ -133,7 +133,7 @@ export default function ResultScreen({ sessionId, onExport }: ResultScreenProps)
       </table>
 
       <p className="eyebrow" style={{ marginBottom: 16 }}>
-        Target: no more than 2 hours of BHD time per subcontractor (working assumption; confirmed with BHD during pilot)
+        Target: no more than 2 hours of BHD time per subcontractor (working assumption, to be confirmed with BHD during the pilot).
       </p>
 
       <p data-testid="disclaimer-text" className="callout-warning" style={{ marginBottom: 24 }}>

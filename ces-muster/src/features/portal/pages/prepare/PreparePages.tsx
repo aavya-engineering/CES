@@ -157,7 +157,7 @@ export function PrepareOverviewPage({ viewer, go }: { viewer: Viewer; go: (r: Ro
             </label>
             <label className="form-row">Decision<select className="select" value={decision} onChange={(e) => setDecision(e.target.value as 'approved' | 'rejected')}><option value="approved">Approved</option><option value="rejected">Rejected — rework</option></select></label>
             <label className="form-row">Notes *<textarea maxLength={2000} className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} required minLength={5} data-testid="signoff-notes" /></label>
-            <button type="submit" className="btn btn-primary" disabled={notes.length < 5} data-testid="signoff-submit">Sign as {role(viewer)}</button>
+            <button type="submit" className="btn btn-primary" disabled={notes.length < 5} title={notes.length < 5 ? "Write at least 5 characters of notes" : undefined} data-testid="signoff-submit">Sign as {role(viewer)}</button>
           </form>
         )}
       </div>
@@ -295,7 +295,7 @@ export function PackagesPage({ viewer }: { viewer: Viewer }) {
           </div>
           {scopeType !== 'all' && <label className="form-row">{scopeType === 'requirement' ? 'Requirement ids' : scopeType === 'family' ? 'Family codes' : 'Objective ids'} (comma-separated)<input className="input" value={scopeValues} onChange={(e) => setScopeValues(e.target.value)} placeholder={scopeType === 'requirement' ? 'AC.L1-3.1.1, AC.L1-3.1.2' : scopeType === 'family' ? 'AC, IA, SC' : 'AC.L1-3.1.1[a]'} list={scopeType === 'requirement' ? 'pkg-req' : undefined} /><datalist id="pkg-req">{REQ_IDS.map((id) => <option key={id} value={id} />)}</datalist></label>}
           <label style={{ fontWeight: 400 }}><input type="checkbox" checked={includeUnvalidated} onChange={(e) => setIncludeUnvalidated(e.target.checked)} /> include unvalidated items (package will stay draft)</label>
-          <div><button type="submit" className="btn btn-primary" disabled={busy || name.length < 3} data-testid="package-submit">{busy ? 'Building…' : 'Build package'}</button></div>
+          <div><button type="submit" className="btn btn-primary" disabled={busy || name.length < 3} title={name.length < 3 ? "Name the package (at least 3 characters)" : undefined} data-testid="package-submit">{busy ? 'Building…' : 'Build package'}</button></div>
         </form>
       )}
       {list.data && list.data.length === 0 && <Empty>No package yet.</Empty>}
@@ -371,7 +371,7 @@ export function AssessorWorkspacePage({ viewer }: { viewer: Viewer }) {
         <h2 className="card-title">Assessor questions</h2>
         {reqs.data && reqs.data.length === 0 && <Empty>No question logged yet.</Empty>}
         {reqs.data && reqs.data.length > 0 && <table className="tbl" data-testid="assessor-requests"><tbody>{reqs.data.map((r) => <tr key={r.id}><td><strong>{r.requirement_id ?? 'General'}</strong><div>{r.question}</div><div className="hint">{r.requested_by} · {fmt(r.created_at)}</div>{r.answer && <div className="note" data-tone="good" style={{ marginTop: 6 }}>{r.answer} <span className="hint">— {r.answered_by}, {fmt(r.answered_at)}</span></div>}</td><td><span className="pill" data-tone={r.status === 'open' ? 'warn' : r.status === 'answered' ? 'good' : undefined}>{r.status}</span></td><td style={{ whiteSpace: 'nowrap' }}>{answerer && r.status === 'open' && <button type="button" className="row-btn" onClick={() => setAnswerFor(r)}>Answer</button>} {asker && r.status !== 'closed' && <button type="button" className="row-btn" onClick={async () => { await prepareApi.closeRequest(eng.id, r.id); reqs.reload(); }}>Close</button>}</td></tr>)}</tbody></table>}
-        {asker && eng.id && <form onSubmit={ask} style={{ display: 'flex', gap: 6, marginTop: 10 }}><input className="input" placeholder={`Ask a question${open ? ` about ${open.requirement_id}` : ''}`} value={question} onChange={(e) => setQuestion(e.target.value)} minLength={5} style={{ flex: 1 }} data-testid="assessor-ask" /><button type="submit" className="btn btn-primary" disabled={question.length < 5}>Ask</button></form>}
+        {asker && eng.id && <form onSubmit={ask} style={{ display: 'flex', gap: 6, marginTop: 10 }}><input className="input" placeholder={`Ask a question${open ? ` about ${open.requirement_id}` : ''}`} value={question} onChange={(e) => setQuestion(e.target.value)} minLength={5} style={{ flex: 1 }} data-testid="assessor-ask" /><button type="submit" className="btn btn-primary" disabled={question.length < 5} title={question.length < 5 ? "Write the question (at least 5 characters)" : undefined}>Ask</button></form>}
       </section>
       {open && (
         <Drawer title={`${open.requirement_id} — ${open.assessed ? open.assessed.replace('_', ' ') : 'not assessed'}`} subtitle={open.practice} onClose={() => setOpen(null)} testId="assessor-drawer" wide footer={<button type="button" className="btn btn-primary" onClick={() => setOpen(null)}>Close</button>}>

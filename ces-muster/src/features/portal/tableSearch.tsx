@@ -12,7 +12,6 @@
 // every list page gets the same search without each table re-implementing
 // filtering. Pages that already filter server-side keep their own box.
 import { useEffect, useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 
 export function TableSearch({ target, placeholder = 'Search this table…', testId }: { /** CSS selector of the table (e.g. [data-testid="tenant-table"]). */ target: string; placeholder?: string; testId?: string }) {
   const [q, setQ] = useState('');
@@ -43,7 +42,6 @@ export function TableSearch({ target, placeholder = 'Search this table…', test
     <div className="toolbar table-search" ref={root}>
       <label className="grow search-input">
         <span className="sr-only">Search this table</span>
-        <Search size={16} aria-hidden="true" />
         <input className="input" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} maxLength={200} data-testid={testId ?? 'table-search'} />
       </label>
       {count && q && <span className="hint">{count.shown} of {count.total} rows</span>}

@@ -145,11 +145,12 @@ describe('QA round 3 (2026-11-13) — one current item per screen', () => {
       }
     }
   });
-  it('shortcuts still open their screen (routesFor keeps the route)', () => {
+  it('one sidebar entry per screen; the route stays reachable', () => {
     const nav = navFor(signedIn('bhd_operator'));
     const stamper = nav.find((s) => s.id === 'remediate')!.items.filter((i) => i.route === 'remediate/stamper');
-    expect(stamper.length).toBeGreaterThan(1);
-    expect(stamper.filter((i) => !i.shortcut)).toHaveLength(1);
+    expect(stamper).toHaveLength(1);
+    const orgs = nav.find((s) => s.id === 'onboard')!.items.filter((i) => i.route === 'onboard/organizations');
+    expect(orgs).toHaveLength(1);
     expect(routesFor(signedIn('bhd_operator')).has('remediate/stamper')).toBe(true);
   });
 });

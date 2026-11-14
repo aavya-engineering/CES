@@ -3622,4 +3622,4 @@ fieldset[disabled] .input, fieldset[disabled] .select { opacity: 0.6; }
 .table-wrap > .table-search { padding: 10px 12px 0; margin: 0; }
 .table-search .search-input { display: flex; align-items: center; gap: 8px; }
 .table-search .search-input .input { flex: 1; }
-.table-search .search-input svg { color: var(--co-text-muted); flex: none; }
+.table-search .search-input .input { padding-left: 12px; }

@@ -639,8 +639,10 @@ export default function AssessmentPage({
   const adaptiveEverOn = engineRef.current !== null;
   const finishGated = adaptiveEverOn && pendingSync;
   const unanswered = questions.length - totalAnswered;
+  // QA 2026-11-14: name the tab(s) that still have open questions and let the user jump there.
+  const openTabs = groups.filter((g) => answeredCount(g.questions, answers) < g.questions.length);
   const finishReason = !complete
-    ? `${unanswered} question${unanswered === 1 ? '' : 's'} still unanswered`
+    ? `${unanswered} question${unanswered === 1 ? '' : 's'} still unanswered${openTabs.length ? ` in ${openTabs.map((g) => g.label).join(', ')}` : ''}`
     : finishGated
       ? 'Answers are waiting to sync with the AI advisor — Resync, or finish without AI review'
       : '';
@@ -1198,8 +1200,16 @@ export default function AssessmentPage({
                 Finish &amp; Score →
               </button>
               {finishReason && (
-                <span className="eyebrow" style={{ marginTop: 4, fontSize: 11 }} data-testid="finish-reason">
+                <span style={{ marginTop: 4, fontSize: 12, color: 'var(--co-text-muted)', textAlign: 'right' }} data-testid="finish-reason">
                   {finishReason}
+                  {!complete && openTabs.length > 0 && (
+                    <>
+                      {' '}
+                      <button type="button" className="btn" style={{ fontSize: 12, padding: '2px 8px', marginLeft: 6 }} onClick={() => setActiveTab(openTabs[0].cluster)} data-testid="finish-goto-open">
+                        Go to {openTabs[0].label}
+                      </button>
+                    </>
+                  )}
                 </span>
               )}
             </span>
